@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Badge }   from "@/components/ui/Badge";
 import { Button }  from "@/components/ui/Button";
-import { cn, formatStipend, formatDuration, formatDate } from "@/lib/utils";
+import { cn, formatStipend, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
 import { toast }   from "sonner";
 import type { Internship } from "@/types";
 
@@ -19,6 +19,7 @@ interface Props {
   isRecommended?:  boolean;
   onClick?:        () => void;
   onSave?:         (id: string) => void;
+  onApply?:        (id: string) => void;
 }
 
 export function InternshipCard({
@@ -29,9 +30,11 @@ export function InternshipCard({
   isRecommended = false,
   onClick,
   onSave,
+  onApply,
 }: Props) {
   const [saved,    setSaved]    = useState(isSaved);
   const [applying, setApplying] = useState(false);
+  const internshipId = getInternshipId(internship);
 
   const location = internship.isRemote
     ? "Work from Home"
@@ -46,12 +49,12 @@ export function InternshipCard({
     const next = !saved;
     setSaved(next);
     try {
-      const res = await fetch(`/api/internships/${internship._id}/save`, {
+      const res = await fetch(`/api/internships/${internshipId}/save`, {
         method: next ? "POST" : "DELETE",
         credentials: "include",
       });
       if (!res.ok) throw new Error();
-      onSave?.(internship._id);
+      onSave?.(internshipId);
       toast.success(next ? "Saved" : "Removed from saved");
     } catch {
       setSaved(!next);
@@ -64,10 +67,11 @@ export function InternshipCard({
     if (isApplied) return;
     setApplying(true);
     try {
-      const res  = await fetch(`/api/internships/${internship._id}/apply`, { method: "POST", credentials: "include" });
+      const res  = await fetch(`/api/internships/${internshipId}/apply`, { method: "POST", credentials: "include" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
       toast.success("Application submitted!");
+      onApply?.(internshipId);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to apply");
     } finally {

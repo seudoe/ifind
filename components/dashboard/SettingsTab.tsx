@@ -5,6 +5,7 @@ import { Eye, EyeOff, User, Lock, Bell, Trash2 } from "lucide-react";
 import { Input }  from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
+import type { User as StudentUser } from "@/types";
 
 // ── Section wrapper ────────────────────────────────────────────────────────
 function Section({
@@ -33,12 +34,12 @@ function Section({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
-export function SettingsTab() {
+export function SettingsTab({ user }: { user: StudentUser }) {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew,     setShowNew]     = useState(false);
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 w-full">
 
       {/* ── Profile info ──────────────────────────────────────────────── */}
       <Section
@@ -47,7 +48,7 @@ export function SettingsTab() {
         desc="Update your name, location and contact details"
       >
         <div className="flex items-center gap-4 mb-5">
-          <Avatar src={null} name="Rahul Sharma" size="lg" />
+          <Avatar src={user.profilePicture} name={user.name} size="lg" />
           <div>
             <p className="text-sm font-medium text-[var(--text)]">Profile photo</p>
             <p className="text-xs text-[var(--text-3)] mt-0.5">JPG, PNG or WebP · max 2 MB</p>
@@ -56,12 +57,12 @@ export function SettingsTab() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Full Name"    defaultValue="Rahul Sharma"       />
-          <Input label="Username"     defaultValue="rahulsharma" disabled className="opacity-60" />
-          <Input label="Email"        defaultValue="rahul@example.com"  type="email" />
-          <Input label="Phone"        placeholder="+91 98765 43210"     />
-          <Input label="City"         placeholder="Bangalore"           />
-          <Input label="Country"      placeholder="India"               />
+          <Input label="Full Name" defaultValue={user.name} />
+          <Input label="Username" defaultValue={user.username} disabled className="opacity-60" />
+          <Input label="Email" defaultValue={user.email} type="email" />
+          <Input label="Phone" defaultValue={user.phone ?? ""} placeholder="+91 98765 43210" />
+          <Input label="City" defaultValue={user.city ?? ""} placeholder="Bangalore" />
+          <Input label="Country" defaultValue={user.country ?? ""} placeholder="India" />
         </div>
         <Button className="mt-4" size="sm">Save Changes</Button>
       </Section>

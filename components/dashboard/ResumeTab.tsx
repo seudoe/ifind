@@ -1,9 +1,11 @@
 import { Upload, FileText, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import type { User } from "@/types";
 
-export function ResumeTab() {
+export function ResumeTab({ user }: { user: User }) {
+  const hasResume = Boolean(user.resume?.driveFileId || user.resume?.uploadedAt);
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 w-full">
       <div>
         <h2 className="text-sm font-semibold text-[var(--text)]">Resume</h2>
         <p className="text-xs text-[var(--text-2)] mt-1">Upload your resume in PDF format. AI will extract your skills, experience and education automatically.</p>
@@ -23,8 +25,8 @@ export function ResumeTab() {
       <div className="plasma-card p-5 flex items-start gap-3">
         <AlertCircle className="h-4 w-4 text-[var(--text-3)] shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium text-[var(--text)]">No resume uploaded yet</p>
-          <p className="text-xs text-[var(--text-2)] mt-0.5">Upload your resume to unlock AI-powered internship recommendations and improve your profile score.</p>
+          <p className="text-sm font-medium text-[var(--text)]">{hasResume ? "Resume uploaded" : "No resume uploaded yet"}</p>
+          <p className="text-xs text-[var(--text-2)] mt-0.5">{hasResume && user.resume.uploadedAt ? `Uploaded ${new Date(user.resume.uploadedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}.` : "Upload your resume to unlock AI-powered internship recommendations and improve your profile score."}</p>
         </div>
       </div>
 

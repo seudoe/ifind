@@ -25,13 +25,49 @@ export function formatDuration(duration: { value: number; unit: string }): strin
   return `${duration.value} ${duration.unit}`;
 }
 
-export function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-IN", {
+export function formatDate(dateValue: any): string {
+  if (!dateValue) return "N/A";
+  let parsedDate: Date;
+  
+  if (typeof dateValue === "string" || typeof dateValue === "number") {
+    parsedDate = new Date(dateValue);
+  } else if (typeof dateValue === "object") {
+    if (dateValue.$date) {
+      if (typeof dateValue.$date === "string" || typeof dateValue.$date === "number") {
+        parsedDate = new Date(dateValue.$date);
+      } else if (dateValue.$date.$numberLong) {
+        parsedDate = new Date(Number(dateValue.$date.$numberLong));
+      } else {
+        return "N/A";
+      }
+    } else if (typeof dateValue.getTime === "function") {
+      parsedDate = dateValue;
+    } else {
+      return "N/A";
+    }
+  } else {
+    return "N/A";
+  }
+
+  if (isNaN(parsedDate.getTime())) return "N/A";
+
+  return parsedDate.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+}
+
+export function getInternshipId(item: any): string {
+  if (!item) return "";
+  if (typeof item === "string") return item;
+  if (typeof item._id === "string") return item._id;
+  if (item._id && typeof item._id === "object") {
+    if (item._id.$oid) return item._id.$oid;
+    if (typeof item._id.toString === "function") return item._id.toString();
+  }
+  if (typeof item.toString === "function") return item.toString();
+  return String(item._id || "");
 }
 
 export function getStatusColor(status: string): string {

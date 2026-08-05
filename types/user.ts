@@ -19,9 +19,12 @@ export interface User {
   role?: "user" | "admin";
   profilePicture?: string | null;
   phone?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  skills?: string[];
   resume: Resume;
   appliedInternships: AppliedInternship[];
   savedInternships: string[];

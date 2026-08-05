@@ -1,357 +1,893 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
-  MapPin, Mail, Phone, GitBranch, Link2,
-  Briefcase, GraduationCap, Code2, Award, Globe,
-  BookOpen, Users, Heart, ExternalLink, Edit2,
+  Award, BookOpen, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
+  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2
 } from "lucide-react";
-import { Badge }   from "@/components/ui/Badge";
-import { Button }  from "@/components/ui/Button";
-import { Avatar }  from "@/components/ui/Avatar";
-import { ProgressBar } from "@/components/ui/ProgressBar";
-import type { User, ParsedResumeData, WorkHistory, ResumeEducation, Skill } from "@/types";
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { useStudentDashboard } from "@/hooks/useStudentDashboard";
+import type { ParsedResumeData, User } from "@/types";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
-// ── Hardcoded mock for visual preview ─────────────────────────────────────
-const MOCK_USER: User = {
-  _id: "1",
-  name: "Rahul Sharma",
-  username: "rahulsharma",
-  email: "rahul@example.com",
-  role: "user",
-  profilePicture: null,
-  phone: "+91 98765 43210",
-  city: "Bangalore",
-  state: "Karnataka",
-  country: "India",
-  resume: { driveFileId: "abc", driveViewLink: null, uploadedAt: "2026-06-01" },
-  appliedInternships: [],
-  savedInternships: [],
-  profileCompletionScore: 72,
-  createdAt: "2026-01-01",
-  updatedAt: "2026-06-01",
-};
+const QUICK_LINKS = [
+  ["preferences", "Preference"], ["education", "Education"], ["skills", "Key skills"],
+  ["languages", "Languages"], ["internships", "Internships"], ["projects", "Projects"],
+  ["summary", "Profile summary"], ["accomplishments", "Accomplishments"],
+  ["employment", "Employment"], ["resume", "Resume"],
+] as const;
 
-const MOCK_PARSED: ParsedResumeData = {
-  summary: "Final year Computer Science student at DJSCE Mumbai with a passion for full-stack development and AI. Built production apps used by 500+ users. Looking for challenging internships at product-first companies.",
-  metaDetails: {
-    name: "Rahul Sharma",
-    phone_no: "+91 98765 43210",
-    email: "rahul@example.com",
-    github_profile: "https://github.com/rahulsharma",
-    linkedin: "https://linkedin.com/in/rahulsharma",
-    address: { city: "Bangalore", country: "India", postal_code: "560001" },
-    extra_links: [{ name: "Portfolio", link: "https://rahulsharma.dev" }],
-  },
-  workHistory: [
-    {
-      title: "Full Stack Developer Intern",
-      company: "Razorpay",
-      location: "Bangalore",
-      type: "internship",
-      period: { start: "Jan 2026", end: "Apr 2026", isCurrent: false },
-      responsibilities: ["Built payment dashboard widgets using React + TypeScript", "Optimized API response times by 35% via query restructuring"],
-      achievements: ["Shipped 3 features to production used by 10,000+ merchants"],
-    },
-  ],
-  education: [
-    {
-      institution: "DJSCE Mumbai",
-      field: { type: "B.E.", course: "Computer Engineering" },
-      period: { start: "2022", end: "2026", isCurrent: false },
-      output: "CGPA: 9.1/10",
-    },
-  ],
-  skills: [
-    { field: "Frontend", yearsOfExperience: 2, lastUsed: "2026", tools: [{ name: "React" }, { name: "TypeScript" }, { name: "Tailwind" }] },
-    { field: "Backend",  yearsOfExperience: 1, lastUsed: "2026", tools: [{ name: "Node.js" }, { name: "PostgreSQL" }] },
-  ],
-  projects: [
-    {
-      title: "iFind — Internship Finder Platform",
-      role: "Full Stack Developer",
-      links: { repo: "https://github.com/rahulsharma/ifind", live: "https://ifind.dev" },
-      techStack: ["Next.js", "MongoDB", "TypeScript", "Tailwind"],
-      problemStatement: "Students waste hours manually browsing internship sites with no skill matching.",
-      metrics: ["500+ active users", "10,000+ internships indexed"],
-      technicalChallenges: ["Built a TF-IDF + BERT hybrid recommendation engine"],
-      description: ["Resume parsing with Gemini AI", "Real-time scam detection pipeline"],
-      architecture: "Monorepo Next.js with Python microservice for ML",
-    },
-  ],
-  certifications: [
-    { name: "AWS Cloud Practitioner", issuer: "Amazon Web Services", skillsEarned: ["Cloud", "AWS"], type: "Cloud", date: "2025-08" },
-  ],
-  languages: [{ lang: "English", proficiency: "Fluent" }, { lang: "Hindi", proficiency: "Native" }],
-  publications: [],
-  affiliations: [],
-  awards: [],
-  interests: [{ activity: "Open Source", description: "Contribute to React ecosystem projects" }],
-};
+function emptyResume(user: User): ParsedResumeData {
+  return {
+    summary: "",
+    metaDetails: { name: user.name, phone_no: user.phone ?? "", email: user.email, github_profile: null, linkedin: null, address: { city: user.city ?? "", country: user.country ?? "", postal_code: "" }, extra_links: [] },
+    workHistory: [], education: [], skills: [], projects: [], certifications: [], languages: [], publications: [], affiliations: [], awards: [], interests: [],
+  };
+}
 
-// ── Page ──────────────────────────────────────────────────────────────────
+export type EditSection = "personal" | "preferences" | "education" | "skills" | "languages" | "internships" | "projects" | "summary" | "accomplishments" | "employment";
+
 export default function ProfilePage() {
-  const user   = MOCK_USER;
-  const parsed = MOCK_PARSED;
-  const meta   = parsed.metaDetails;
+  const { data, error, mutate } = useStudentDashboard();
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editSection, setEditSection] = useState<EditSection>("personal");
+
+  if (!data) return <main className="min-h-screen grid place-items-center text-sm text-[var(--text-2)]">{error ?? "Loading profile…"}</main>;
+
+  const user = data.user;
+  const resume = user.resume?.parsedData ?? emptyResume(user);
+  const education = resume.education[0];
+  const internships = resume.workHistory.filter((entry) => entry.type === "internship");
+  const employment = resume.workHistory.filter((entry) => entry.type !== "internship");
+  const missing = [
+    !user.profilePicture && "Upload photo",
+    !internships.length && "Add internship",
+    !resume.certifications.length && "Add certificates",
+  ].filter(Boolean) as string[];
+
+  const triggerEdit = (section: EditSection) => {
+    setEditSection(section);
+    setIsEditOpen(true);
+  };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      {/* Sticky top bar */}
-      <div className="sticky top-0 z-30 bg-[var(--surface)] border-b border-[var(--border)] px-4 py-2.5 flex items-center justify-between plasma-glass">
-        <div className="flex items-center gap-2">
-          <Avatar src={user.profilePicture} name={user.name} size="xs" />
-          <span className="text-sm font-semibold text-[var(--text)]">{user.name}</span>
-          <span className="text-xs text-[var(--text-3)]">@{user.username}</span>
+    <DashboardShell activeTab="profile" user={user}>
+      <div className="space-y-5">
+        <ProfileHeader 
+          user={user} 
+          education={education ? `${education.field.type} · ${education.field.course}` : "Student profile"} 
+          missing={missing} 
+          onEditClick={() => triggerEdit("personal")}
+        />
+
+        <div className="flex items-center gap-6 border-b border-[var(--border)] px-2">
+          <span className="border-b-2 border-[var(--primary)] pb-3 text-sm font-semibold text-[var(--text)]">View & Edit</span>
+          <span className="pb-3 text-sm text-[var(--text-3)]">Activity insights</span>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5">
-          <Edit2 className="h-3.5 w-3.5" /> Edit Profile
-        </Button>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[200px_1fr]">
+          <aside className="h-fit plasma-card p-4 lg:sticky lg:top-20">
+            <h2 className="mb-3 text-sm font-semibold text-[var(--text)]">Quick links</h2>
+            <nav className="grid grid-cols-2 gap-x-3 gap-y-1 lg:block">
+              {QUICK_LINKS.map(([id, label]) => <a key={id} href={`#${id}`} className="block rounded-[var(--radius-sm)] px-2 py-1.5 text-xs text-[var(--text-2)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary)]">{label}</a>)}
+            </nav>
+          </aside>
+
+          <div className="space-y-4">
+            <Panel id="preferences" icon={<Sparkles />} title="Your career preferences" onEditClick={() => triggerEdit("preferences")}>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Detail label="Preferred work" value="Internships" />
+                <Detail label="Availability" value="Add work availability" accent />
+                <Detail label="Preferred location" value={[user.city, user.state, user.country].filter(Boolean).join(", ") || "Add preferred location"} />
+              </div>
+            </Panel>
+
+            <Panel id="education" icon={<GraduationCap />} title="Education" onEditClick={() => triggerEdit("education")} add>
+              {resume.education.length ? <div className="space-y-4">{resume.education.map((entry, index) => <div key={index} className="border-b border-[var(--border)] pb-4 last:border-0 last:pb-0"><p className="text-sm font-semibold text-[var(--text)]">{entry.field.type} in {entry.field.course}</p><p className="mt-0.5 text-xs text-[var(--text-2)]">{entry.institution}</p><p className="mt-1 text-xs text-[var(--text-3)]">{entry.period.start} – {entry.period.isCurrent ? "Present" : entry.period.end ?? ""}{entry.output ? ` · ${entry.output}` : ""}</p></div>)}</div> : <Empty text="Add your education to show your academic background." />}
+            </Panel>
+
+            <Panel id="skills" icon={<BookOpen />} title="Key skills" onEditClick={() => triggerEdit("skills")}>
+              {user.skills?.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {user.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary" className="px-2.5 py-1 text-xs">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              ) : resume.skills.length ? (
+                <div className="space-y-4">
+                  {resume.skills.map((group, index) => (
+                    <div key={`${group.field}-${index}`}>
+                      <div className="mb-2 flex items-baseline justify-between gap-3">
+                        <p className="text-sm font-semibold text-[var(--text)]">{group.field}</p>
+                        {group.yearsOfExperience > 0 && <p className="text-xs text-[var(--text-3)]">{group.yearsOfExperience} yr{group.yearsOfExperience === 1 ? "" : "s"}</p>}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {group.tools.map((tool) => <Badge key={tool.name} variant="secondary" className="px-2.5 py-1 text-xs">{tool.name}{tool.score ? ` · ${tool.score}%` : ""}</Badge>)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Empty text="Add skills from your profile or resume." />
+              )}
+            </Panel>
+
+            <Panel id="languages" icon={<Link2 />} title="Languages" onEditClick={() => triggerEdit("languages")} add>
+              {resume.languages.length ? <div className="space-y-3">{resume.languages.map((language) => <div key={language.lang}><p className="text-sm font-medium text-[var(--text)]">{language.lang}</p><p className="text-xs text-[var(--text-3)]">{language.proficiency}</p></div>)}</div> : <Empty text="Add languages you can speak, read, or write." />}
+            </Panel>
+
+            <ExperiencePanel id="internships" title="Internships" entries={internships} empty="Tell employers about your internships, projects, and skills learned." onEditClick={() => triggerEdit("internships")} />
+
+            <Panel id="projects" icon={<Building2 />} title="Projects" onEditClick={() => triggerEdit("projects")} add>
+              {resume.projects.length ? <div className="space-y-4">{resume.projects.map((project, index) => <div key={index} className="border-b border-[var(--border)] pb-4 last:border-0 last:pb-0"><p className="text-sm font-semibold text-[var(--text)]">{project.title}</p>{project.role && <p className="text-xs text-[var(--text-3)]">{project.role}</p>}{project.techStack.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{project.techStack.map((tech) => <Badge key={tech} variant="secondary" className="text-[10px]">{tech}</Badge>)}</div>}</div>)}</div> : <Empty text="Add projects that demonstrate your work and skills." />}
+            </Panel>
+
+            <Panel id="summary" icon={<UserRound />} title="Profile summary" onEditClick={() => triggerEdit("summary")} add={!resume.summary}>
+              {resume.summary ? <p className="text-sm leading-6 text-[var(--text-2)]">{resume.summary}</p> : <Empty text="Write a short summary highlighting your education, interests, and career goals." />}
+            </Panel>
+
+            <Panel id="accomplishments" icon={<Award />} title="Accomplishments" onEditClick={() => triggerEdit("accomplishments")}>
+              <div className="divide-y divide-[var(--border)]"> 
+                <Accomplishment title="Certifications" entries={resume.certifications.map((entry) => `${entry.name}${entry.issuer ? ` · ${entry.issuer}` : ""}`)} onEditClick={() => triggerEdit("accomplishments")} />
+                <Accomplishment title="Awards" entries={resume.awards.map((entry) => entry.name)} onEditClick={() => triggerEdit("accomplishments")} />
+                <Accomplishment title="Clubs & committees" entries={resume.affiliations.map((entry) => `${entry.organization}${entry.role ? ` · ${entry.role}` : ""}`)} onEditClick={() => triggerEdit("accomplishments")} />
+              </div>
+            </Panel>
+
+            <ExperiencePanel id="employment" title="Employment" entries={employment} empty="Add work experience to show what you have done and learned." onEditClick={() => triggerEdit("employment")} />
+
+            <Panel id="resume" icon={<FileText />} title="Resume" onEditClick={() => triggerEdit("personal")}>
+              {user.resume?.uploadedAt ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-medium text-[var(--text)]">Resume uploaded</p><p className="text-xs text-[var(--text-3)]">Uploaded {new Date(user.resume.uploadedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p></div><button type="button" className="rounded-[var(--radius-sm)] border border-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--primary)]">Update resume</button></div> : <Empty text="Upload a resume to enrich this profile with your experience and skills." />}
+            </Panel>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5">
+      {/* Dynamic Edit Drawer popup */}
+      <ProfileEditDrawer 
+        user={user} 
+        section={editSection}
+        isOpen={isEditOpen} 
+        onClose={() => setIsEditOpen(false)} 
+        onSaveSuccess={mutate}
+      />
+    </DashboardShell>
+  );
+}
 
-        {/* ── Left column ───────────────────────────────────────────── */}
-        <aside className="space-y-4">
+function ProfileHeader({ user, education, missing, onEditClick }: { user: User; education: string; missing: string[]; onEditClick: () => void }) {
+  const location = [user.city, user.state, user.country].filter(Boolean).join(", ");
+  const dob = user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Add date of birth";
+  return <section className="plasma-card grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)] lg:grid-cols-[110px_minmax(0,1fr)_235px]"><div className="relative mx-auto grid h-24 w-24 place-items-center rounded-full border-[3px] border-[var(--success)] bg-[var(--surface-2)]"><Avatar src={user.profilePicture} name={user.name} size="lg" /><span className="absolute -bottom-2 rounded-full bg-[var(--surface)] px-2 text-xs font-bold text-[var(--success)]">{user.profileCompletionScore}%</span></div><div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-lg font-bold text-[var(--text)]">{user.name}</h1><Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} /></div><p className="mt-1 text-sm font-medium text-[var(--text-2)]">{education}</p><p className="mt-0.5 text-xs text-[var(--text-3)]">@{user.username}</p><div className="mt-4 grid gap-2 border-t border-[var(--border)] pt-3 text-xs text-[var(--text-2)] sm:grid-cols-2 lg:grid-cols-3"><span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--text-3)]" />{location || "Add address"}</span><span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--text-3)]" />{user.phone || "Add phone number"}</span><span className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-[var(--text-3)]" />{dob}</span><span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-[var(--text-3)]" />{user.gender || "Add gender"}</span><span className="flex items-center gap-1.5 sm:col-span-2 lg:col-span-2"><Mail className="h-3.5 w-3.5 text-[var(--text-3)]" />{user.email}</span></div></div><div className="rounded-[var(--radius-sm)] bg-[var(--primary-bg)] p-4"><p className="text-xs font-semibold text-[var(--text)]">Complete your profile</p><div className="mt-3 space-y-2">{missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between text-xs text-[var(--text-2)]"><span>{item}</span><span className="text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}</div><button type="button" className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white">Review missing details</button></div></section>;
+}
 
-          {/* Identity card */}
-          <div className="plasma-card p-5 text-center">
-            <div className="relative inline-block mb-3">
-              <Avatar src={user.profilePicture} name={user.name} size="xl" />
-            </div>
-            <h1 className="text-base font-bold text-[var(--text)]">{user.name}</h1>
-            <p className="text-xs text-[var(--text-3)] mt-0.5">@{user.username}</p>
-            {parsed.summary && (
-              <p className="text-xs text-[var(--text-2)] mt-3 leading-relaxed text-left border-t border-[var(--border)] pt-3">
-                {parsed.summary}
-              </p>
-            )}
+function Panel({ id, icon, title, add, onEditClick, children }: { id: string; icon: React.ReactNode; title: string; add?: boolean; onEditClick?: () => void; children: React.ReactNode }) { return <section id={id} className="plasma-card scroll-mt-20 p-5"><div className="mb-4 flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="text-[var(--primary)]">{icon}</span><h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2><Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} /></div>{add && <button type="button" onClick={onEditClick} className="text-xs font-semibold text-[var(--primary)]">Add</button>}</div>{children}</section>; }
+function Detail({ label, value, accent }: { label: string; value: string; accent?: boolean }) { return <div><p className="text-xs text-[var(--text-3)]">{label}</p><p className={`mt-1 text-sm font-medium ${accent ? "text-[var(--primary)]" : "text-[var(--text-2)]"}`}>{value}</p></div>; }
+function Empty({ text }: { text: string }) { return <p className="text-xs leading-5 text-[var(--text-3)]">{text}</p>; }
+function Accomplishment({ title, entries, onEditClick }: { title: string; entries: string[]; onEditClick?: () => void }) { return <div className="py-3 first:pt-0 last:pb-0"><div className="flex items-center justify-between"><p className="text-sm font-medium text-[var(--text)]">{title}</p><button type="button" onClick={onEditClick} className="text-xs font-semibold text-[var(--primary)]">{entries.length ? "Edit" : "Add"}</button></div>{entries.length ? <div className="mt-2 space-y-1">{entries.map((entry) => <p key={entry} className="text-xs text-[var(--text-2)]">{entry}</p>)}</div> : <p className="mt-1 text-xs text-[var(--text-3)]">Add relevant {title.toLowerCase()}.</p>}</div>; }
+function ExperiencePanel({ id, title, entries, empty, onEditClick }: { id: string; title: string; entries: ParsedResumeData["workHistory"]; empty: string; onEditClick?: () => void }) { return <Panel id={id} icon={<BriefcaseBusiness />} title={title} onEditClick={onEditClick} add>{entries.length ? <div className="space-y-4">{entries.map((entry, index) => <div key={index} className="border-b border-[var(--border)] pb-4 last:border-0 last:pb-0"><p className="text-sm font-semibold text-[var(--text)]">{entry.title}</p><p className="text-xs text-[var(--text-2)]">{entry.company}{entry.location ? ` · ${entry.location}` : ""}</p><p className="mt-1 text-xs text-[var(--text-3)]">{entry.period.start} – {entry.period.isCurrent ? "Present" : entry.period.end ?? ""}</p></div>)}</div> : <Empty text={empty} />}</Panel>; }
+
+// ── Profile Edit Drawer Slide-over Component ───────────────────────────────
+interface ProfileEditDrawerProps {
+  user: User;
+  section: EditSection;
+  isOpen: boolean;
+  onClose: () => void;
+  onSaveSuccess: () => void;
+}
+
+function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: ProfileEditDrawerProps) {
+  const [saving, setSaving] = useState(false);
+
+  // --- Dynamic Form States ---
+  // Section: personal
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
+
+  // Section: preferences
+  const [prefCity, setPrefCity] = useState("");
+  const [prefState, setPrefState] = useState("");
+  const [prefCountry, setPrefCountry] = useState("");
+
+  // Section: education
+  const [educationList, setEducationList] = useState<any[]>([]);
+
+  // Section: skills
+  const [skillsList, setSkillsList] = useState<string[]>([]);
+
+  // Section: languages
+  const [languagesList, setLanguagesList] = useState<any[]>([]);
+
+  // Section: internships / employment
+  const [internshipsList, setInternshipsList] = useState<any[]>([]);
+  const [employmentList, setEmploymentList] = useState<any[]>([]);
+
+  // Section: projects
+  const [projectsList, setProjectsList] = useState<any[]>([]);
+
+  // Section: summary
+  const [summaryText, setSummaryText] = useState("");
+
+  // Section: accomplishments
+  const [certificationsList, setCertificationsList] = useState<any[]>([]);
+  const [awardsList, setAwardsList] = useState<any[]>([]);
+  const [affiliationsList, setAffiliationsList] = useState<any[]>([]);
+
+  // Sync state with user data on open or section change
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Personal details
+    setName(user.name || "");
+    setUsername(user.username || "");
+    setEmail(user.email || "");
+    setProfilePicture(user.profilePicture || "");
+    setPhone(user.phone || "");
+    setDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split("T")[0] : "");
+    setGender(user.gender || "");
+    setCity(user.city || "");
+    setState(user.state || "");
+    setCountry(user.country || "");
+
+    // Preferences
+    setPrefCity(user.city || "");
+    setPrefState(user.state || "");
+    setPrefCountry(user.country || "");
+
+    // Arrays/Sub-docs from MongoDB resume data
+    const resume = user.resume?.parsedData || emptyResume(user);
+    setEducationList(resume.education ? JSON.parse(JSON.stringify(resume.education)) : []);
+    setSkillsList(user.skills ? [...user.skills] : []);
+    setLanguagesList(resume.languages ? JSON.parse(JSON.stringify(resume.languages)) : []);
+    setInternshipsList(resume.workHistory ? JSON.parse(JSON.stringify(resume.workHistory.filter(w => w.type === "internship"))) : []);
+    setEmploymentList(resume.workHistory ? JSON.parse(JSON.stringify(resume.workHistory.filter(w => w.type !== "internship"))) : []);
+    setProjectsList(resume.projects ? JSON.parse(JSON.stringify(resume.projects)) : []);
+    setSummaryText(resume.summary || "");
+    setCertificationsList(resume.certifications ? JSON.parse(JSON.stringify(resume.certifications)) : []);
+    setAwardsList(resume.awards ? JSON.parse(JSON.stringify(resume.awards)) : []);
+    setAffiliationsList(resume.affiliations ? JSON.parse(JSON.stringify(resume.affiliations)) : []);
+  }, [isOpen, section, user]);
+
+  // --- Dynamic array handlers ---
+  const handleAddListItem = (type: "education" | "skills" | "languages" | "internships" | "employment" | "projects" | "certifications" | "awards" | "affiliations") => {
+    if (type === "education") {
+      setEducationList(prev => [...prev, { institution: "", field: { type: "", course: "" }, period: { start: "", end: "", isCurrent: false }, output: "" }]);
+    } else if (type === "skills") {
+      setSkillsList(prev => [...prev, ""]);
+    } else if (type === "languages") {
+      setLanguagesList(prev => [...prev, { lang: "", proficiency: "Conversational" }]);
+    } else if (type === "internships") {
+      setInternshipsList(prev => [...prev, { title: "", company: "", location: "", type: "internship", period: { start: "", end: "", isCurrent: false }, responsibilities: [], achievements: [] }]);
+    } else if (type === "employment") {
+      setEmploymentList(prev => [...prev, { title: "", company: "", location: "", type: "employment", period: { start: "", end: "", isCurrent: false }, responsibilities: [], achievements: [] }]);
+    } else if (type === "projects") {
+      setProjectsList(prev => [...prev, { title: "", role: "", techStack: [], description: "" }]);
+    } else if (type === "certifications") {
+      setCertificationsList(prev => [...prev, { name: "", issuer: "", date: "" }]);
+    } else if (type === "awards") {
+      setAwardsList(prev => [...prev, { name: "", date: "" }]);
+    } else if (type === "affiliations") {
+      setAffiliationsList(prev => [...prev, { organization: "", role: "", period: { start: "", end: "" } }]);
+    }
+  };
+
+  const handleRemoveListItem = (type: string, index: number) => {
+    if (type === "education") setEducationList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "skills") setSkillsList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "languages") setLanguagesList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "internships") setInternshipsList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "employment") setEmploymentList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "projects") setProjectsList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "certifications") setCertificationsList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "awards") setAwardsList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "affiliations") setAffiliationsList(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      let payload: any = {};
+
+      if (section === "personal") {
+        if (!name.trim()) throw new Error("Name is required");
+        if (!username.trim()) throw new Error("Username is required");
+        if (!email.trim()) throw new Error("Email is required");
+
+        payload = {
+          userUpdate: {
+            name: name.trim(),
+            username: username.trim(),
+            email: email.trim(),
+            profilePicture: profilePicture.trim() || null,
+            phone: phone.trim() || null,
+            dateOfBirth: dateOfBirth || null,
+            gender: gender || null,
+            city: city.trim() || null,
+            state: state.trim() || null,
+            country: country.trim() || null,
+          }
+        };
+      } else if (section === "preferences") {
+        payload = {
+          userUpdate: {
+            city: prefCity.trim() || null,
+            state: prefState.trim() || null,
+            country: prefCountry.trim() || null,
+          }
+        };
+      } else if (section === "education") {
+        payload = {
+          resumeUpdate: {
+            education: educationList.filter(e => e.institution.trim())
+          }
+        };
+      } else if (section === "skills") {
+        payload = {
+          userUpdate: {
+            skills: skillsList.filter(s => s.trim())
+          }
+        };
+      } else if (section === "languages") {
+        payload = {
+          resumeUpdate: {
+            languages: languagesList.filter(l => l.lang.trim())
+          }
+        };
+      } else if (section === "internships") {
+        payload = {
+          resumeUpdate: {
+            workHistory: [...employmentList, ...internshipsList.filter(i => i.title.trim())]
+          }
+        };
+      } else if (section === "employment") {
+        payload = {
+          resumeUpdate: {
+            workHistory: [...internshipsList, ...employmentList.filter(e => e.title.trim())]
+          }
+        };
+      } else if (section === "projects") {
+        payload = {
+          resumeUpdate: {
+            projects: projectsList.filter(p => p.title.trim())
+          }
+        };
+      } else if (section === "summary") {
+        payload = {
+          resumeUpdate: {
+            summary: summaryText.trim()
+          }
+        };
+      } else if (section === "accomplishments") {
+        payload = {
+          resumeUpdate: {
+            certifications: certificationsList.filter(c => c.name.trim()),
+            awards: awardsList.filter(a => a.name.trim()),
+            affiliations: affiliationsList.filter(af => af.organization.trim())
+          }
+        };
+      }
+
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to update details");
+      toast.success("Profile section updated successfully!");
+      onSaveSuccess();
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save profile details");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getSectionTitle = () => {
+    switch (section) {
+      case "personal": return "Personal Details";
+      case "preferences": return "Career Preferences";
+      case "education": return "Academic Education";
+      case "skills": return "Key Professional Skills";
+      case "languages": return "Spoken Languages";
+      case "internships": return "Internships History";
+      case "employment": return "Employment History";
+      case "projects": return "Key Projects";
+      case "summary": return "Profile Summary";
+      case "accomplishments": return "Accomplishments & Certificates";
+      default: return "Edit Section";
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50 transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      {/* Slide-over Drawer Panel */}
+      <div className={cn(
+        "fixed z-50 bg-[var(--surface)] border border-[var(--border)] shadow-2xl flex flex-col transition-all duration-300 ease-out",
+        // Desktop: Center screen vertically on the right side
+        "lg:right-6 lg:top-1/2 lg:-translate-y-1/2 lg:h-[85vh] lg:w-[480px] lg:rounded-[var(--radius)] lg:animate-in lg:slide-in-from-right lg:duration-300",
+        // Mobile: covers whole screen except bottom nav
+        "inset-x-0 top-0 bottom-[49px] lg:bottom-auto animate-in slide-in-from-bottom lg:slide-in-from-bottom-0 duration-300"
+      )}>
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
+          <div>
+            <h3 className="text-sm font-bold text-[var(--text)]">{getSectionTitle()}</h3>
+            <p className="text-[10px] text-[var(--text-3)]">Modify current details on your profile</p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded hover:bg-[var(--surface-2)] text-[var(--text-3)] hover:text-[var(--text)] transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-          {/* Contact */}
-          <div className="plasma-card p-4 space-y-2.5">
-            <h3 className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest">Contact</h3>
-            {[
-              { icon: Mail,    val: meta.email,            href: `mailto:${meta.email}` },
-              { icon: Phone,   val: meta.phone_no,         href: `tel:${meta.phone_no}` },
-              { icon: MapPin,  val: `${meta.address.city}, ${meta.address.country}`, href: null },
-              { icon: GitBranch,  val: "GitHub",              href: meta.github_profile },
-              { icon: Link2,     val: "LinkedIn",            href: meta.linkedin },
-              ...(meta.extra_links.map((l) => ({ icon: Link2, val: l.name, href: l.link }))),
-            ].filter((r) => r.val).map(({ icon: Icon, val, href }) => (
-              <div key={val} className="flex items-center gap-2 text-xs text-[var(--text-2)]">
-                <Icon className="h-3.5 w-3.5 text-[var(--text-3)] shrink-0" />
-                {href ? (
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--primary)] transition-colors truncate">
-                    {val}
-                  </a>
-                ) : <span className="truncate">{val}</span>}
+        {/* Scrollable Form Body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
+          
+          {/* ── Section: PERSONAL ── */}
+          {section === "personal" && (
+            <>
+              <FormField label="Full Name" required>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              </FormField>
+              <FormField label="Username" required>
+                <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              </FormField>
+              <FormField label="Email address" required>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              </FormField>
+              <FormField label="Profile Picture URL">
+                <input type="url" value={profilePicture} onChange={e => setProfilePicture(e.target.value)} placeholder="https://..." className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              </FormField>
+              <FormField label="Phone Number">
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              </FormField>
+              <FormField label="Date of Birth">
+                <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              </FormField>
+              <FormField label="Gender">
+                <select value={gender} onChange={e => setGender(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs">
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+              </FormField>
+              <div className="grid grid-cols-3 gap-2">
+                <FormField label="City"><input type="text" value={city} onChange={e => setCity(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" /></FormField>
+                <FormField label="State"><input type="text" value={state} onChange={e => setState(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" /></FormField>
+                <FormField label="Country"><input type="text" value={country} onChange={e => setCountry(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" /></FormField>
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
-          {/* Profile score */}
-          <div className="plasma-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest">Profile Score</h3>
-              <span className="text-sm font-bold text-[var(--primary)]">{user.profileCompletionScore}%</span>
-            </div>
-            <ProgressBar value={user.profileCompletionScore} />
-          </div>
+          {/* ── Section: PREFERENCES ── */}
+          {section === "preferences" && (
+            <>
+              <FormField label="Preferred City">
+                <input type="text" value={prefCity} onChange={e => setPrefCity(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] w-full text-xs" placeholder="e.g. Bangalore" />
+              </FormField>
+              <FormField label="Preferred State">
+                <input type="text" value={prefState} onChange={e => setPrefState(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] w-full text-xs" placeholder="e.g. Karnataka" />
+              </FormField>
+              <FormField label="Preferred Country">
+                <input type="text" value={prefCountry} onChange={e => setPrefCountry(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] w-full text-xs" placeholder="e.g. India" />
+              </FormField>
+            </>
+          )}
 
-          {/* Languages */}
-          {parsed.languages.length > 0 && (
-            <div className="plasma-card p-4 space-y-2">
-              <h3 className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5" /> Languages
-              </h3>
-              {parsed.languages.map((l) => (
-                <div key={l.lang} className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text)]">{l.lang}</span>
-                  <Badge variant="secondary" className="text-[10px]">{l.proficiency}</Badge>
+          {/* ── Section: EDUCATION ── */}
+          {section === "education" && (
+            <div className="space-y-4">
+              {educationList.map((edu, idx) => (
+                <div key={idx} className="plasma-card p-4 space-y-3 relative border border-[var(--border)] rounded">
+                  <button type="button" onClick={() => handleRemoveListItem("education", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <h4 className="font-semibold text-xs text-[var(--text)]">Education Entry #{idx + 1}</h4>
+                  
+                  <FormField label="Institution/School" required>
+                    <input type="text" value={edu.institution} onChange={e => {
+                      const next = [...educationList];
+                      next[idx].institution = e.target.value;
+                      setEducationList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" />
+                  </FormField>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField label="Degree Type" required>
+                      <input type="text" placeholder="e.g. B.Tech" value={edu.field?.type || ""} onChange={e => {
+                        const next = [...educationList];
+                        if (!next[idx].field) next[idx].field = {};
+                        next[idx].field.type = e.target.value;
+                        setEducationList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" />
+                    </FormField>
+                    <FormField label="Course/Major" required>
+                      <input type="text" placeholder="e.g. Computer Science" value={edu.field?.course || ""} onChange={e => {
+                        const next = [...educationList];
+                        if (!next[idx].field) next[idx].field = {};
+                        next[idx].field.course = e.target.value;
+                        setEducationList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" />
+                    </FormField>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField label="Start Period">
+                      <input type="text" placeholder="e.g. 2022" value={edu.period?.start || ""} onChange={e => {
+                        const next = [...educationList];
+                        if (!next[idx].period) next[idx].period = {};
+                        next[idx].period.start = e.target.value;
+                        setEducationList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" />
+                    </FormField>
+                    <FormField label="End Period">
+                      <input type="text" placeholder="e.g. 2026" disabled={edu.period?.isCurrent} value={edu.period?.isCurrent ? "Present" : edu.period?.end || ""} onChange={e => {
+                        const next = [...educationList];
+                        if (!next[idx].period) next[idx].period = {};
+                        next[idx].period.end = e.target.value;
+                        setEducationList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs disabled:opacity-60" />
+                    </FormField>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id={`edu-curr-${idx}`} checked={edu.period?.isCurrent || false} onChange={e => {
+                      const next = [...educationList];
+                      if (!next[idx].period) next[idx].period = {};
+                      next[idx].period.isCurrent = e.target.checked;
+                      if (e.target.checked) next[idx].period.end = "";
+                      setEducationList(next);
+                    }} className="h-3.5 w-3.5 border-[var(--border)] rounded text-[var(--primary)]" />
+                    <label htmlFor={`edu-curr-${idx}`} className="text-[11px] font-medium text-[var(--text-2)]">Currently pursuing this education</label>
+                  </div>
+
+                  <FormField label="Grade / GPA / CGPA">
+                    <input type="text" placeholder="e.g. 9.2 CGPA" value={edu.output || ""} onChange={e => {
+                      const next = [...educationList];
+                      next[idx].output = e.target.value;
+                      setEducationList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" />
+                  </FormField>
                 </div>
               ))}
+              <button type="button" onClick={() => handleAddListItem("education")} className="w-full text-center border border-dashed border-[var(--border)] py-2.5 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
+                + Add Education Entry
+              </button>
             </div>
           )}
-        </aside>
 
-        {/* ── Right column ──────────────────────────────────────────── */}
-        <div className="space-y-4">
-
-          {/* Work history */}
-          {parsed.workHistory.length > 0 && (
-            <Section icon={<Briefcase className="h-4 w-4" />} title="Experience">
-              <div className="space-y-4">
-                {parsed.workHistory.map((w, i) => <WorkEntry key={i} w={w} />)}
-              </div>
-            </Section>
+          {/* ── Section: SKILLS ── */}
+          {section === "skills" && (
+            <div className="space-y-3">
+              {skillsList.map((skill, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={skill}
+                    onChange={(e) => handleSkillChange(index, e.target.value)}
+                    placeholder="Skill name (e.g. Next.js)"
+                    className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveListItem("skills", index)}
+                    className="p-2 rounded text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => handleAddListItem("skills")}
+                className="w-full text-center border border-dashed border-[var(--border)] py-2 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs"
+              >
+                + Add Skill
+              </button>
+            </div>
           )}
 
-          {/* Education */}
-          {parsed.education.length > 0 && (
-            <Section icon={<GraduationCap className="h-4 w-4" />} title="Education">
+          {/* ── Section: LANGUAGES ── */}
+          {section === "languages" && (
+            <div className="space-y-4">
+              {languagesList.map((lang, idx) => (
+                <div key={idx} className="flex items-end gap-2 border border-[var(--border)] p-3 rounded relative bg-[var(--surface-2)]">
+                  <button type="button" onClick={() => handleRemoveListItem("languages", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-[10px] font-bold text-[var(--text-3)]">Language</label>
+                    <input type="text" value={lang.lang} onChange={e => {
+                      const next = [...languagesList];
+                      next[idx].lang = e.target.value;
+                      setLanguagesList(next);
+                    }} placeholder="e.g. English" className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </div>
+
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-[10px] font-bold text-[var(--text-3)]">Proficiency</label>
+                    <select value={lang.proficiency} onChange={e => {
+                      const next = [...languagesList];
+                      next[idx].proficiency = e.target.value;
+                      setLanguagesList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs">
+                      <option value="Basic">Basic</option>
+                      <option value="Conversational">Conversational</option>
+                      <option value="Fluent">Fluent</option>
+                      <option value="Native">Native</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => handleAddListItem("languages")} className="w-full text-center border border-dashed border-[var(--border)] py-2 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
+                + Add Language
+              </button>
+            </div>
+          )}
+
+          {/* ── Section: INTERNSHIPS / EMPLOYMENT ── */}
+          {(section === "internships" || section === "employment") && (
+            <div className="space-y-4">
+              {(section === "internships" ? internshipsList : employmentList).map((history, idx) => (
+                <div key={idx} className="plasma-card p-4 space-y-3 relative border border-[var(--border)] rounded">
+                  <button type="button" onClick={() => handleRemoveListItem(section, idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+
+                  <FormField label="Job Title" required>
+                    <input type="text" value={history.title} onChange={e => {
+                      const next = [...(section === "internships" ? internshipsList : employmentList)];
+                      next[idx].title = e.target.value;
+                      if (section === "internships") setInternshipsList(next); else setEmploymentList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <FormField label="Company/Organization" required>
+                    <input type="text" value={history.company} onChange={e => {
+                      const next = [...(section === "internships" ? internshipsList : employmentList)];
+                      next[idx].company = e.target.value;
+                      if (section === "internships") setInternshipsList(next); else setEmploymentList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <FormField label="Location">
+                    <input type="text" placeholder="e.g. Bangalore, India" value={history.location || ""} onChange={e => {
+                      const next = [...(section === "internships" ? internshipsList : employmentList)];
+                      next[idx].location = e.target.value;
+                      if (section === "internships") setInternshipsList(next); else setEmploymentList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField label="Start Date">
+                      <input type="text" placeholder="e.g. Jan 2024" value={history.period?.start || ""} onChange={e => {
+                        const next = [...(section === "internships" ? internshipsList : employmentList)];
+                        if (!next[idx].period) next[idx].period = {};
+                        next[idx].period.start = e.target.value;
+                        if (section === "internships") setInternshipsList(next); else setEmploymentList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                    </FormField>
+                    <FormField label="End Date">
+                      <input type="text" placeholder="e.g. Jun 2024" disabled={history.period?.isCurrent} value={history.period?.isCurrent ? "Present" : history.period?.end || ""} onChange={e => {
+                        const next = [...(section === "internships" ? internshipsList : employmentList)];
+                        if (!next[idx].period) next[idx].period = {};
+                        next[idx].period.end = e.target.value;
+                        if (section === "internships") setInternshipsList(next); else setEmploymentList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs disabled:opacity-60" />
+                    </FormField>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id={`hist-curr-${idx}`} checked={history.period?.isCurrent || false} onChange={e => {
+                      const next = [...(section === "internships" ? internshipsList : employmentList)];
+                      if (!next[idx].period) next[idx].period = {};
+                      next[idx].period.isCurrent = e.target.checked;
+                      if (e.target.checked) next[idx].period.end = "";
+                      if (section === "internships") setInternshipsList(next); else setEmploymentList(next);
+                    }} className="h-3.5 w-3.5 border-[var(--border)] rounded" />
+                    <label htmlFor={`hist-curr-${idx}`} className="text-[11px] font-medium text-[var(--text-2)]">Currently in this role</label>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => handleAddListItem(section)} className="w-full text-center border border-dashed border-[var(--border)] py-2.5 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
+                + Add {section === "internships" ? "Internship" : "Employment"} Entry
+              </button>
+            </div>
+          )}
+
+          {/* ── Section: PROJECTS ── */}
+          {section === "projects" && (
+            <div className="space-y-4">
+              {projectsList.map((project, idx) => (
+                <div key={idx} className="plasma-card p-4 space-y-3 relative border border-[var(--border)] rounded">
+                  <button type="button" onClick={() => handleRemoveListItem("projects", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+
+                  <FormField label="Project Title" required>
+                    <input type="text" value={project.title} onChange={e => {
+                      const next = [...projectsList];
+                      next[idx].title = e.target.value;
+                      setProjectsList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <FormField label="Your Role">
+                    <input type="text" placeholder="e.g. Lead Developer" value={project.role || ""} onChange={e => {
+                      const next = [...projectsList];
+                      next[idx].role = e.target.value;
+                      setProjectsList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <FormField label="Tech Stack (comma separated)">
+                    <input type="text" placeholder="e.g. React, Node.js, MongoDB" value={Array.isArray(project.techStack) ? project.techStack.join(", ") : ""} onChange={e => {
+                      const next = [...projectsList];
+                      next[idx].techStack = e.target.value.split(",").map(t => t.trim()).filter(Boolean);
+                      setProjectsList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <FormField label="Project Description">
+                    <textarea rows={3} value={project.description || ""} onChange={e => {
+                      const next = [...projectsList];
+                      next[idx].description = e.target.value;
+                      setProjectsList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs outline-none focus:border-[var(--primary)] transition-all resize-y" />
+                  </FormField>
+                </div>
+              ))}
+              <button type="button" onClick={() => handleAddListItem("projects")} className="w-full text-center border border-dashed border-[var(--border)] py-2.5 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
+                + Add Project Entry
+              </button>
+            </div>
+          )}
+
+          {/* ── Section: SUMMARY ── */}
+          {section === "summary" && (
+            <FormField label="Profile Summary" required>
+              <textarea
+                rows={6}
+                value={summaryText}
+                onChange={e => setSummaryText(e.target.value)}
+                className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs outline-none focus:border-[var(--primary)] transition-all resize-y leading-relaxed"
+                placeholder="Highlight your academic achievements, internship preferences, and target jobs..."
+              />
+            </FormField>
+          )}
+
+          {/* ── Section: ACCOMPLISHMENTS ── */}
+          {section === "accomplishments" && (
+            <div className="space-y-6">
+              
+              {/* Sub-section: Certifications */}
               <div className="space-y-3">
-                {parsed.education.map((e, i) => <EduEntry key={i} e={e} />)}
-              </div>
-            </Section>
-          )}
-
-          {/* Skills */}
-          {parsed.skills.length > 0 && (
-            <Section icon={<Code2 className="h-4 w-4" />} title="Skills">
-              <div className="space-y-3">
-                {parsed.skills.map((s, i) => <SkillEntry key={i} s={s} />)}
-              </div>
-            </Section>
-          )}
-
-          {/* Projects */}
-          {parsed.projects.length > 0 && (
-            <Section icon={<Code2 className="h-4 w-4" />} title="Projects">
-              <div className="space-y-4">
-                {parsed.projects.map((p, i) => (
-                  <div key={i} className="border-l-2 border-[var(--primary)] pl-3 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-sm font-semibold text-[var(--text)]">{p.title}</h4>
-                        {p.role && <p className="text-xs text-[var(--text-3)]">{p.role}</p>}
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        {p.links.repo  && <a href={p.links.repo}  target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline text-xs flex items-center gap-1"><GitBranch className="h-3 w-3" />Repo</a>}
-                        {p.links.live  && <a href={p.links.live}  target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline text-xs flex items-center gap-1"><ExternalLink className="h-3 w-3" />Live</a>}
-                      </div>
+                <label className="block text-xs font-bold text-[var(--text)] border-b border-[var(--border)] pb-1.5">Certifications</label>
+                {certificationsList.map((cert, idx) => (
+                  <div key={idx} className="flex items-center gap-2 border border-[var(--border)] p-3 rounded relative bg-[var(--surface-2)]">
+                    <button type="button" onClick={() => handleRemoveListItem("certifications", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="flex-1 space-y-2">
+                      <input type="text" placeholder="Certificate Name" value={cert.name} onChange={e => {
+                        const next = [...certificationsList];
+                        next[idx].name = e.target.value;
+                        setCertificationsList(next);
+                      }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                      <input type="text" placeholder="Issuer (e.g. AWS)" value={cert.issuer || ""} onChange={e => {
+                        const next = [...certificationsList];
+                        next[idx].issuer = e.target.value;
+                        setCertificationsList(next);
+                      }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
                     </div>
-                    {p.problemStatement && <p className="text-xs text-[var(--text-2)] italic">{p.problemStatement}</p>}
-                    <div className="flex flex-wrap gap-1">
-                      {p.techStack.map((t) => <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>)}
-                    </div>
-                    {p.metrics.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {p.metrics.map((m) => (
-                          <span key={m} className="text-[10px] text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">{m}</span>
-                        ))}
-                      </div>
-                    )}
-                    {p.description.length > 0 && (
-                      <ul className="space-y-0.5">
-                        {p.description.map((d, j) => (
-                          <li key={j} className="text-xs text-[var(--text-2)] flex gap-1.5"><span className="text-[var(--text-3)]">•</span>{d}</li>
-                        ))}
-                      </ul>
-                    )}
                   </div>
                 ))}
+                <button type="button" onClick={() => handleAddListItem("certifications")} className="w-full text-center border border-dashed border-[var(--border)] py-1.5 rounded text-[var(--primary)] font-semibold text-xs">
+                  + Add Certification
+                </button>
               </div>
-            </Section>
-          )}
 
-          {/* Certifications */}
-          {parsed.certifications.length > 0 && (
-            <Section icon={<Award className="h-4 w-4" />} title="Certifications">
-              <div className="space-y-3">
-                {parsed.certifications.map((c, i) => (
-                  <div key={i} className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-medium text-[var(--text)]">{c.name}</p>
-                      <p className="text-xs text-[var(--text-3)]">{c.issuer}</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {c.skillsEarned.map((s) => <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>)}
-                      </div>
-                    </div>
-                    <span className="text-xs text-[var(--text-3)] shrink-0">{c.date}</span>
+              {/* Sub-section: Awards */}
+              <div className="space-y-3 pt-3 border-t border-[var(--border)]">
+                <label className="block text-xs font-bold text-[var(--text)] border-b border-[var(--border)] pb-1.5">Awards & Achievements</label>
+                {awardsList.map((award, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input type="text" placeholder="Award description" value={award.name} onChange={e => {
+                      const next = [...awardsList];
+                      next[idx].name = e.target.value;
+                      setAwardsList(next);
+                    }} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                    <button type="button" onClick={() => handleRemoveListItem("awards", idx)} className="p-2 text-red-500 hover:bg-red-50 rounded shrink-0">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 ))}
+                <button type="button" onClick={() => handleAddListItem("awards")} className="w-full text-center border border-dashed border-[var(--border)] py-1.5 rounded text-[var(--primary)] font-semibold text-xs">
+                  + Add Award
+                </button>
               </div>
-            </Section>
+
+              {/* Sub-section: Affiliations */}
+              <div className="space-y-3 pt-3 border-t border-[var(--border)]">
+                <label className="block text-xs font-bold text-[var(--text)] border-b border-[var(--border)] pb-1.5">Clubs & Committees</label>
+                {affiliationsList.map((aff, idx) => (
+                  <div key={idx} className="border border-[var(--border)] p-3 rounded relative bg-[var(--surface-2)] space-y-2">
+                    <button type="button" onClick={() => handleRemoveListItem("affiliations", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                    <input type="text" placeholder="Organization/Club name" value={aff.organization} onChange={e => {
+                      const next = [...affiliationsList];
+                      next[idx].organization = e.target.value;
+                      setAffiliationsList(next);
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                    <input type="text" placeholder="Your Role (e.g. Secretary)" value={aff.role || ""} onChange={e => {
+                      const next = [...affiliationsList];
+                      next[idx].role = e.target.value;
+                      setAffiliationsList(next);
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                  </div>
+                ))}
+                <button type="button" onClick={() => handleAddListItem("affiliations")} className="w-full text-center border border-dashed border-[var(--border)] py-1.5 rounded text-[var(--primary)] font-semibold text-xs">
+                  + Add Affiliation
+                </button>
+              </div>
+            </div>
           )}
 
-          {/* Interests */}
-          {parsed.interests.length > 0 && (
-            <Section icon={<Heart className="h-4 w-4" />} title="Interests">
-              <div className="flex flex-wrap gap-2">
-                {parsed.interests.map((it) => (
-                  <span key={it.activity} className="text-xs text-[var(--text-2)] bg-[var(--surface-2)] border border-[var(--border)] px-3 py-1 rounded-[var(--radius-sm)]">
-                    {it.activity}
-                  </span>
-                ))}
-              </div>
-            </Section>
-          )}
+        </div>
+
+        {/* Footer actions at the bottomest row */}
+        <div className="px-5 py-3.5 border-t border-[var(--border)] bg-[var(--surface-2)] flex items-center gap-3 shrink-0">
+          <Button variant="outline" size="sm" onClick={onClose} className="flex-1">
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" onClick={handleSave} loading={saving} className="flex-1">
+            Save
+          </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
-
-function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function FormField({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
-    <div className="plasma-card p-5">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-4 pb-3 border-b border-[var(--border)]">
-        <span className="text-[var(--primary)]">{icon}</span>
-        {title}
-      </h2>
+    <div className="space-y-1">
+      <label className="block text-xs font-semibold text-[var(--text-2)]">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
       {children}
-    </div>
-  );
-}
-
-function WorkEntry({ w }: { w: WorkHistory }) {
-  return (
-    <div className="border-l-2 border-[var(--border)] pl-3 space-y-1">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h4 className="text-sm font-semibold text-[var(--text)]">{w.title}</h4>
-          <p className="text-xs text-[var(--text-3)]">{w.company} · {w.location}</p>
-        </div>
-        <Badge variant="secondary" className="shrink-0 text-[10px]">{w.type}</Badge>
-      </div>
-      <p className="text-xs text-[var(--text-3)]">
-        {w.period.start} – {w.period.isCurrent ? "Present" : (w.period.end ?? "N/A")}
-      </p>
-      {w.responsibilities.length > 0 && (
-        <ul className="space-y-0.5 pt-1">
-          {w.responsibilities.map((r, i) => (
-            <li key={i} className="text-xs text-[var(--text-2)] flex gap-1.5"><span className="text-[var(--text-3)]">•</span>{r}</li>
-          ))}
-        </ul>
-      )}
-      {w.achievements.length > 0 && (
-        <ul className="space-y-0.5">
-          {w.achievements.map((a, i) => (
-            <li key={i} className="text-xs text-green-700 bg-green-50 rounded px-2 py-0.5 flex gap-1.5"><span>🏆</span>{a}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function EduEntry({ e }: { e: ResumeEducation }) {
-  return (
-    <div className="border-l-2 border-[var(--border)] pl-3 space-y-0.5">
-      <h4 className="text-sm font-semibold text-[var(--text)]">{e.institution}</h4>
-      <p className="text-xs text-[var(--text-2)]">{e.field.type} in {e.field.course}</p>
-      <p className="text-xs text-[var(--text-3)]">{e.period.start} – {e.period.isCurrent ? "Present" : (e.period.end ?? "N/A")}</p>
-      {e.output && <p className="text-xs text-[var(--primary)] font-medium">{e.output}</p>}
-    </div>
-  );
-}
-
-function SkillEntry({ s }: { s: Skill }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-medium text-[var(--text)]">{s.field}</span>
-        <span className="text-xs text-[var(--text-3)]">{s.yearsOfExperience} yr{s.yearsOfExperience !== 1 ? "s" : ""}</span>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {s.tools.map((t) => (
-          <span key={t.name} className="text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)] border border-[var(--primary)]/20">
-            {t.name}{t.score ? ` · ${t.score}%` : ""}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

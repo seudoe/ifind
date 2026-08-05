@@ -9,6 +9,7 @@ import {
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import type { User as StudentUser } from "@/types";
 
 // ── Nav definition ────────────────────────────────────────────────────────
 const NAV = [
@@ -31,12 +32,16 @@ const MOCK = {
 interface Props {
   activeTab: string;
   children: React.ReactNode;
+  user?: StudentUser;
+  maxWidthClass?: string;
+  headerAction?: React.ReactNode;
 }
 
-export function DashboardShell({ activeTab, children }: Props) {
+export function DashboardShell({ activeTab, children, user, maxWidthClass = "max-w-6xl", headerAction }: Props) {
   const params   = useParams();
   const router   = useRouter();
   const username = (params?.username as string) ?? MOCK.username;
+  const currentUser = user ?? MOCK;
 
   const href = (tab: string) =>
     tab === "profile"
@@ -62,7 +67,7 @@ export function DashboardShell({ activeTab, children }: Props) {
 
       {/* ── Top Navbar ───────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`${maxWidthClass} mx-auto px-4 sm:px-6 lg:px-8`}>
           <div className="flex items-center h-14 gap-4">
 
             {/* Logo */}
@@ -100,18 +105,25 @@ export function DashboardShell({ activeTab, children }: Props) {
               })}
             </nav>
 
+            {/* Mobile header action */}
+            {headerAction && (
+              <div className="ml-auto flex items-center shrink-0 lg:hidden">
+                {headerAction}
+              </div>
+            )}
+
             {/* User + logout */}
             <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
               <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
-                <span>{MOCK.profileCompletionScore}%</span>
-                <div className="w-16"><ProgressBar value={MOCK.profileCompletionScore} /></div>
+                <span>{currentUser.profileCompletionScore}%</span>
+                <div className="w-16"><ProgressBar value={currentUser.profileCompletionScore} /></div>
               </div>
               <Link
                 href={href("profile")}
                 className="flex items-center gap-2 px-2 py-1 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors"
               >
-                <Avatar src={MOCK.profilePicture} name={MOCK.name} size="xs" />
-                <span className="text-sm font-medium text-[var(--text)] max-w-[100px] truncate">{MOCK.name}</span>
+                <Avatar src={currentUser.profilePicture} name={currentUser.name} size="xs" />
+                <span className="text-sm font-medium text-[var(--text)] max-w-[100px] truncate">{currentUser.name}</span>
               </Link>
               <button
                 onClick={handleLogout}
@@ -126,7 +138,7 @@ export function DashboardShell({ activeTab, children }: Props) {
       </header>
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
+      <main className={`flex-1 ${maxWidthClass} mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6`}>
         <h1 className="text-base font-semibold text-[var(--text)] mb-5">
           {TAB_TITLES[activeTab] ?? "Dashboard"}
         </h1>
