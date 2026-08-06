@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Search, FileText, Bookmark, User,
-  Settings, Briefcase, LogOut,
+  Settings, Briefcase, LogOut, AlertTriangle, BadgeCheck, Link2Off,
 } from "lucide-react";
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
@@ -21,13 +21,49 @@ const NAV = [
   { tab: "settings", label: "Settings", icon: Settings },
 ];
 
-// ── Mock user — replace with real auth context later ──────────────────────
+// ── Mock user ──────────────────────────────────────────────────────────────
 const MOCK = {
   name: "Rahul Sharma",
   username: "rahulsharma",
   profilePicture: null as string | null,
   profileCompletionScore: 35,
 };
+
+function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: StudentUser["linkedinDetails"] }) {
+  if (!linkedinDetails) {
+    // State C: Not connected through LinkedIn
+    return (
+      <span
+        title="User is not connected through LinkedIn"
+        className="inline-flex items-center text-gray-400 hover:text-gray-500 transition-colors"
+      >
+        <Link2Off className="h-3.5 w-3.5" />
+      </span>
+    );
+  }
+
+  if (linkedinDetails.email_verified) {
+    // State A: User is LinkedIn verified
+    return (
+      <span
+        title="User is LinkedIn verified"
+        className="inline-flex items-center text-[#0a66c2] hover:opacity-85 transition-opacity"
+      >
+        <BadgeCheck className="h-4 w-4 fill-[#0a66c2]/10" />
+      </span>
+    );
+  }
+
+  // State B: Connected but NOT verified on LinkedIn -> Show yellow danger triangle!
+  return (
+    <span
+      title="User is not verified on LinkedIn"
+      className="inline-flex items-center text-amber-500 hover:text-amber-600 transition-colors animate-pulse"
+    >
+      <AlertTriangle className="h-4 w-4 fill-amber-100" />
+    </span>
+  );
+}
 
 interface Props {
   activeTab: string;
@@ -61,6 +97,8 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
     profile:  "My Profile",
     settings: "Settings",
   };
+
+  const linkedinDetails = "linkedinDetails" in currentUser ? currentUser.linkedinDetails : undefined;
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
@@ -120,10 +158,11 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
               </div>
               <Link
                 href={href("profile")}
-                className="flex items-center gap-2 px-2 py-1 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors"
               >
                 <Avatar src={currentUser.profilePicture} name={currentUser.name} size="xs" />
                 <span className="text-sm font-medium text-[var(--text)] max-w-[100px] truncate">{currentUser.name}</span>
+                <LinkedInStatusIndicator linkedinDetails={linkedinDetails} />
               </Link>
               <button
                 onClick={handleLogout}

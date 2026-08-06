@@ -1,5 +1,7 @@
 "use client";
 
+import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
+
 import { useState, useRef } from "react";
 import { Eye, EyeOff, User, Lock, Bell, Trash2, Camera, AlertTriangle } from "lucide-react";
 import { Input }  from "@/components/ui/Input";
@@ -136,6 +138,7 @@ export function SettingsTab({ user }: { user: StudentUser }) {
         title="iFind Account Settings"
         desc="Manage your student account in iFind (app settings)"
       >
+        <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} className="mb-5" />
         <div className="flex items-center gap-4 mb-5">
           <Avatar src={profilePicture} name={name || user.name} size="lg" />
           <div className="flex flex-col gap-1.5">
