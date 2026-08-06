@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 import {
   Award, BookOpen, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
-  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2
+  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
-import type { ParsedResumeData, User } from "@/types";
+import type { ParsedResumeData, User, Skill } from "@/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -91,15 +91,7 @@ export default function ProfilePage() {
             </Panel>
 
             <Panel id="skills" icon={<BookOpen />} title="Key skills" onEditClick={() => triggerEdit("skills")}>
-              {user.skills?.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {user.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="px-2.5 py-1 text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              ) : resume.skills.length ? (
+              {resume.skills.length ? (
                 <div className="space-y-4">
                   {resume.skills.map((group, index) => (
                     <div key={`${group.field}-${index}`}>
@@ -207,7 +199,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
   const [educationList, setEducationList] = useState<any[]>([]);
 
   // Section: skills
-  const [skillsList, setSkillsList] = useState<string[]>([]);
+  const [skillsGroupList, setSkillsGroupList] = useState<Skill[]>([]);
 
   // Section: languages
   const [languagesList, setLanguagesList] = useState<any[]>([]);
@@ -251,7 +243,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
     // Arrays/Sub-docs from MongoDB resume data
     const resume = user.resume?.parsedData || emptyResume(user);
     setEducationList(resume.education ? JSON.parse(JSON.stringify(resume.education)) : []);
-    setSkillsList(user.skills ? [...user.skills] : []);
+    setSkillsGroupList(resume.skills ? JSON.parse(JSON.stringify(resume.skills)) : []);
     setLanguagesList(resume.languages ? JSON.parse(JSON.stringify(resume.languages)) : []);
     setInternshipsList(resume.workHistory ? JSON.parse(JSON.stringify(resume.workHistory.filter(w => w.type === "internship"))) : []);
     setEmploymentList(resume.workHistory ? JSON.parse(JSON.stringify(resume.workHistory.filter(w => w.type !== "internship"))) : []);
@@ -263,31 +255,31 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
   }, [isOpen, section, user]);
 
   // --- Dynamic array handlers ---
-  const handleAddListItem = (type: "education" | "skills" | "languages" | "internships" | "employment" | "projects" | "certifications" | "awards" | "affiliations") => {
+  const handleAddListItem = (type: "education" | "skillsGroup" | "languages" | "internships" | "employment" | "projects" | "certifications" | "awards" | "affiliations") => {
     if (type === "education") {
       setEducationList(prev => [...prev, { institution: "", field: { type: "", course: "" }, period: { start: "", end: "", isCurrent: false }, output: "" }]);
-    } else if (type === "skills") {
-      setSkillsList(prev => [...prev, ""]);
+    } else if (type === "skillsGroup") {
+      setSkillsGroupList(prev => [...prev, { field: "", yearsOfExperience: 0, lastUsed: "", tools: [] }]);
     } else if (type === "languages") {
-      setLanguagesList(prev => [...prev, { lang: "", proficiency: "Conversational" }]);
+      setLanguagesList(prev => [...prev, { lang: "", proficiency: "Conversational", score: "" }]);
     } else if (type === "internships") {
       setInternshipsList(prev => [...prev, { title: "", company: "", location: "", type: "internship", period: { start: "", end: "", isCurrent: false }, responsibilities: [], achievements: [] }]);
     } else if (type === "employment") {
-      setEmploymentList(prev => [...prev, { title: "", company: "", location: "", type: "employment", period: { start: "", end: "", isCurrent: false }, responsibilities: [], achievements: [] }]);
+      setEmploymentList(prev => [...prev, { title: "", company: "", location: "", type: "job", period: { start: "", end: "", isCurrent: false }, responsibilities: [], achievements: [] }]);
     } else if (type === "projects") {
-      setProjectsList(prev => [...prev, { title: "", role: "", techStack: [], description: "" }]);
+      setProjectsList(prev => [...prev, { title: "", role: "", links: { repo: "", live: "", demo: "" }, techStack: [], problemStatement: "", metrics: [], technicalChallenges: [], description: [], architecture: "" }]);
     } else if (type === "certifications") {
-      setCertificationsList(prev => [...prev, { name: "", issuer: "", date: "" }]);
+      setCertificationsList(prev => [...prev, { name: "", issuer: "", skillsEarned: [], type: "", date: "" }]);
     } else if (type === "awards") {
-      setAwardsList(prev => [...prev, { name: "", date: "" }]);
+      setAwardsList(prev => [...prev, { name: "", date: "", issuingBody: "", justification: "" }]);
     } else if (type === "affiliations") {
-      setAffiliationsList(prev => [...prev, { organization: "", role: "", period: { start: "", end: "" } }]);
+      setAffiliationsList(prev => [...prev, { organization: "", role: "", type: "", impact: [], period: { start: "", end: "" } }]);
     }
   };
 
   const handleRemoveListItem = (type: string, index: number) => {
     if (type === "education") setEducationList(prev => prev.filter((_, i) => i !== index));
-    else if (type === "skills") setSkillsList(prev => prev.filter((_, i) => i !== index));
+    else if (type === "skillsGroup") setSkillsGroupList(prev => prev.filter((_, i) => i !== index));
     else if (type === "languages") setLanguagesList(prev => prev.filter((_, i) => i !== index));
     else if (type === "internships") setInternshipsList(prev => prev.filter((_, i) => i !== index));
     else if (type === "employment") setEmploymentList(prev => prev.filter((_, i) => i !== index));
@@ -295,6 +287,63 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
     else if (type === "certifications") setCertificationsList(prev => prev.filter((_, i) => i !== index));
     else if (type === "awards") setAwardsList(prev => prev.filter((_, i) => i !== index));
     else if (type === "affiliations") setAffiliationsList(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // --- Dynamic nesting handlers ---
+  const handleAddNestedString = (listType: "internships" | "employment" | "projects" | "affiliations", parentIdx: number, key: "responsibilities" | "achievements" | "description" | "metrics" | "technicalChallenges" | "impact") => {
+    const list = listType === "internships" ? internshipsList : listType === "employment" ? employmentList : listType === "projects" ? projectsList : affiliationsList;
+    const next = [...list];
+    if (!next[parentIdx][key]) next[parentIdx][key] = [];
+    next[parentIdx][key].push("");
+    if (listType === "internships") setInternshipsList(next);
+    else if (listType === "employment") setEmploymentList(next);
+    else if (listType === "projects") setProjectsList(next);
+    else setAffiliationsList(next);
+  };
+
+  const handleNestedStringChange = (listType: "internships" | "employment" | "projects" | "affiliations", parentIdx: number, key: "responsibilities" | "achievements" | "description" | "metrics" | "technicalChallenges" | "impact", childIdx: number, val: string) => {
+    const list = listType === "internships" ? internshipsList : listType === "employment" ? employmentList : listType === "projects" ? projectsList : affiliationsList;
+    const next = [...list];
+    next[parentIdx][key][childIdx] = val;
+    if (listType === "internships") setInternshipsList(next);
+    else if (listType === "employment") setEmploymentList(next);
+    else if (listType === "projects") setProjectsList(next);
+    else setAffiliationsList(next);
+  };
+
+  const handleRemoveNestedString = (listType: "internships" | "employment" | "projects" | "affiliations", parentIdx: number, key: "responsibilities" | "achievements" | "description" | "metrics" | "technicalChallenges" | "impact", childIdx: number) => {
+    const list = listType === "internships" ? internshipsList : listType === "employment" ? employmentList : listType === "projects" ? projectsList : affiliationsList;
+    const next = [...list];
+    next[parentIdx][key] = next[parentIdx][key].filter((_: any, i: number) => i !== childIdx);
+    if (listType === "internships") setInternshipsList(next);
+    else if (listType === "employment") setEmploymentList(next);
+    else if (listType === "projects") setProjectsList(next);
+    else setAffiliationsList(next);
+  };
+
+  // --- Dynamic Skills Group Nested Handlers ---
+  const handleAddTool = (groupIdx: number) => {
+    const next = [...skillsGroupList];
+    if (!next[groupIdx].tools) next[groupIdx].tools = [];
+    next[groupIdx].tools.push({ name: "", score: null });
+    setSkillsGroupList(next);
+  };
+
+  const handleRemoveTool = (groupIdx: number, toolIdx: number) => {
+    const next = [...skillsGroupList];
+    next[groupIdx].tools = next[groupIdx].tools.filter((_, i) => i !== toolIdx);
+    setSkillsGroupList(next);
+  };
+
+  const handleToolChange = (groupIdx: number, toolIdx: number, key: "name" | "score", val: string) => {
+    const next = [...skillsGroupList];
+    if (key === "name") {
+      next[groupIdx].tools[toolIdx].name = val;
+    } else {
+      const parsed = parseInt(val, 10);
+      next[groupIdx].tools[toolIdx].score = isNaN(parsed) ? null : parsed;
+    }
+    setSkillsGroupList(next);
   };
 
   const handleSave = async () => {
@@ -336,9 +385,14 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
           }
         };
       } else if (section === "skills") {
+        // Build direct user.skills from all listed tools
+        const flatTools = skillsGroupList.flatMap(g => (g.tools || []).map(t => t.name.trim())).filter(Boolean);
         payload = {
           userUpdate: {
-            skills: skillsList.filter(s => s.trim())
+            skills: Array.from(new Set(flatTools))
+          },
+          resumeUpdate: {
+            skills: skillsGroupList.filter(s => s.field.trim())
           }
         };
       } else if (section === "languages") {
@@ -419,6 +473,55 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .profile-edit-popup {
+          position: fixed;
+          z-index: 50;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+        }
+        @media (min-width: 1024px) {
+          .profile-edit-popup {
+            left: 50%;
+            top: 50%;
+            height: 85vh;
+            width: 480px;
+            border-radius: var(--radius);
+            animation: slideToCenter 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        }
+        @media (max-width: 1023px) {
+          .profile-edit-popup {
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 49px;
+            animation: slideUpMobile 300ms ease-out forwards;
+          }
+        }
+        @keyframes slideToCenter {
+          from {
+            transform: translate3d(100vw, -50%, 0);
+            opacity: 0;
+          }
+          to {
+            transform: translate3d(-50%, -50%, 0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideUpMobile {
+          from {
+            transform: translate3d(0, 100%, 0);
+          }
+          to {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+      `}} />
       {/* Backdrop overlay */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50 transition-opacity animate-in fade-in duration-200"
@@ -426,13 +529,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
       />
 
       {/* Slide-over Drawer Panel */}
-      <div className={cn(
-        "fixed z-50 bg-[var(--surface)] border border-[var(--border)] shadow-2xl flex flex-col transition-all duration-300 ease-out",
-        // Desktop: Center screen vertically on the right side
-        "lg:right-6 lg:top-1/2 lg:-translate-y-1/2 lg:h-[85vh] lg:w-[480px] lg:rounded-[var(--radius)] lg:animate-in lg:slide-in-from-right lg:duration-300",
-        // Mobile: covers whole screen except bottom nav
-        "inset-x-0 top-0 bottom-[49px] lg:bottom-auto animate-in slide-in-from-bottom lg:slide-in-from-bottom-0 duration-300"
-      )}>
+      <div className="profile-edit-popup">
         {/* Header */}
         <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
           <div>
@@ -586,33 +683,67 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
             </div>
           )}
 
-          {/* ── Section: SKILLS ── */}
+          {/* ── Section: SKILLS (Groups editor) ── */}
           {section === "skills" && (
-            <div className="space-y-3">
-              {skillsList.map((skill, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={skill}
-                    onChange={(e) => handleSkillChange(index, e.target.value)}
-                    placeholder="Skill name (e.g. Next.js)"
-                    className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all text-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveListItem("skills", index)}
-                    className="p-2 rounded text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0"
-                  >
+            <div className="space-y-5">
+              {skillsGroupList.map((group, groupIdx) => (
+                <div key={groupIdx} className="plasma-card p-4 space-y-3 relative border border-[var(--border)] rounded bg-[var(--surface-2)]">
+                  <button type="button" onClick={() => handleRemoveListItem("skillsGroup", groupIdx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
                     <Trash2 className="h-4 w-4" />
                   </button>
+
+                  <h4 className="font-semibold text-xs text-[var(--text)]">Skill Group #{groupIdx + 1}</h4>
+
+                  <FormField label="Group Name / Field" required>
+                    <input type="text" placeholder="e.g. Frontend or Languages" value={group.field} onChange={e => {
+                      const next = [...skillsGroupList];
+                      next[groupIdx].field = e.target.value;
+                      setSkillsGroupList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                  </FormField>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField label="Years of Experience">
+                      <input type="number" min={0} value={group.yearsOfExperience ?? ""} onChange={e => {
+                        const next = [...skillsGroupList];
+                        next[groupIdx].yearsOfExperience = parseInt(e.target.value, 10) || 0;
+                        setSkillsGroupList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                    </FormField>
+                    <FormField label="Last Used Year">
+                      <input type="text" placeholder="e.g. 2026" value={group.lastUsed || ""} onChange={e => {
+                        const next = [...skillsGroupList];
+                        next[groupIdx].lastUsed = e.target.value;
+                        setSkillsGroupList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
+                    </FormField>
+                  </div>
+
+                  {/* Nested Tools */}
+                  <div className="space-y-2 border-t border-[var(--border)] pt-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Skills / Tools in this Group</label>
+                      <button type="button" onClick={() => handleAddTool(groupIdx)} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                        <Plus className="h-3 w-3" /> Add Skill Tag
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(group.tools || []).map((tool, toolIdx) => (
+                        <div key={toolIdx} className="flex items-center gap-2">
+                          <input type="text" placeholder="Skill name" value={tool.name || ""} onChange={e => handleToolChange(groupIdx, toolIdx, "name", e.target.value)} className="flex-1 px-2.5 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <input type="number" placeholder="Score %" min={0} max={100} value={tool.score === null || tool.score === undefined ? "" : tool.score} onChange={e => handleToolChange(groupIdx, toolIdx, "score", e.target.value)} className="w-16 px-2 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <button type="button" onClick={() => handleRemoveTool(groupIdx, toolIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={() => handleAddListItem("skills")}
-                className="w-full text-center border border-dashed border-[var(--border)] py-2 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs"
-              >
-                + Add Skill
+              <button type="button" onClick={() => handleAddListItem("skillsGroup")} className="w-full text-center border border-dashed border-[var(--border)] py-2.5 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
+                + Add Skill Group
               </button>
             </div>
           )}
@@ -718,6 +849,47 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                     }} className="h-3.5 w-3.5 border-[var(--border)] rounded" />
                     <label htmlFor={`hist-curr-${idx}`} className="text-[11px] font-medium text-[var(--text-2)]">Currently in this role</label>
                   </div>
+
+                  {/* Responsibilities list */}
+                  <div className="space-y-2 border-t border-[var(--border)] pt-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Responsibilities</label>
+                      <button type="button" onClick={() => handleAddNestedString(section, idx, "responsibilities")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                        <Plus className="h-3 w-3" /> Add Responsibility
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(history.responsibilities || []).map((resp: string, rIdx: number) => (
+                        <div key={rIdx} className="flex items-center gap-2">
+                          <input type="text" value={resp} onChange={e => handleNestedStringChange(section, idx, "responsibilities", rIdx, e.target.value)} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <button type="button" onClick={() => handleRemoveNestedString(section, idx, "responsibilities", rIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Achievements list */}
+                  <div className="space-y-2 border-t border-[var(--border)] pt-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Achievements</label>
+                      <button type="button" onClick={() => handleAddNestedString(section, idx, "achievements")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                        <Plus className="h-3 w-3" /> Add Achievement
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(history.achievements || []).map((ach: string, aIdx: number) => (
+                        <div key={aIdx} className="flex items-center gap-2">
+                          <input type="text" value={ach} onChange={e => handleNestedStringChange(section, idx, "achievements", aIdx, e.target.value)} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <button type="button" onClick={() => handleRemoveNestedString(section, idx, "achievements", aIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               ))}
               <button type="button" onClick={() => handleAddListItem(section)} className="w-full text-center border border-dashed border-[var(--border)] py-2.5 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
@@ -759,13 +931,109 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                     }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs" />
                   </FormField>
 
-                  <FormField label="Project Description">
-                    <textarea rows={3} value={project.description || ""} onChange={e => {
+                  <div className="grid grid-cols-3 gap-2">
+                    <FormField label="Repo URL">
+                      <input type="url" value={project.links?.repo || ""} onChange={e => {
+                        const next = [...projectsList];
+                        if (!next[idx].links) next[idx].links = {};
+                        next[idx].links.repo = e.target.value;
+                        setProjectsList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                    </FormField>
+                    <FormField label="Live URL">
+                      <input type="url" value={project.links?.live || ""} onChange={e => {
+                        const next = [...projectsList];
+                        if (!next[idx].links) next[idx].links = {};
+                        next[idx].links.live = e.target.value;
+                        setProjectsList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-xs" />
+                    </FormField>
+                    <FormField label="Demo URL">
+                      <input type="url" value={project.links?.demo || ""} onChange={e => {
+                        const next = [...projectsList];
+                        if (!next[idx].links) next[idx].links = {};
+                        next[idx].links.demo = e.target.value;
+                        setProjectsList(next);
+                      }} className="px-3 py-2 border border-[var(--border)] rounded bg-xs" />
+                    </FormField>
+                  </div>
+
+                  <FormField label="Problem Statement">
+                    <input type="text" value={project.problemStatement || ""} onChange={e => {
                       const next = [...projectsList];
-                      next[idx].description = e.target.value;
+                      next[idx].problemStatement = e.target.value || null;
                       setProjectsList(next);
-                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] w-full text-xs outline-none focus:border-[var(--primary)] transition-all resize-y" />
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs w-full" />
                   </FormField>
+
+                  <FormField label="Architecture">
+                    <input type="text" value={project.architecture || ""} onChange={e => {
+                      const next = [...projectsList];
+                      next[idx].architecture = e.target.value;
+                      setProjectsList(next);
+                    }} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs w-full" />
+                  </FormField>
+
+                  {/* Project description list */}
+                  <div className="space-y-2 border-t border-[var(--border)] pt-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Project Description Lines</label>
+                      <button type="button" onClick={() => handleAddNestedString("projects", idx, "description")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                        <Plus className="h-3 w-3" /> Add Line
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(project.description || []).map((desc: string, dIdx: number) => (
+                        <div key={dIdx} className="flex items-center gap-2">
+                          <input type="text" value={desc} onChange={e => handleNestedStringChange("projects", idx, "description", dIdx, e.target.value)} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <button type="button" onClick={() => handleRemoveNestedString("projects", idx, "description", dIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Project metrics list */}
+                  <div className="space-y-2 border-t border-[var(--border)] pt-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Impact & Metrics</label>
+                      <button type="button" onClick={() => handleAddNestedString("projects", idx, "metrics")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                        <Plus className="h-3 w-3" /> Add Metric
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(project.metrics || []).map((metric: string, mIdx: number) => (
+                        <div key={mIdx} className="flex items-center gap-2">
+                          <input type="text" value={metric} onChange={e => handleNestedStringChange("projects", idx, "metrics", mIdx, e.target.value)} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <button type="button" onClick={() => handleRemoveNestedString("projects", idx, "metrics", mIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Project technical challenges list */}
+                  <div className="space-y-2 border-t border-[var(--border)] pt-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Technical Challenges</label>
+                      <button type="button" onClick={() => handleAddNestedString("projects", idx, "technicalChallenges")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                        <Plus className="h-3 w-3" /> Add Challenge
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(project.technicalChallenges || []).map((challenge: string, tcIdx: number) => (
+                        <div key={tcIdx} className="flex items-center gap-2">
+                          <input type="text" value={challenge} onChange={e => handleNestedStringChange("projects", idx, "technicalChallenges", tcIdx, e.target.value)} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                          <button type="button" onClick={() => handleRemoveNestedString("projects", idx, "technicalChallenges", tcIdx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               ))}
               <button type="button" onClick={() => handleAddListItem("projects")} className="w-full text-center border border-dashed border-[var(--border)] py-2.5 rounded text-[var(--primary)] font-semibold hover:bg-[var(--primary-bg)] transition-colors text-xs">
@@ -805,9 +1073,24 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                         next[idx].name = e.target.value;
                         setCertificationsList(next);
                       }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
-                      <input type="text" placeholder="Issuer (e.g. AWS)" value={cert.issuer || ""} onChange={e => {
+                      <input type="text" placeholder="Issuer" value={cert.issuer || ""} onChange={e => {
                         const next = [...certificationsList];
                         next[idx].issuer = e.target.value;
+                        setCertificationsList(next);
+                      }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                      <input type="text" placeholder="Type (e.g. Professional)" value={cert.type || ""} onChange={e => {
+                        const next = [...certificationsList];
+                        next[idx].type = e.target.value;
+                        setCertificationsList(next);
+                      }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                      <input type="text" placeholder="Skills Earned (comma separated)" value={Array.isArray(cert.skillsEarned) ? cert.skillsEarned.join(", ") : ""} onChange={e => {
+                        const next = [...certificationsList];
+                        next[idx].skillsEarned = e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean);
+                        setCertificationsList(next);
+                      }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                      <input type="text" placeholder="Date (e.g. Aug 2026)" value={cert.date || ""} onChange={e => {
+                        const next = [...certificationsList];
+                        next[idx].date = e.target.value;
                         setCertificationsList(next);
                       }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
                     </div>
@@ -822,15 +1105,30 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
               <div className="space-y-3 pt-3 border-t border-[var(--border)]">
                 <label className="block text-xs font-bold text-[var(--text)] border-b border-[var(--border)] pb-1.5">Awards & Achievements</label>
                 {awardsList.map((award, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
+                  <div key={idx} className="border border-[var(--border)] p-3 rounded relative bg-[var(--surface-2)] space-y-2">
+                    <button type="button" onClick={() => handleRemoveListItem("awards", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                     <input type="text" placeholder="Award description" value={award.name} onChange={e => {
                       const next = [...awardsList];
                       next[idx].name = e.target.value;
                       setAwardsList(next);
-                    }} className="flex-1 px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
-                    <button type="button" onClick={() => handleRemoveListItem("awards", idx)} className="p-2 text-red-500 hover:bg-red-50 rounded shrink-0">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                    <input type="text" placeholder="Issuing Body" value={award.issuingBody || ""} onChange={e => {
+                      const next = [...awardsList];
+                      next[idx].issuingBody = e.target.value;
+                      setAwardsList(next);
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                    <input type="text" placeholder="Justification / Criteria" value={award.justification || ""} onChange={e => {
+                      const next = [...awardsList];
+                      next[idx].justification = e.target.value;
+                      setAwardsList(next);
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                    <input type="text" placeholder="Date Awarded" value={award.date || ""} onChange={e => {
+                      const next = [...awardsList];
+                      next[idx].date = e.target.value;
+                      setAwardsList(next);
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
                   </div>
                 ))}
                 <button type="button" onClick={() => handleAddListItem("awards")} className="w-full text-center border border-dashed border-[var(--border)] py-1.5 rounded text-[var(--primary)] font-semibold text-xs">
@@ -856,6 +1154,31 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                       next[idx].role = e.target.value;
                       setAffiliationsList(next);
                     }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                    <input type="text" placeholder="Type (e.g. Academic / Athletic)" value={aff.type || ""} onChange={e => {
+                      const next = [...affiliationsList];
+                      next[idx].type = e.target.value;
+                      setAffiliationsList(next);
+                    }} className="px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] w-full text-xs" />
+                    
+                    {/* Nested Impact List */}
+                    <div className="space-y-2 border-t border-[var(--border)] pt-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Key Impact Lines</label>
+                        <button type="button" onClick={() => handleAddNestedString("affiliations", idx, "impact")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
+                          <Plus className="h-3 w-3" /> Add Impact Line
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {(aff.impact || []).map((imp: string, impIdx: number) => (
+                          <div key={impIdx} className="flex items-center gap-2">
+                            <input type="text" value={imp} onChange={e => handleNestedStringChange("affiliations", idx, "impact", impIdx, e.target.value)} className="flex-1 px-3 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] text-xs" />
+                            <button type="button" onClick={() => handleRemoveNestedString("affiliations", idx, "impact", impIdx)} className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ))}
                 <button type="button" onClick={() => handleAddListItem("affiliations")} className="w-full text-center border border-dashed border-[var(--border)] py-1.5 rounded text-[var(--primary)] font-semibold text-xs">

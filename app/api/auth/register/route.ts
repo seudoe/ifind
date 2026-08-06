@@ -31,6 +31,12 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const existing = await User.findOne({ $or: [{ email }, { username }] }).lean();
     if (existing) {
+      if (existing.email === email && existing.linkedinId) {
+        return NextResponse.json(
+          { success: false, error: "This email is already registered using LinkedIn. Please sign in with LinkedIn." },
+          { status: 409 }
+        );
+      }
       const field = existing.email === email ? "email" : "username";
       return NextResponse.json({ success: false, error: `This ${field} is already taken` }, { status: 409 });
     }

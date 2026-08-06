@@ -65,12 +65,18 @@ export function InternshipCard({
   const handleApply = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isApplied) return;
+
+    // Open link synchronously to bypass browser popup blockers
+    if (internship.applyLink) {
+      window.open(internship.applyLink, "_blank");
+    }
+
     setApplying(true);
     try {
       const res  = await fetch(`/api/internships/${internshipId}/apply`, { method: "POST", credentials: "include" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
-      toast.success("Application submitted!");
+      toast.success("Application recorded!");
       onApply?.(internshipId);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to apply");

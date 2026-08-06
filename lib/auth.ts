@@ -19,7 +19,7 @@ function getJwtSecret(): string {
 }
 
 export function signToken(session: AuthSession): string {
-  return jwt.sign(session, getJwtSecret(), { expiresIn: "7d" });
+  return jwt.sign(session, getJwtSecret(), { expiresIn: "30d" });
 }
 
 export function verifyToken(token: string): AuthSession | null {
@@ -44,7 +44,7 @@ export function authCookie(token: string) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax" as const,
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 30, // 30 days (1 month)
       path: "/",
     },
   };

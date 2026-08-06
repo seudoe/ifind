@@ -18,7 +18,18 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] }).select("+password");
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
+    }
+
+    if (!user.password && user.linkedinId) {
+      return NextResponse.json(
+        { success: false, error: "This account was created using LinkedIn. Please sign in with LinkedIn." },
+        { status: 400 }
+      );
+    }
+
+    if (!user.password || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
     }
 

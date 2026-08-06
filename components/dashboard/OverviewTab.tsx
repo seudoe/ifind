@@ -66,8 +66,10 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
     });
   };
 
-  const shortlisted = user.appliedInternships.filter((a) => a.status === "shortlisted").length;
-  const applicationNames = new Map(applications.map((internship) => [getInternshipId(internship), internship.name]));
+  const appliedList = user?.appliedInternships ?? [];
+  const savedList = user?.savedInternships ?? [];
+  const shortlisted = appliedList.filter((a) => a.status === "shortlisted").length;
+  const applicationNames = new Map((applications ?? []).map((internship) => [getInternshipId(internship), internship.name]));
 
   // --- Dynamic Talent Card Data Extraction from MongoDB Document ---
   const workHistory = user.resume?.parsedData?.workHistory || [];
@@ -129,6 +131,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
             isSaved={savedIds.has(getInternshipId(selectedInternship))}
             onClose={() => setSelectedInternship(null)}
             onApplySuccess={() => handleApplySuccess(getInternshipId(selectedInternship))}
+            onSaveToggle={handleSaveToggle}
           />
         </div>
       )}
@@ -283,10 +286,10 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Applied",     value: user.appliedInternships.length, icon: <Send className="h-4 w-4" />,       bg: "bg-blue-50 text-[var(--primary)]" },
-            { label: "Saved",       value: user.savedInternships.length,   icon: <Bookmark className="h-4 w-4" />,   bg: "bg-purple-50 text-purple-600" },
+            { label: "Applied",     value: appliedList.length, icon: <Send className="h-4 w-4" />,       bg: "bg-blue-50 text-[var(--primary)]" },
+            { label: "Saved",       value: savedList.length,   icon: <Bookmark className="h-4 w-4" />,   bg: "bg-purple-50 text-purple-600" },
             { label: "Shortlisted", value: shortlisted,                     icon: <TrendingUp className="h-4 w-4" />, bg: "bg-green-50 text-green-600" },
-            { label: "Profile",     value: `${user.profileCompletionScore}%`, icon: <CheckCircle className="h-4 w-4" />, bg: "bg-amber-50 text-amber-600" },
+            { label: "Profile",     value: `${user?.profileCompletionScore ?? 0}%`, icon: <CheckCircle className="h-4 w-4" />, bg: "bg-amber-50 text-amber-600" },
           ].map(({ label, value, icon, bg }) => (
             <div key={label} className="plasma-card p-4">
               <div className={`inline-flex p-2 rounded-[var(--radius-sm)] ${bg} mb-3`}>{icon}</div>
@@ -300,9 +303,9 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         <div className="plasma-card p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-[var(--text)]">Profile Completion</h2>
-            <span className="text-lg font-bold text-[var(--primary)]">{user.profileCompletionScore}%</span>
+            <span className="text-lg font-bold text-[var(--primary)]">{user?.profileCompletionScore ?? 0}%</span>
           </div>
-          <ProgressBar value={user.profileCompletionScore} className="mb-4" />
+          <ProgressBar value={user?.profileCompletionScore ?? 0} className="mb-4" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {CHECKLIST.map(({ key, label, done }) => {
               const isDone = done(user);
@@ -327,27 +330,29 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
             <h2 className="text-sm font-semibold text-[var(--text)]">Best Internships For You</h2>
           </div>
           {recommended.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {recommended.map((internship) => {
-                const id = getInternshipId(internship);
-                return (
-                  <InternshipCard
-                    key={id}
-                    internship={internship}
-                    isSaved={savedIds.has(id)}
-                    isApplied={appliedIds.has(id)}
-                    onClick={() => setSelectedInternship(internship)}
-                    onSave={handleSaveToggle}
-                    onApply={handleApplySuccess}
-                  />
-                );
-              })}
+            <div className="max-h-[70vh] overflow-y-auto pr-2 scrollbar-thin">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-0.5">
+                {recommended.map((internship) => {
+                  const id = getInternshipId(internship);
+                  return (
+                    <InternshipCard
+                      key={id}
+                      internship={internship}
+                      isSaved={savedIds.has(id)}
+                      isApplied={appliedIds.has(id)}
+                      onClick={() => setSelectedInternship(internship)}
+                      onSave={handleSaveToggle}
+                      onApply={handleApplySuccess}
+                    />
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="plasma-card p-8 text-center">
               <Sparkles className="h-8 w-8 text-[var(--border-2)] mx-auto mb-2" />
               <p className="text-sm text-[var(--text-2)]">
-                {user.resume?.parsedData ? "No recommendations are available yet." : "Upload and extract your resume to enable AI recommendations."}
+                {user?.resume?.parsedData ? "No recommendations are available yet." : "Upload and extract your resume to enable AI recommendations."}
               </p>
             </div>
           )}
@@ -356,14 +361,14 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         {/* Applications */}
         <div>
           <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Your Applications</h2>
-          {user.appliedInternships.length === 0 ? (
+          {appliedList.length === 0 ? (
             <div className="plasma-card text-center py-10">
               <Send className="h-8 w-8 text-[var(--border-2)] mx-auto mb-2" />
               <p className="text-sm text-[var(--text-2)]">No applications yet. Start applying!</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {user.appliedInternships.map(({ internshipId, appliedAt, status }) => {
+              {appliedList.map(({ internshipId, appliedAt, status }) => {
                 const cleanId = String(internshipId);
                 return (
                   <div key={cleanId} className="plasma-card flex items-center gap-3 p-3">
@@ -395,6 +400,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
             isSaved={savedIds.has(getInternshipId(selectedInternship))}
             onClose={() => setSelectedInternship(null)}
             onApplySuccess={() => handleApplySuccess(getInternshipId(selectedInternship))}
+            onSaveToggle={handleSaveToggle}
           />
         </div>
       )}

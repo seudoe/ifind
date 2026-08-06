@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input }  from "@/components/ui/Input";
 import { toast }  from "sonner";
 import { AuthShell, GoogleButton } from "@/app/user/login/page";
+import { LinkedInButton } from "@/components/auth/LinkedInButton";
 
 const schema = z.object({
   name:     z.string().min(2, "At least 2 characters"),
@@ -97,7 +98,19 @@ export default function UserRegisterPage() {
         </Button>
       </form>
 
-      <GoogleButton />
+      <div className="space-y-3">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-[var(--border)]" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="text-xs text-[var(--text-3)] bg-[var(--surface)] px-3">or continue with</span>
+          </div>
+        </div>
+
+        <LinkedInButton />
+        <GoogleButton />
+      </div>
 
       <p className="text-xs text-[var(--text-3)] text-center">
         By registering you agree to our{" "}

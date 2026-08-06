@@ -249,6 +249,7 @@ export function BrowseTab({
               isSaved={savedIds.has(getInternshipId(selectedInternship))}
               onClose={() => setSelectedInternship(null)}
               onApplySuccess={() => handleApplySuccess(getInternshipId(selectedInternship))}
+              onSaveToggle={handleSaveToggle}
             />
           </div>
         )}
@@ -362,6 +363,7 @@ export function BrowseTab({
             isSaved={savedIds.has(getInternshipId(selectedInternship))}
             onClose={() => setSelectedInternship(null)}
             onApplySuccess={() => handleApplySuccess(getInternshipId(selectedInternship))}
+            onSaveToggle={handleSaveToggle}
           />
         </div>
       )}

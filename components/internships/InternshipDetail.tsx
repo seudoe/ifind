@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   MapPin, Clock, IndianRupee, Calendar, Users,
   ExternalLink, CheckCircle, Wifi, Building2,
-  ArrowLeft, Bookmark, BookmarkCheck, Sparkles,
+  ArrowLeft, Bookmark, BookmarkCheck, Sparkles, X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +19,7 @@ interface Props {
   isSaved: boolean;
   onClose: () => void;
   onApplySuccess: () => void;
+  onSaveToggle?: (id: string) => void;
 }
 
 export function InternshipDetailModal({
@@ -28,6 +29,7 @@ export function InternshipDetailModal({
   isApplied,
   isSaved,
   onApplySuccess,
+  onSaveToggle,
 }: Props & { open: boolean }) {
   const [applying, setApplying] = useState(false);
   const [saved, setSaved] = useState(isSaved);
@@ -35,6 +37,12 @@ export function InternshipDetailModal({
 
   const handleApply = async () => {
     if (isApplied) return;
+    
+    // Open link synchronously to bypass browser popup blockers
+    if (internship.applyLink) {
+      window.open(internship.applyLink, "_blank");
+    }
+
     setApplying(true);
     try {
       const res = await fetch(`/api/internships/${internshipId}/apply`, {
@@ -43,7 +51,7 @@ export function InternshipDetailModal({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
-      toast.success("Application submitted successfully!");
+      toast.success("Application recorded!");
       onApplySuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to apply");
@@ -61,6 +69,7 @@ export function InternshipDetailModal({
         credentials: "include",
       });
       if (!res.ok) throw new Error();
+      onSaveToggle?.(internshipId);
       toast.success(next ? "Saved to bookmarks" : "Removed from bookmarks");
     } catch {
       setSaved(!next);
@@ -68,14 +77,91 @@ export function InternshipDetailModal({
     }
   };
 
-  return (
-    <Modal open={open} onClose={onClose} size="xl">
-      <div className="space-y-6">
-        <InternshipDetailContent internship={internship} />
+  if (!open) return null;
 
-        {/* Action buttons at the bottom */}
-        <div className="flex items-center gap-3 pt-4 border-t border-[var(--border)] mt-6">
-          <Button variant="ghost" size="md" onClick={onClose} className="px-4">
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .internship-detail-popup {
+          position: fixed;
+          z-index: 50;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+        }
+        @media (min-width: 1024px) {
+          .internship-detail-popup {
+            left: 50%;
+            top: 50%;
+            height: 85vh;
+            width: 520px;
+            border-radius: var(--radius);
+            animation: slideToCenter 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        }
+        @media (max-width: 1023px) {
+          .internship-detail-popup {
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 49px;
+            animation: slideUpMobile 300ms ease-out forwards;
+          }
+        }
+        @keyframes slideToCenter {
+          from {
+            transform: translate3d(100vw, -50%, 0);
+            opacity: 0;
+          }
+          to {
+            transform: translate3d(-50%, -50%, 0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideUpMobile {
+          from {
+            transform: translate3d(0, 100%, 0);
+          }
+          to {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+      `}} />
+      
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50 transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      {/* Center Details Panel */}
+      <div className="internship-detail-popup">
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
+          <div>
+            <h3 className="text-sm font-bold text-[var(--text)]">Internship Details</h3>
+            <p className="text-[10px] text-[var(--text-3)]">{internship.company}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded hover:bg-[var(--surface-2)] text-[var(--text-3)] hover:text-[var(--text)] transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+          <InternshipDetailContent internship={internship} />
+        </div>
+
+        {/* Footer Actions */}
+        <div className="px-5 py-3.5 border-t border-[var(--border)] bg-[var(--surface-2)] flex items-center gap-3 shrink-0">
+          <Button variant="outline" size="sm" onClick={onClose} className="px-4">
             Back
           </Button>
 
@@ -93,7 +179,7 @@ export function InternshipDetailModal({
           </button>
 
           <Button
-            size="md"
+            size="sm"
             variant={isApplied ? "secondary" : "primary"}
             className="flex-1 font-semibold"
             onClick={handleApply}
@@ -109,14 +195,14 @@ export function InternshipDetailModal({
             rel="noopener noreferrer"
             className="shrink-0"
           >
-            <Button variant="outline" size="md" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
               <ExternalLink className="h-4 w-4" />
               Original Link
             </Button>
           </a>
         </div>
       </div>
-    </Modal>
+    </>
   );
 }
 
@@ -126,6 +212,7 @@ export function MobileInternshipDetail({
   isSaved,
   onClose,
   onApplySuccess,
+  onSaveToggle,
 }: Props) {
   const [applying, setApplying] = useState(false);
   const [saved, setSaved] = useState(isSaved);
@@ -133,6 +220,12 @@ export function MobileInternshipDetail({
 
   const handleApply = async () => {
     if (isApplied) return;
+
+    // Open link synchronously to bypass browser popup blockers
+    if (internship.applyLink) {
+      window.open(internship.applyLink, "_blank");
+    }
+
     setApplying(true);
     try {
       const res = await fetch(`/api/internships/${internshipId}/apply`, {
@@ -141,7 +234,7 @@ export function MobileInternshipDetail({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
-      toast.success("Application submitted successfully!");
+      toast.success("Application recorded!");
       onApplySuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to apply");
@@ -159,6 +252,7 @@ export function MobileInternshipDetail({
         credentials: "include",
       });
       if (!res.ok) throw new Error();
+      onSaveToggle?.(internshipId);
       toast.success(next ? "Saved to bookmarks" : "Removed from bookmarks");
     } catch {
       setSaved(!next);
