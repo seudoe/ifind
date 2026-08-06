@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Award, BookOpen, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
-  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus
+  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus, Upload, Camera
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 import type { ParsedResumeData, User, Skill } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 
 const QUICK_LINKS = [
@@ -117,7 +117,81 @@ export default function ProfilePage() {
             <ExperiencePanel id="internships" title="Internships" entries={internships} empty="Tell employers about your internships, projects, and skills learned." onEditClick={() => triggerEdit("internships")} />
 
             <Panel id="projects" icon={<Building2 />} title="Projects" onEditClick={() => triggerEdit("projects")} add>
-              {resume.projects.length ? <div className="space-y-4">{resume.projects.map((project, index) => <div key={index} className="border-b border-[var(--border)] pb-4 last:border-0 last:pb-0"><p className="text-sm font-semibold text-[var(--text)]">{project.title}</p>{project.role && <p className="text-xs text-[var(--text-3)]">{project.role}</p>}{project.techStack.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{project.techStack.map((tech) => <Badge key={tech} variant="secondary" className="text-[10px]">{tech}</Badge>)}</div>}</div>)}</div> : <Empty text="Add projects that demonstrate your work and skills." />}
+              {resume.projects.length ? (
+                <div className="space-y-5">
+                  {resume.projects.map((project, index) => (
+                    <div key={index} className="border-b border-[var(--border)] pb-4 last:border-0 last:pb-0 space-y-2">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <p className="text-sm font-semibold text-[var(--text)]">{project.title}</p>
+                        {project.role && <span className="text-xs text-[var(--text-3)]">{project.role}</span>}
+                      </div>
+
+                      {project.problemStatement && (
+                        <p className="text-xs italic text-[var(--text-2)]">{project.problemStatement}</p>
+                      )}
+
+                      {project.techStack && project.techStack.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {project.techStack.map((tech) => (
+                            <Badge key={tech} variant="secondary" className="text-[10px]">{tech}</Badge>
+                          ))}
+                        </div>
+                      )}
+
+                      {project.description && project.description.length > 0 && (
+                        <ul className="list-disc list-inside space-y-0.5 text-xs text-[var(--text-2)]">
+                          {project.description.map((desc, i) => (
+                            <li key={i}>{desc}</li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {project.metrics && project.metrics.length > 0 && (
+                        <div className="text-xs text-[var(--text-2)]">
+                          <span className="font-medium text-[var(--text-3)]">Metrics: </span>
+                          {project.metrics.join(" · ")}
+                        </div>
+                      )}
+
+                      {project.technicalChallenges && project.technicalChallenges.length > 0 && (
+                        <div className="text-xs text-[var(--text-2)]">
+                          <span className="font-medium text-[var(--text-3)]">Technical Challenges: </span>
+                          {project.technicalChallenges.join(" · ")}
+                        </div>
+                      )}
+
+                      {project.architecture && (
+                        <div className="text-xs text-[var(--text-2)]">
+                          <span className="font-medium text-[var(--text-3)]">Architecture: </span>
+                          {project.architecture}
+                        </div>
+                      )}
+
+                      {project.links && (project.links.repo || project.links.live || project.links.demo) && (
+                        <div className="flex flex-wrap gap-3 pt-1 text-xs">
+                          {project.links.repo && (
+                            <a href={project.links.repo} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
+                              <Link2 className="h-3 w-3" /> Repository
+                            </a>
+                          )}
+                          {project.links.live && (
+                            <a href={project.links.live} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
+                              <Link2 className="h-3 w-3" /> Live Demo
+                            </a>
+                          )}
+                          {project.links.demo && (
+                            <a href={project.links.demo} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
+                              <Link2 className="h-3 w-3" /> Demo
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Empty text="Add projects that demonstrate your work and skills." />
+              )}
             </Panel>
 
             <Panel id="summary" icon={<UserRound />} title="Profile summary" onEditClick={() => triggerEdit("summary")} add={!resume.summary}>
@@ -176,6 +250,8 @@ interface ProfileEditDrawerProps {
 
 function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: ProfileEditDrawerProps) {
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // --- Dynamic Form States ---
   // Section: personal
@@ -189,6 +265,35 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file (JPG, PNG, WebP).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be under 5MB.");
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/user/upload-picture", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Photo upload failed");
+      setProfilePicture(json.url);
+      toast.success("Profile photo updated!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to upload photo");
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
 
   // Section: preferences
   const [prefCity, setPrefCity] = useState("");
@@ -354,13 +459,11 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
       if (section === "personal") {
         if (!name.trim()) throw new Error("Name is required");
         if (!username.trim()) throw new Error("Username is required");
-        if (!email.trim()) throw new Error("Email is required");
 
         payload = {
           userUpdate: {
             name: name.trim(),
             username: username.trim(),
-            email: email.trim(),
             profilePicture: profilePicture.trim() || null,
             phone: phone.trim() || null,
             dateOfBirth: dateOfBirth || null,
@@ -551,17 +654,81 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
           {/* ── Section: PERSONAL ── */}
           {section === "personal" && (
             <>
+              {/* Circular Profile Photo Display & Change/Delete Controls */}
+              <FormField label="Profile Picture">
+                <div className="flex items-center gap-4 py-2">
+                  <div className="relative group shrink-0">
+                    {profilePicture ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={profilePicture}
+                        alt={name || user.name}
+                        className="h-20 w-20 rounded-full object-cover border-2 border-[var(--primary)] shadow-sm shrink-0"
+                      />
+                    ) : (
+                      <div className="h-20 w-20 rounded-full bg-[var(--primary)] text-white font-bold text-xl border-2 border-[var(--border)] shadow-sm flex items-center justify-center shrink-0 uppercase select-none">
+                        {getInitials(name || user.name) || <UserRound className="h-9 w-9 text-white/90" />}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      disabled={uploadingPhoto}
+                      onClick={() => photoInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[var(--primary)] text-white shadow-md hover:scale-105 transition-transform"
+                      title="Change photo"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoUpload(file);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingPhoto}
+                      onClick={() => photoInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-2)] text-xs font-medium text-[var(--text)] transition-colors flex items-center gap-1.5 w-fit"
+                    >
+                      <Camera className="h-3.5 w-3.5 text-[var(--primary)]" />
+                      {uploadingPhoto ? "Uploading..." : "Change photo"}
+                    </button>
+                    {profilePicture && (
+                      <button
+                        type="button"
+                        onClick={() => setProfilePicture("")}
+                        className="px-3 py-1.5 rounded-[var(--radius-sm)] border border-red-200 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1 w-fit"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete photo
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </FormField>
+
               <FormField label="Full Name" required>
                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
               </FormField>
               <FormField label="Username" required>
                 <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
               </FormField>
-              <FormField label="Email address" required>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
-              </FormField>
-              <FormField label="Profile Picture URL">
-                <input type="url" value={profilePicture} onChange={e => setProfilePicture(e.target.value)} placeholder="https://..." className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+              <FormField label="Email Address">
+                <input
+                  type="email"
+                  value={email}
+                  disabled
+                  className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface-2)] text-[var(--text-3)] outline-none w-full text-xs cursor-not-allowed opacity-75"
+                />
+                <p className="text-[10px] text-[var(--text-3)] mt-1">To change your email address, please go to Settings.</p>
               </FormField>
               <FormField label="Phone Number">
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
