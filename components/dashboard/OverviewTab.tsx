@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Send, Bookmark, TrendingUp, CheckCircle, AlertCircle, Sparkles,
   Briefcase, MapPin, Building, GraduationCap, Trash2, FileText,
-  ChevronDown, ChevronUp, Edit3
+  ChevronDown, ChevronUp, Edit3, Link2
 } from "lucide-react";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Badge }       from "@/components/ui/Badge";
@@ -71,7 +71,14 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
   const shortlisted = appliedList.filter((a) => a.status === "shortlisted").length;
   const applicationNames = new Map((applications ?? []).map((internship) => [getInternshipId(internship), internship.name]));
 
-  // --- Dynamic Talent Card Data Extraction from MongoDB Document ---
+  // --- Dynamic Talent Card Data Extraction from MongoDB Document / Resume ---
+  const meta = user.resume?.parsedData?.metaDetails;
+  const recruiterName = meta?.name || user.name;
+  const recruiterEmail = meta?.email || user.email;
+  const recruiterPhone = meta?.phone_no || user.phone;
+  const linkedinUrl = meta?.linkedin;
+  const githubUrl = meta?.github_profile;
+
   const workHistory = user.resume?.parsedData?.workHistory || [];
   const eduHistory = user.resume?.parsedData?.education || [];
 
@@ -93,8 +100,11 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
     experienceText = `${totalYears} year${totalYears === 1 ? "" : "s"} fulltime (Can join immediately)`;
   }
 
-  // 2. Location
-  const locationText = [user.city, user.state, user.country].filter(Boolean).join(", ") || "Add location";
+  // 2. Location from Resume metaDetails address first
+  const metaAddr = meta?.address;
+  const locationText = (metaAddr?.city || metaAddr?.state || metaAddr?.country)
+    ? [metaAddr.city, metaAddr.state, metaAddr.country].filter(Boolean).join(", ")
+    : [user.city, user.state, user.country].filter(Boolean).join(", ") || "Add location";
 
   // 3. Unique Companies
   const companiesList = Array.from(new Set(workHistory.map(w => w.company))).slice(0, 3).join(" and ");
@@ -104,10 +114,10 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
   const eduList = Array.from(new Set(eduHistory.map(e => e.institution))).slice(0, 2).join(" and ");
   const educationText = eduList || "Add education details";
 
-  // 5. Skills list with fallback default items if empty
+  // 5. Skills list from Resume
   const parsedSkills = user.resume?.parsedData?.skills?.flatMap(s => s.tools.map(t => t.name)) || [];
   const userSkills = user.skills || [];
-  const skillsToRender = Array.from(new Set([...userSkills, ...parsedSkills]));
+  const skillsToRender = Array.from(new Set([...parsedSkills, ...userSkills]));
   const visibleSkills = skillsCollapsed ? skillsToRender.slice(0, 8) : skillsToRender;
 
   const handleMockDelete = () => {
@@ -184,18 +194,32 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
               {/* Header info */}
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <Avatar src={user.profilePicture} name={user.name} size="md" />
+                  <Avatar src={user.profilePicture} name={recruiterName} size="md" />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-[var(--text)] text-sm">{user.name}</span>
-                      <a
-                        href="https://linkedin.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#0a66c2] hover:opacity-85"
-                      >
-                        <LinkedinIcon className="h-4 w-4 fill-current" />
-                      </a>
+                      <span className="font-bold text-[var(--text)] text-sm">{recruiterName}</span>
+                      {linkedinUrl && (
+                        <a
+                          href={linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#0a66c2] hover:opacity-85"
+                          title="LinkedIn Profile"
+                        >
+                          <LinkedinIcon className="h-4 w-4 fill-current" />
+                        </a>
+                      )}
+                      {githubUrl && (
+                        <a
+                          href={githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--text)] hover:text-[var(--primary)] transition-colors"
+                          title="GitHub Profile"
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </a>
+                      )}
                     </div>
 
                     {user.resume?.driveViewLink ? (

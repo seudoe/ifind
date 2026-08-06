@@ -24,8 +24,9 @@ const QUICK_LINKS = [
 function emptyResume(user: User): ParsedResumeData {
   return {
     summary: "",
-    metaDetails: { name: user.name, phone_no: user.phone ?? "", email: user.email, github_profile: null, linkedin: null, address: { city: user.city ?? "", country: user.country ?? "", postal_code: "" }, extra_links: [] },
+    metaDetails: { name: user.name, phone_no: user.phone ?? "", gender: null, email: user.email, github_profile: null, linkedin: null, address: { city: user.city ?? "", state: user.state ?? "", country: user.country ?? "", postal_code: "" }, extra_links: [] },
     workHistory: [], education: [], skills: [], projects: [], certifications: [], languages: [], publications: [], affiliations: [], awards: [], interests: [],
+    bert_vector: null, tfidf__vector: null,
   };
 }
 
@@ -82,7 +83,7 @@ export default function ProfilePage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <Detail label="Preferred work" value="Internships" />
                 <Detail label="Availability" value="Add work availability" accent />
-                <Detail label="Preferred location" value={[user.city, user.state, user.country].filter(Boolean).join(", ") || "Add preferred location"} />
+                <Detail label="Preferred location" value={[resume.metaDetails?.address?.city || user.city, resume.metaDetails?.address?.state || user.state, resume.metaDetails?.address?.country || user.country].filter(Boolean).join(", ") || "Add preferred location"} />
               </div>
             </Panel>
 
@@ -228,9 +229,69 @@ export default function ProfilePage() {
 }
 
 function ProfileHeader({ user, education, missing, onEditClick }: { user: User; education: string; missing: string[]; onEditClick: () => void }) {
-  const location = [user.city, user.state, user.country].filter(Boolean).join(", ");
-  const dob = user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Add date of birth";
-  return <section className="plasma-card grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)] lg:grid-cols-[110px_minmax(0,1fr)_235px]"><div className="relative mx-auto grid h-24 w-24 place-items-center rounded-full border-[3px] border-[var(--success)] bg-[var(--surface-2)]"><Avatar src={user.profilePicture} name={user.name} size="lg" /><span className="absolute -bottom-2 rounded-full bg-[var(--surface)] px-2 text-xs font-bold text-[var(--success)]">{user.profileCompletionScore}%</span></div><div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-lg font-bold text-[var(--text)]">{user.name}</h1><Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} /></div><p className="mt-1 text-sm font-medium text-[var(--text-2)]">{education}</p><p className="mt-0.5 text-xs text-[var(--text-3)]">@{user.username}</p><div className="mt-4 grid gap-2 border-t border-[var(--border)] pt-3 text-xs text-[var(--text-2)] sm:grid-cols-2 lg:grid-cols-3"><span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--text-3)]" />{location || "Add address"}</span><span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--text-3)]" />{user.phone || "Add phone number"}</span><span className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-[var(--text-3)]" />{dob}</span><span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-[var(--text-3)]" />{user.gender || "Add gender"}</span><span className="flex items-center gap-1.5 sm:col-span-2 lg:col-span-2"><Mail className="h-3.5 w-3.5 text-[var(--text-3)]" />{user.email}</span></div></div><div className="rounded-[var(--radius-sm)] bg-[var(--primary-bg)] p-4"><p className="text-xs font-semibold text-[var(--text)]">Complete your profile</p><div className="mt-3 space-y-2">{missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between text-xs text-[var(--text-2)]"><span>{item}</span><span className="text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}</div><button type="button" className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white">Review missing details</button></div></section>;
+  const meta = user.resume?.parsedData?.metaDetails;
+  const name = meta?.name || user.name;
+  const email = meta?.email || user.email;
+  const phone = meta?.phone_no || user.phone;
+  const gender = meta?.gender || user.gender;
+  const location = meta?.address?.city || meta?.address?.state || meta?.address?.country
+    ? [meta.address.city, meta.address.state, meta.address.country].filter(Boolean).join(", ")
+    : [user.city, user.state, user.country].filter(Boolean).join(", ");
+
+  const github = meta?.github_profile;
+  const linkedin = meta?.linkedin;
+  const extraLinks = meta?.extra_links || [];
+
+  return (
+    <section className="plasma-card grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)] lg:grid-cols-[110px_minmax(0,1fr)_235px]">
+      <div className="relative mx-auto grid h-24 w-24 place-items-center rounded-full border-[3px] border-[var(--success)] bg-[var(--surface-2)]">
+        <Avatar src={user.profilePicture} name={name} size="lg" />
+        <span className="absolute -bottom-2 rounded-full bg-[var(--surface)] px-2 text-xs font-bold text-[var(--success)]">{user.profileCompletionScore}%</span>
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <h1 className="truncate text-lg font-bold text-[var(--text)]">{name}</h1>
+          <Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} />
+        </div>
+        <p className="mt-1 text-sm font-medium text-[var(--text-2)]">{education}</p>
+        <p className="mt-0.5 text-xs text-[var(--text-3)]">@{user.username}</p>
+
+        {(linkedin || github || extraLinks.length > 0) && (
+          <div className="flex flex-wrap items-center gap-3 mt-2">
+            {linkedin && (
+              <a href={linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[#0a66c2] hover:underline">
+                <Link2 className="h-3 w-3" /> LinkedIn
+              </a>
+            )}
+            {github && (
+              <a href={github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--text)] hover:underline">
+                <Link2 className="h-3 w-3" /> GitHub
+              </a>
+            )}
+            {extraLinks.map((item, idx) => (
+              <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--primary)] hover:underline">
+                <Link2 className="h-3 w-3" /> {item.name || "Link"}
+              </a>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-3 grid gap-2 border-t border-[var(--border)] pt-3 text-xs text-[var(--text-2)] sm:grid-cols-2 lg:grid-cols-3">
+          <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--text-3)]" />{location || "Add address"}</span>
+          <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--text-3)]" />{phone || "Add phone number"}</span>
+          <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-[var(--text-3)]" />{gender || "Add gender"}</span>
+          <span className="flex items-center gap-1.5 sm:col-span-2 lg:col-span-3"><Mail className="h-3.5 w-3.5 text-[var(--text-3)]" />{email}</span>
+        </div>
+      </div>
+      <div className="rounded-[var(--radius-sm)] bg-[var(--primary-bg)] p-4">
+        <p className="text-xs font-semibold text-[var(--text)]">Complete your profile</p>
+        <div className="mt-3 space-y-2">
+          {missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between text-xs text-[var(--text-2)]"><span>{item}</span><span className="text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}
+        </div>
+        <button type="button" className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white">Review missing details</button>
+      </div>
+    </section>
+  );
 }
 
 function Panel({ id, icon, title, add, onEditClick, children }: { id: string; icon: React.ReactNode; title: string; add?: boolean; onEditClick?: () => void; children: React.ReactNode }) { return <section id={id} className="plasma-card scroll-mt-20 p-5"><div className="mb-4 flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="text-[var(--primary)]">{icon}</span><h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2><Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} /></div>{add && <button type="button" onClick={onEditClick} className="text-xs font-semibold text-[var(--primary)]">Add</button>}</div>{children}</section>; }
@@ -265,6 +326,9 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [country, setCountry] = useState("");
+  const [github, setGithub] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [extraLinks, setExtraLinks] = useState<{ name: string; link: string }[]>([]);
 
   const handlePhotoUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -328,17 +392,21 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
   useEffect(() => {
     if (!isOpen) return;
 
-    // Personal details
-    setName(user.name || "");
+    // Personal details (recruiter-facing metaDetails)
+    const meta = user.resume?.parsedData?.metaDetails;
+    setName(meta?.name || user.name || "");
     setUsername(user.username || "");
-    setEmail(user.email || "");
+    setEmail(meta?.email || user.email || "");
     setProfilePicture(user.profilePicture || "");
-    setPhone(user.phone || "");
+    setPhone(meta?.phone_no || user.phone || "");
     setDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split("T")[0] : "");
-    setGender(user.gender || "");
-    setCity(user.city || "");
-    setState(user.state || "");
-    setCountry(user.country || "");
+    setGender(meta?.gender || user.gender || "");
+    setCity(meta?.address?.city || user.city || "");
+    setState(meta?.address?.state || user.state || "");
+    setCountry(meta?.address?.country || user.country || "");
+    setGithub(meta?.github_profile || "");
+    setLinkedin(meta?.linkedin || "");
+    setExtraLinks(meta?.extra_links ? JSON.parse(JSON.stringify(meta.extra_links)) : []);
 
     // Preferences
     setPrefCity(user.city || "");
@@ -457,20 +525,32 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
       let payload: any = {};
 
       if (section === "personal") {
-        if (!name.trim()) throw new Error("Name is required");
-        if (!username.trim()) throw new Error("Username is required");
+        if (!name.trim()) throw new Error("Recruiter-facing Name is required");
+
+        const meta = user.resume?.parsedData?.metaDetails;
 
         payload = {
           userUpdate: {
-            name: name.trim(),
-            username: username.trim(),
             profilePicture: profilePicture.trim() || null,
-            phone: phone.trim() || null,
-            dateOfBirth: dateOfBirth || null,
-            gender: gender || null,
-            city: city.trim() || null,
-            state: state.trim() || null,
-            country: country.trim() || null,
+          },
+          resumeUpdate: {
+            metaDetails: {
+              name: name.trim(),
+              email: email.trim(),
+              phone_no: phone.trim(),
+              gender: (gender as any) || null,
+              github_profile: github.trim() || null,
+              linkedin: linkedin.trim() || null,
+              address: {
+                city: city.trim(),
+                state: state.trim(),
+                country: country.trim(),
+                postal_code: meta?.address?.postal_code || "",
+              },
+              extra_links: extraLinks
+                .filter((l) => l.name.trim() || l.link.trim())
+                .map((l) => ({ name: l.name.trim(), link: l.link.trim() })),
+            }
           }
         };
       } else if (section === "preferences") {
@@ -715,26 +795,23 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                 </div>
               </FormField>
 
-              <FormField label="Full Name" required>
+              <FormField label="Recruiter Contact Name" required>
                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
               </FormField>
               <FormField label="Username" required>
-                <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
+                <input type="text" value={username} disabled className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface-2)] text-[var(--text-3)] outline-none w-full text-xs cursor-not-allowed opacity-75" />
               </FormField>
-              <FormField label="Email Address">
+              <FormField label="Recruiter Contact Email">
                 <input
                   type="email"
                   value={email}
-                  disabled
-                  className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface-2)] text-[var(--text-3)] outline-none w-full text-xs cursor-not-allowed opacity-75"
+                  onChange={e => setEmail(e.target.value)}
+                  className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs"
                 />
-                <p className="text-[10px] text-[var(--text-3)] mt-1">To change your email address, please go to Settings.</p>
+                <p className="text-[10px] text-[var(--text-3)] mt-1">This email will be visible to recruiters on your profile/resume.</p>
               </FormField>
-              <FormField label="Phone Number">
+              <FormField label="Recruiter Contact Phone">
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
-              </FormField>
-              <FormField label="Date of Birth">
-                <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
               </FormField>
               <FormField label="Gender">
                 <select value={gender} onChange={e => setGender(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs">
@@ -749,6 +826,77 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                 <FormField label="City"><input type="text" value={city} onChange={e => setCity(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" /></FormField>
                 <FormField label="State"><input type="text" value={state} onChange={e => setState(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" /></FormField>
                 <FormField label="Country"><input type="text" value={country} onChange={e => setCountry(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-full text-xs" /></FormField>
+              </div>
+
+              {/* ── Web & Social Links ── */}
+              <div className="border-t border-[var(--border)] pt-4 mt-4 space-y-3">
+                <p className="text-xs font-semibold text-[var(--text)]">Web & Social Links</p>
+                <FormField label="LinkedIn Profile URL">
+                  <input
+                    type="url"
+                    value={linkedin}
+                    onChange={(e) => setLinkedin(e.target.value)}
+                    placeholder="https://linkedin.com/in/username"
+                    className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs"
+                  />
+                </FormField>
+
+                <FormField label="GitHub Profile URL">
+                  <input
+                    type="url"
+                    value={github}
+                    onChange={(e) => setGithub(e.target.value)}
+                    placeholder="https://github.com/username"
+                    className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs"
+                  />
+                </FormField>
+
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-[var(--text-2)]">Additional Links (Portfolio, Blog, etc.)</p>
+                    <button
+                      type="button"
+                      onClick={() => setExtraLinks((prev) => [...prev, { name: "", link: "" }])}
+                      className="text-xs font-semibold text-[var(--primary)] hover:underline flex items-center gap-1"
+                    >
+                      + Add link
+                    </button>
+                  </div>
+
+                  {extraLinks.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => {
+                          const next = [...extraLinks];
+                          next[idx].name = e.target.value;
+                          setExtraLinks(next);
+                        }}
+                        placeholder="Link Name (e.g. Portfolio)"
+                        className="px-2.5 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-1/3 text-xs"
+                      />
+                      <input
+                        type="url"
+                        value={item.link}
+                        onChange={(e) => {
+                          const next = [...extraLinks];
+                          next[idx].link = e.target.value;
+                          setExtraLinks(next);
+                        }}
+                        placeholder="https://..."
+                        className="px-2.5 py-1.5 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none w-2/3 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setExtraLinks((prev) => prev.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded shrink-0"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           )}

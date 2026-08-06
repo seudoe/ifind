@@ -496,7 +496,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
             <Field label="Email" value={data.metaDetails.email} />
             {data.metaDetails.phone_no && <Field label="Phone" value={data.metaDetails.phone_no} />}
             {data.metaDetails.address && (
-              <Field label="Location" value={[data.metaDetails.address.city, data.metaDetails.address.country].filter(Boolean).join(", ")} />
+              <Field label="Location" value={[data.metaDetails.address.city, data.metaDetails.address.state, data.metaDetails.address.country].filter(Boolean).join(", ")} />
             )}
             {data.metaDetails.github_profile && (
               <div className="flex items-center gap-1">

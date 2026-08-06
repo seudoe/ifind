@@ -75,7 +75,7 @@ const USER_PROMPT = `Parse this resume and extract all information into the foll
   "metaDetails": {
     "name": "string", "phone_no": "string", "email": "string",
     "github_profile": "string or null", "linkedin": "string or null",
-    "address": { "city": "string", "country": "string", "postal_code": "string" },
+    "address": { "city": "string", "state": "string or null", "country": "string", "postal_code": "string" },
     "extra_links": [{ "name": "string", "link": "string" }]
   }
 }
@@ -93,6 +93,7 @@ function normaliseHFOutput(raw: any): any {
     linkedin: meta.linkedin ?? null,
     address: {
       city: "",
+      state: "",
       country: "",
       postal_code: "",
     },
