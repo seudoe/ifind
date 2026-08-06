@@ -11,11 +11,24 @@ export interface RecommendationScore {
   score: number;
 }
 
+export interface LinkedInProfile {
+  sub: string;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  email?: string;
+  email_verified?: boolean;
+  picture?: string;
+  locale?: any;
+}
+
 export interface User {
   _id: string;
   name: string;
   username: string;
   email: string;
+  linkedinId?: string | null;
+  linkedinDetails?: LinkedInProfile | null;
   role?: "user" | "admin";
   profilePicture?: string | null;
   phone?: string | null;

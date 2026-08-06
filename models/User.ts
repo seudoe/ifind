@@ -22,6 +22,7 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   linkedinId?: string;
+  linkedinDetails?: any;
   profilePicture?: string | null;
   role: "student";
   phone?: string | null;
@@ -65,6 +66,7 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: false, select: false },
     linkedinId: { type: String, default: null, trim: true },
+    linkedinDetails: { type: Schema.Types.Mixed, default: null },
     profilePicture: { type: String, default: null },
     role: { type: String, enum: ["student"], default: "student" },
     phone: { type: String, default: null, trim: true },

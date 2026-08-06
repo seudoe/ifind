@@ -103,19 +103,13 @@ export async function GET(request: NextRequest) {
     });
 
     if (user) {
-      // Update existing user with linkedinId or profile picture if missing
-      let modified = false;
-      if (!user.linkedinId) {
-        user.linkedinId = profile.sub;
-        modified = true;
-      }
+      // Update existing user with linkedinId, linkedinDetails, or profile picture
+      user.linkedinId = profile.sub;
+      user.linkedinDetails = profile;
       if (profilePicture && !user.profilePicture) {
         user.profilePicture = profilePicture;
-        modified = true;
       }
-      if (modified) {
-        await user.save();
-      }
+      await user.save();
     } else {
       // Create new student user
       let baseUsername = email.split("@")[0].replace(/[^a-z0-9_]/g, "").toLowerCase();
@@ -134,6 +128,7 @@ export async function GET(request: NextRequest) {
         username,
         email,
         linkedinId: profile.sub,
+        linkedinDetails: profile,
         profilePicture,
         role: "student",
       });
