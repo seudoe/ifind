@@ -26,6 +26,11 @@ export default async function ModeratorPanelLayout({
         redirect("/moderator/login");
     }
 
+    // If the moderator account has been banned, clear their session and redirect to login.
+    if (moderator.isBanned) {
+        redirect("/moderator/login");
+    }
+
     // Each child page renders its own ModeratorShell with the correct activeTab.
     // The layout only acts as an auth guard — it does not wrap children in a
     // shell itself because layout.tsx cannot know the current pathname reliably

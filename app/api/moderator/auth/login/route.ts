@@ -45,6 +45,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (moderator.isBanned) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Your moderator account has been suspended",
+                },
+                { status: 403 },
+            );
+        }
+
         const token = signModToken({
             moderatorId: moderator._id.toString(),
             email: moderator.email,
@@ -59,7 +69,7 @@ export async function POST(request: NextRequest) {
             data: {
                 moderatorId: moderator._id.toString(),
                 isVerified: moderator.isVerified,
-                username: moderator.email.split('@')[0],
+                username: moderator.email.split("@")[0],
             },
         });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
