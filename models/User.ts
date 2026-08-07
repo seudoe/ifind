@@ -62,8 +62,22 @@ export interface IUser extends Document {
   bannedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-);
+}
 
+const ResumeSchema = new Schema(
+  {
+    driveFileId: { type: String, default: null },
+    driveViewLink: { type: String, default: null },
+    uploadedAt: { type: Date, default: null },
+    parsedData: { type: Schema.Types.Mixed, default: null },
+    tfidf_vector: { type: Schema.Types.Mixed, default: null },
+    bert_vector: { type: Schema.Types.Mixed, default: null },
+    pendingFileId: { type: String, default: null },
+    pendingViewLink: { type: String, default: null },
+    pendingParsedData: { type: Schema.Types.Mixed, default: null },
+  },
+  { _id: false },
+);
 const AppliedInternshipSchema = new Schema(
     {
         internshipId: { type: Schema.Types.ObjectId, ref: "Internship" },
