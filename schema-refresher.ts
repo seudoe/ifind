@@ -47,6 +47,52 @@ async function run() {
     console.log(`Found ${users.length} users.`);
     fs.writeFileSync(BACKUP_FILE, JSON.stringify(users, null, 2), "utf8");
     console.log(`Successfully saved ${users.length} users to ${BACKUP_FILE}`);
+  } else if (action === "transform") {
+    if (!fs.existsSync(BACKUP_FILE)) {
+      console.error(`Error: Backup file ${BACKUP_FILE} not found! Run fetch first.`);
+      process.exit(1);
+    }
+    console.log(`Transforming users structure in ${BACKUP_FILE}...`);
+    const rawData = fs.readFileSync(BACKUP_FILE, "utf8");
+    const users = JSON.parse(rawData);
+
+    const transformedUsers = users.map((user: any) => {
+      const existingRecs = user.recommendedInternships;
+      let recObj: { updatedAt: string; recommendedList: any[]; recommendedScores: any[] };
+
+      if (existingRecs && typeof existingRecs === "object" && !Array.isArray(existingRecs)) {
+        recObj = {
+          updatedAt: existingRecs.updatedAt || user.recommendedUpdatedAt || new Date().toISOString(),
+          recommendedList: Array.isArray(existingRecs.recommendedList) ? existingRecs.recommendedList : [],
+          recommendedScores: Array.isArray(existingRecs.recommendedScores) ? existingRecs.recommendedScores : [],
+        };
+      } else if (Array.isArray(existingRecs)) {
+        recObj = {
+          updatedAt: user.recommendedUpdatedAt || user.updatedAt || new Date().toISOString(),
+          recommendedList: existingRecs,
+          recommendedScores: Array.isArray(user.recommendedScores) ? user.recommendedScores : [],
+        };
+      } else {
+        recObj = {
+          updatedAt: new Date().toISOString(),
+          recommendedList: [],
+          recommendedScores: [],
+        };
+      }
+
+      const updatedUser = {
+        ...user,
+        recommendedInternships: recObj,
+      };
+
+      delete updatedUser.recommendedScores;
+      delete updatedUser.recommendedUpdatedAt;
+
+      return updatedUser;
+    });
+
+    fs.writeFileSync(BACKUP_FILE, JSON.stringify(transformedUsers, null, 2), "utf8");
+    console.log(`Successfully transformed ${transformedUsers.length} user documents in ${BACKUP_FILE}`);
   } else if (action === "restore") {
     if (!fs.existsSync(BACKUP_FILE)) {
       console.error(`Error: Backup file ${BACKUP_FILE} not found! Run fetch first.`);
@@ -59,7 +105,8 @@ async function run() {
     console.log(`Restoring ${users.length} users to MongoDB...`);
     let count = 0;
     for (const user of users) {
-      const id = user._id?.$oid ? new mongoose.Types.ObjectId(user._id.$oid) : new mongoose.Types.ObjectId(user._id);
+      const idStr = user._id?.$oid || user._id;
+      const id = new mongoose.Types.ObjectId(idStr);
       const userCopy = { ...user };
       delete userCopy._id;
       userCopy._id = id;
@@ -69,7 +116,7 @@ async function run() {
     }
     console.log(`Successfully updated/replaced ${count} user documents in MongoDB.`);
   } else {
-    console.log("Usage: npx tsx schema-refresher.ts [fetch|restore]");
+    console.log("Usage: npx tsx schema-refresher.ts [fetch|transform|restore]");
   }
 
   await mongoose.disconnect();
