@@ -13,9 +13,9 @@ export interface IResume {
 }
 
 export interface IAppliedInternship {
-  internshipId: mongoose.Types.ObjectId;
-  appliedAt: Date;
-  status: "applied" | "shortlisted" | "rejected" | "selected";
+    internshipId: mongoose.Types.ObjectId;
+    appliedAt: Date;
+    status: "applied" | "shortlisted" | "rejected" | "selected";
 }
 
 export interface IRecommendationScore {
@@ -56,32 +56,25 @@ export interface IUser extends Document {
   recommendedInternships?: IRecommendedInternships;
   deleteDetails?: IDeleteDetails;
   profileCompletionScore: number;
+  isBanned?: boolean;
+  bannedReason?: string | null;
+  bannedBy?: mongoose.Types.ObjectId | null;
+  bannedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-}
-
-const ResumeSchema = new Schema(
-  {
-    driveFileId: { type: String, default: null },
-    driveViewLink: { type: String, default: null },
-    uploadedAt: { type: Date, default: null },
-    parsedData: { type: Schema.Types.Mixed, default: null },
-    tfidf_vector: { type: Schema.Types.Mixed, default: null },
-    bert_vector: { type: Schema.Types.Mixed, default: null },
-    pendingFileId: { type: String, default: null },
-    pendingViewLink: { type: String, default: null },
-    pendingParsedData: { type: Schema.Types.Mixed, default: null },
-  },
-  { _id: false },
 );
 
 const AppliedInternshipSchema = new Schema(
-  {
-    internshipId: { type: Schema.Types.ObjectId, ref: "Internship" },
-    appliedAt: { type: Date, default: Date.now },
-    status: { type: String, enum: ["applied", "shortlisted", "rejected", "selected"], default: "applied" },
-  },
-  { _id: false },
+    {
+        internshipId: { type: Schema.Types.ObjectId, ref: "Internship" },
+        appliedAt: { type: Date, default: Date.now },
+        status: {
+            type: String,
+            enum: ["applied", "shortlisted", "rejected", "selected"],
+            default: "applied",
+        },
+    },
+    { _id: false },
 );
 
 const RecommendedInternshipsSchema = new Schema(
@@ -124,8 +117,12 @@ const UserSchema = new Schema<IUser>(
     recommendedInternships: { type: RecommendedInternshipsSchema, default: () => ({}) },
     deleteDetails: { type: DeleteDetailsSchema, default: () => ({ deleted: false, deletedAt: null }) },
     profileCompletionScore: { type: Number, default: 20 },
+    isBanned: { type: Boolean, default: false },
+    bannedReason: { type: String, default: null },
+    bannedBy: { type: Schema.Types.ObjectId, ref: "Moderator", default: null },
+    bannedAt: { type: Date, default: null },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 UserSchema.index({ email: 1 }, { unique: true });
@@ -134,9 +131,10 @@ UserSchema.index({ linkedinId: 1 }, { unique: true, sparse: true });
 
 // Delete cached model in Next.js dev environment to ensure schema updates take effect
 if (process.env.NODE_ENV !== "production" && mongoose.models.User) {
-  delete mongoose.models.User;
+    delete mongoose.models.User;
 }
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+const User: Model<IUser> =
+    mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 
 export default User;
