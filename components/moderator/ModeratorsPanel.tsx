@@ -84,6 +84,50 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
         }
     };
 
+    const handleBanToggle = async (moderatorId: string) => {
+        const moderator = moderators.find((m) => m._id === moderatorId);
+        if (!moderator) return;
+        
+        const isCurrentlyBanned = moderator.isBanned;
+
+        // Optimistic update
+        const previous = moderators;
+        setModerators((prev) =>
+            prev.map((m) =>
+                m._id === moderatorId
+                    ? { ...m, isBanned: !isCurrentlyBanned }
+                    : m,
+            ),
+        );
+
+        try {
+            const res = await fetch(
+                `/api/moderator/moderators/${moderatorId}/ban`,
+                {
+                    method: "PATCH",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
+
+            if (res.ok) {
+                toast.success(isCurrentlyBanned ? "Moderator unbanned" : "Moderator banned");
+                return;
+            }
+
+            // Revert on error
+            setModerators(previous);
+            const body = await res.json().catch(() => ({}));
+            toast.error(body?.error ?? "Failed to update ban status");
+        } catch {
+            setModerators(previous);
+            toast.error("Failed to update ban status");
+        }
+    };
+
+    const currentModeratorPriority =
+        moderators.find((m) => m._id === currentModeratorId)?.priority ?? 999;
+
     return (
         <div className="space-y-4">
             {/* Results count */}
@@ -143,7 +187,9 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
                                     key={moderator._id}
                                     moderator={moderator}
                                     currentModeratorId={currentModeratorId}
+                                    currentModeratorPriority={currentModeratorPriority}
                                     onVerify={() => handleVerify(moderator._id)}
+                                    onBanToggle={() => handleBanToggle(moderator._id)}
                                 />
                             ))}
                         </tbody>

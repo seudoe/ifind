@@ -8,7 +8,9 @@ import type { ModeratorSummary } from "@/types/moderator";
 interface ModeratorRowProps {
     moderator: ModeratorSummary;
     currentModeratorId: string;
+    currentModeratorPriority: number;
     onVerify: () => Promise<void>;
+    onBanToggle: () => Promise<void>;
 }
 
 function formatDate(iso: string): string {
@@ -22,9 +24,12 @@ function formatDate(iso: string): string {
 export function ModeratorRow({
     moderator,
     currentModeratorId,
+    currentModeratorPriority,
     onVerify,
+    onBanToggle,
 }: ModeratorRowProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isBanning, setIsBanning] = useState(false);
 
     const handleVerify = async () => {
         setIsSubmitting(true);
@@ -35,8 +40,20 @@ export function ModeratorRow({
         }
     };
 
+    const handleBanToggle = async () => {
+        setIsBanning(true);
+        try {
+            await onBanToggle();
+        } finally {
+            setIsBanning(false);
+        }
+    };
+
     const showVerifyButton =
         !moderator.isVerified && moderator._id !== currentModeratorId;
+
+    // smaller number = higher priority/more power. Can only ban if current priority is STRICTLY LESS than target priority.
+    const canBan = currentModeratorPriority < (moderator.priority ?? 999) && moderator._id !== currentModeratorId;
 
     return (
         <tr className="border-b border-[var(--border)] last:border-0">
@@ -52,13 +69,21 @@ export function ModeratorRow({
                 </div>
             </td>
 
-            {/* Verification status */}
-            <td className="py-3 px-4">
-                {moderator.isVerified ? (
-                    <Badge variant="success">Verified</Badge>
-                ) : (
-                    <Badge variant="warning">Unverified</Badge>
-                )}
+            {/* Verification status & Priority & Ban Status */}
+            <td className="py-3 px-4 space-y-1.5">
+                <div className="flex flex-wrap gap-1.5">
+                    {moderator.isVerified ? (
+                        <Badge variant="success">Verified</Badge>
+                    ) : (
+                        <Badge variant="warning">Unverified</Badge>
+                    )}
+                    
+                    <Badge variant="secondary">Priority: {moderator.priority ?? 999}</Badge>
+
+                    {moderator.isBanned && (
+                        <Badge variant="danger">Banned</Badge>
+                    )}
+                </div>
             </td>
 
             {/* Verified by / at */}
@@ -91,16 +116,28 @@ export function ModeratorRow({
 
             {/* Actions */}
             <td className="py-3 px-4">
-                {showVerifyButton && (
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        loading={isSubmitting}
-                        onClick={handleVerify}
-                    >
-                        Verify
-                    </Button>
-                )}
+                <div className="flex flex-wrap gap-2">
+                    {showVerifyButton && (
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            loading={isSubmitting}
+                            onClick={handleVerify}
+                        >
+                            Verify
+                        </Button>
+                    )}
+                    {canBan && (
+                        <Button
+                            variant={moderator.isBanned ? "secondary" : "danger"}
+                            size="sm"
+                            loading={isBanning}
+                            onClick={handleBanToggle}
+                        >
+                            {moderator.isBanned ? "Unban" : "Ban"}
+                        </Button>
+                    )}
+                </div>
             </td>
         </tr>
     );

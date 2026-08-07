@@ -14,6 +14,7 @@ export interface ModerationQueueItem {
     moderation: Moderation;
     linkVerification?: LinkVerification;
     createdAt: string;
+    priority: number;
 }
 
 export interface UserSummary {
@@ -38,4 +39,9 @@ export interface ModeratorSummary {
     verifiedBy?: string | null;
     verifiedAt?: string | null;
     createdAt: string;
+    priority: number;
+    isBanned: boolean;
+    bannedBy?: string | null;
+    bannedAt?: string | null;
+    bannedReason?: string | null;
 }

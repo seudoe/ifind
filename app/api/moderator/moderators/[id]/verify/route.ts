@@ -51,7 +51,17 @@ export async function PATCH(
             );
         }
 
-        // Atomically write all three verification fields
+        const verifier = await Moderator.findById(session.moderatorId).select("priority");
+        if (!verifier) {
+            return NextResponse.json(
+                { success: false, error: "Verifier not found" },
+                { status: 404 },
+            );
+        }
+
+        const newPriority = (verifier.priority ?? 999) + 1;
+
+        // Atomically write verification fields and new priority
         await Moderator.updateOne(
             { _id: targetId },
             {
@@ -59,6 +69,7 @@ export async function PATCH(
                     isVerified: true,
                     verifiedBy: session.moderatorId,
                     verifiedAt: new Date(),
+                    priority: newPriority,
                 },
             },
         );

@@ -9,6 +9,10 @@ export interface IModerator extends Document {
     verifiedAt?: Date | null;
     role: "moderator";
     isBanned: boolean;
+    bannedBy?: mongoose.Types.ObjectId | null;
+    bannedAt?: Date | null;
+    bannedReason?: string | null;
+    priority: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -33,6 +37,10 @@ const ModeratorSchema = new Schema<IModerator>(
         verifiedAt: { type: Date, default: null },
         role: { type: String, enum: ["moderator"], default: "moderator" },
         isBanned: { type: Boolean, default: false },
+        bannedBy: { type: Schema.Types.ObjectId, ref: "Moderator", default: null },
+        bannedAt: { type: Date, default: null },
+        bannedReason: { type: String, default: null },
+        priority: { type: Number, default: 999 },
     },
     { timestamps: true },
 );
