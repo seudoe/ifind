@@ -27,6 +27,24 @@ export interface LinkVerification {
   nextCheckAt?: string | null;
 }
 
+export interface RiskBreakdown {
+  textRisk?: number | null;
+  companyRisk?: number | null;
+  urlRisk?: number | null;
+  stipendRisk?: number | null;
+  anomalyScore?: number | null;
+}
+
+export interface ScamDetails {
+  score: number;
+  decision: "clear" | "review" | "block";
+  confidence: number;
+  explanationSummary: string;
+  scamFlags: string[];
+  evaluatedAt?: string | null;
+  riskBreakdown?: RiskBreakdown | null;
+}
+
 export interface Moderation {
   status: "auto_approved" | "pending_review" | "auto_rejected" | "manually_approved" | "manually_rejected";
   score: number | null;
@@ -35,6 +53,7 @@ export interface Moderation {
   reviewedBy?: string | null;
   reviewedAt?: string | null;
   rejectionReason?: string | null;
+  scamDetails?: ScamDetails | null;
 }
 
 export interface Internship {
