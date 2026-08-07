@@ -53,7 +53,9 @@ export function ModeratorRow({
         !moderator.isVerified && moderator._id !== currentModeratorId;
 
     // smaller number = higher priority/more power. Can only ban if current priority is STRICTLY LESS than target priority.
-    const canBan = currentModeratorPriority < (moderator.priority ?? 999) && moderator._id !== currentModeratorId;
+    const canBan =
+        currentModeratorPriority < (moderator.priority ?? 999) &&
+        moderator._id !== currentModeratorId;
 
     return (
         <tr className="border-b border-[var(--border)] last:border-0">
@@ -77,8 +79,10 @@ export function ModeratorRow({
                     ) : (
                         <Badge variant="warning">Unverified</Badge>
                     )}
-                    
-                    <Badge variant="secondary">Priority: {moderator.priority ?? 999}</Badge>
+
+                    <Badge variant="secondary">
+                        Priority: {moderator.priority ?? 999}
+                    </Badge>
 
                     {moderator.isBanned && (
                         <Badge variant="danger">Banned</Badge>
@@ -93,7 +97,9 @@ export function ModeratorRow({
                         <p className="text-xs text-[var(--text-2)]">
                             by{" "}
                             <span className="font-medium text-[var(--text)]">
-                                {moderator.verifiedBy}
+                                {typeof moderator.verifiedBy === "object"
+                                    ? moderator.verifiedBy.name
+                                    : moderator.verifiedBy}
                             </span>
                         </p>
                         {moderator.verifiedAt && (
@@ -129,7 +135,9 @@ export function ModeratorRow({
                     )}
                     {canBan && (
                         <Button
-                            variant={moderator.isBanned ? "secondary" : "danger"}
+                            variant={
+                                moderator.isBanned ? "secondary" : "danger"
+                            }
                             size="sm"
                             loading={isBanning}
                             onClick={handleBanToggle}

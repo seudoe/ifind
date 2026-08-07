@@ -36,7 +36,7 @@ export interface ModeratorSummary {
     name: string;
     email: string;
     isVerified: boolean;
-    verifiedBy?: string | null;
+    verifiedBy?: { _id: string; name: string } | string | null;
     verifiedAt?: string | null;
     createdAt: string;
     priority: number;

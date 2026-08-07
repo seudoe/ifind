@@ -20,7 +20,10 @@ export async function GET() {
         // Select required fields; password is excluded by default (select: false on schema)
         // Sort: unverified first (isVerified ascending: false < true), then createdAt descending
         const moderators = await Moderator.find()
-            .select("name email isVerified verifiedBy verifiedAt createdAt priority isBanned bannedBy bannedAt bannedReason")
+            .select(
+                "name email isVerified verifiedBy verifiedAt createdAt priority isBanned bannedBy bannedAt bannedReason",
+            )
+            .populate("verifiedBy", "name")
             .sort({ isVerified: 1, createdAt: -1 })
             .lean();
 
