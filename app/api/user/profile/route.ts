@@ -115,6 +115,31 @@ export async function PUT(request: Request) {
 
     const updatedUser = 'value' in result ? result.value : result;
 
+    // Smart change detection: check if updated data differs from existing data
+    let hasChanged = false;
+    for (const [key, val] of Object.entries(setFields)) {
+      if (key === "profileCompletionScore" || key === "updatedAt") continue;
+      if (!key.startsWith("resume.parsedData.")) {
+        if (JSON.stringify(existingUser[key]) !== JSON.stringify(val)) {
+          hasChanged = true;
+          break;
+        }
+      } else {
+        const subKey = key.replace("resume.parsedData.", "");
+        const currentVal = existingUser.resume?.parsedData?.[subKey];
+        if (JSON.stringify(currentVal) !== JSON.stringify(val)) {
+          hasChanged = true;
+          break;
+        }
+      }
+    }
+
+    // Only re-encode vectors & update recommended internships if section data actually changed
+    if (hasChanged && mergedUser.resume?.parsedData) {
+      const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
+      void vectorizeAndRecommendUser(session.userId, mergedUser.resume.parsedData);
+    }
+
     return NextResponse.json({
       success: true,
       data: JSON.parse(JSON.stringify(updatedUser)),

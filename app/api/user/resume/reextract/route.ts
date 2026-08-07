@@ -31,6 +31,13 @@ export async function POST() {
     user.resume.parsedData = parsedData;
     await user.save();
 
+    // Trigger vectorization & recommendation scoring in background
+    if (parsedData) {
+      const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
+      void vectorizeAndRecommendUser(session.userId, parsedData);
+    }
+
+
     return NextResponse.json({
       success: true,
       message: "Resume re-extracted successfully",

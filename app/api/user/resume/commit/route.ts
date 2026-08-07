@@ -44,6 +44,13 @@ export async function POST() {
     user.profileCompletionScore = Math.min(100, (user.profileCompletionScore || 20) + 30);
     await user.save();
 
+    // Trigger vectorization & recommendation scoring in background
+    if (pendingParsedData) {
+      const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
+      void vectorizeAndRecommendUser(session.userId, pendingParsedData);
+    }
+
+
     return NextResponse.json({
       success: true,
       message: "Resume data applied successfully",

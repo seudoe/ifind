@@ -5,6 +5,8 @@ export interface IResume {
   driveViewLink?: string | null;
   uploadedAt?: Date | null;
   parsedData?: any | null;
+  tfidf_vector?: number[] | null;
+  bert_vector?: number[] | null;
   pendingFileId?: string | null;
   pendingViewLink?: string | null;
   pendingParsedData?: any | null;
@@ -32,6 +34,9 @@ export interface IUser extends Document {
   resume: IResume;
   appliedInternships: IAppliedInternship[];
   savedInternships: mongoose.Types.ObjectId[];
+  recommendedInternships?: mongoose.Types.ObjectId[];
+  recommendedScores?: any[];
+  recommendedUpdatedAt?: Date | null;
   profileCompletionScore: number;
   createdAt: Date;
   updatedAt: Date;
