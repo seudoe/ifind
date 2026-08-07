@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
             data: {
                 moderatorId: moderator._id.toString(),
                 isVerified: moderator.isVerified,
+                username: moderator.email.split('@')[0],
             },
         });
         response.cookies.set(cookie.name, cookie.value, cookie.options);

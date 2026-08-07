@@ -39,7 +39,7 @@ export default function ModeratorLoginPage() {
             if (!res.ok) throw new Error(json.error || "Login failed");
             toast.success("Welcome back!");
             if (json.data?.isVerified === true) {
-                router.push("/moderator/panel");
+                router.push(`/moderator/${json.data.username || "me"}`);
             } else {
                 router.push("/moderator/pending");
             }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
     Shield,
     Users,
@@ -19,19 +19,16 @@ const NAV = [
         tab: "internships" as const,
         label: "Internships",
         icon: ListChecks,
-        href: "/moderator/panel/internships",
     },
     {
         tab: "users" as const,
         label: "Users",
         icon: Users,
-        href: "/moderator/panel/users",
     },
     {
         tab: "moderators" as const,
         label: "Moderators",
         icon: UserCheck,
-        href: "/moderator/panel/moderators",
     },
 ];
 
@@ -47,6 +44,8 @@ export function ModeratorShell({
     moderator,
 }: ModeratorShellProps) {
     const router = useRouter();
+    const params = useParams();
+    const username = params?.username as string || "me";
 
     const handleLogout = async () => {
         await fetch("/api/moderator/auth/logout", {
@@ -80,8 +79,9 @@ export function ModeratorShell({
 
                         {/* Desktop tab nav */}
                         <nav className="hidden md:flex items-center gap-0.5 flex-1">
-                            {NAV.map(({ tab, label, icon: Icon, href }) => {
+                            {NAV.map(({ tab, label, icon: Icon }) => {
                                 const active = activeTab === tab;
+                                const href = `/moderator/${username}/${tab}`;
                                 return (
                                     <Link
                                         key={tab}
@@ -162,8 +162,9 @@ export function ModeratorShell({
 
             {/* ── Mobile bottom nav ─────────────────────────────────────────────── */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] flex">
-                {NAV.map(({ tab, label, icon: Icon, href }) => {
+                {NAV.map(({ tab, label, icon: Icon }) => {
                     const active = activeTab === tab;
+                    const href = `/moderator/${username}/${tab}`;
                     return (
                         <Link
                             key={tab}

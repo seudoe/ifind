@@ -4,8 +4,13 @@ import { verifyModToken } from "@/lib/moderatorAuth";
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // ── Moderator panel pages (/moderator/panel/...) ──────────────────────
-    if (pathname.startsWith("/moderator/panel")) {
+    // ── Moderator dynamic pages (/moderator/[username]/...) ──────────────────────
+    if (
+        pathname.startsWith("/moderator/") &&
+        !pathname.startsWith("/moderator/login") &&
+        !pathname.startsWith("/moderator/register") &&
+        !pathname.startsWith("/moderator/pending")
+    ) {
         const token = request.cookies.get("ifind_mod_token")?.value;
         if (!token) {
             return NextResponse.redirect(
@@ -23,6 +28,13 @@ export function proxy(request: NextRequest) {
                 new URL("/moderator/pending", request.url),
             );
         }
+
+        // Optional: Ensure the URL username matches the logged in user's username
+        // const usernameInUrl = pathname.split('/')[2];
+        // if (usernameInUrl !== session.username) {
+        //     return NextResponse.redirect(new URL(`/moderator/${session.username}/internships`, request.url));
+        // }
+
         return NextResponse.next();
     }
 
@@ -60,5 +72,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/moderator/panel/:path*", "/api/moderator/((?!auth/).*)"],
+    matcher: ["/moderator/:path*", "/api/moderator/((?!auth/).*)"],
 };
