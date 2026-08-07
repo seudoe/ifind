@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("[auth/login]", error);
-    return NextResponse.json({ success: false, error: "Unable to sign in" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unable to sign in";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

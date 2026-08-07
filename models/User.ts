@@ -18,6 +18,17 @@ export interface IAppliedInternship {
   status: "applied" | "shortlisted" | "rejected" | "selected";
 }
 
+export interface IRecommendationScore {
+  id: mongoose.Types.ObjectId;
+  score: number;
+}
+
+export interface IRecommendedInternships {
+  updatedAt?: Date | null;
+  recommendedList?: mongoose.Types.ObjectId[];
+  recommendedScores?: IRecommendationScore[];
+}
+
 export interface IUser extends Document {
   name: string;
   username: string;
@@ -34,9 +45,7 @@ export interface IUser extends Document {
   resume: IResume;
   appliedInternships: IAppliedInternship[];
   savedInternships: mongoose.Types.ObjectId[];
-  recommendedInternships?: mongoose.Types.ObjectId[];
-  recommendedScores?: any[];
-  recommendedUpdatedAt?: Date | null;
+  recommendedInternships?: IRecommendedInternships;
   profileCompletionScore: number;
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +57,8 @@ const ResumeSchema = new Schema(
     driveViewLink: { type: String, default: null },
     uploadedAt: { type: Date, default: null },
     parsedData: { type: Schema.Types.Mixed, default: null },
+    tfidf_vector: { type: Schema.Types.Mixed, default: null },
+    bert_vector: { type: Schema.Types.Mixed, default: null },
     pendingFileId: { type: String, default: null },
     pendingViewLink: { type: String, default: null },
     pendingParsedData: { type: Schema.Types.Mixed, default: null },
@@ -60,6 +71,15 @@ const AppliedInternshipSchema = new Schema(
     internshipId: { type: Schema.Types.ObjectId, ref: "Internship" },
     appliedAt: { type: Date, default: Date.now },
     status: { type: String, enum: ["applied", "shortlisted", "rejected", "selected"], default: "applied" },
+  },
+  { _id: false },
+);
+
+const RecommendedInternshipsSchema = new Schema(
+  {
+    updatedAt: { type: Date, default: null },
+    recommendedList: { type: [{ type: Schema.Types.ObjectId, ref: "Internship" }], default: [] },
+    recommendedScores: { type: Schema.Types.Mixed, default: [] },
   },
   { _id: false },
 );
@@ -81,6 +101,7 @@ const UserSchema = new Schema<IUser>(
     resume: { type: ResumeSchema, default: () => ({}) },
     appliedInternships: { type: [AppliedInternshipSchema], default: [] },
     savedInternships: { type: [Schema.Types.ObjectId], default: [] },
+    recommendedInternships: { type: RecommendedInternshipsSchema, default: () => ({}) },
     profileCompletionScore: { type: Number, default: 20 },
   },
   { timestamps: true },

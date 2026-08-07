@@ -74,7 +74,7 @@ function UserLoginForm() {
       portalLabel="Employer portal"
       portalHref="/employer/login"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
         <Input
           label="Email or Username"
           placeholder="you@example.com"

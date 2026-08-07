@@ -43,12 +43,20 @@ export interface User {
   // internships related
   appliedInternships: AppliedInternship[];
   savedInternships: string[];
-  recommendedInternships?: string[];
-  recommendedScores?: RecommendationScore[];
-  recommendedUpdatedAt?: string | null;
+  recommendedInternships?: {
+    updatedAt: string;
+    recommendedList: string[];
+    recommendedScores: RecommendationScore[];
+  };
   profileCompletionScore: number;
+
+  // account related
   createdAt: string;
   updatedAt: string;
+  deleteDetails?: {
+    deleted?: boolean | null;
+    deletedAt?: string;
+  };
 }
 
 // OLD -----------------

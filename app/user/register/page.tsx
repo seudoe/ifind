@@ -60,7 +60,7 @@ export default function UserRegisterPage() {
       portalLabel="Employer portal"
       portalHref="/employer/register"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+      <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-3">
         <Input label="Full Name"  placeholder="Rahul Sharma"    {...register("name")}     error={errors.name?.message}     autoComplete="name" />
         <Input label="Username"   placeholder="rahulsharma"     {...register("username")} error={errors.username?.message} autoComplete="username" />
         <Input label="Email"      placeholder="you@example.com" type="email" {...register("email")} error={errors.email?.message} autoComplete="email" />

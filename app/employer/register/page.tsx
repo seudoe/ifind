@@ -63,7 +63,7 @@ export default function EmployerRegisterPage() {
         </div>
 
         <div className="plasma-card p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+          <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-3">
             <Input label="Company Name"      placeholder="Acme Corp"           {...register("companyName")} error={errors.companyName?.message} />
             <Input label="Handle / Username" placeholder="acmecorp"            {...register("username")}    error={errors.username?.message}    autoComplete="username" />
             <Input label="Work Email"        placeholder="hr@acmecorp.com"     type="email" {...register("email")} error={errors.email?.message} autoComplete="email" />

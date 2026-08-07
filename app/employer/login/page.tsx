@@ -57,7 +57,7 @@ export default function EmployerLoginPage() {
         </div>
 
         <div className="plasma-card p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
             <Input
               label="Email"
               placeholder="company@example.com"

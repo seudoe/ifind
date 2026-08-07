@@ -29,7 +29,8 @@ export async function GET() {
       .filter((value) => mongoose.Types.ObjectId.isValid(value))
       .map((value) => new mongoose.Types.ObjectId(value));
     const savedIds = toIds(Array.isArray(user.savedInternships) ? user.savedInternships : []);
-    const recommendedIds = toIds(Array.isArray(user.recommendedInternships) ? user.recommendedInternships : []);
+    const recList = user.recommendedInternships?.recommendedList || (Array.isArray(user.recommendedInternships) ? user.recommendedInternships : []);
+    const recommendedIds = toIds(Array.isArray(recList) ? recList : []);
     const appliedIds = toIds(Array.isArray(user.appliedInternships) ? user.appliedInternships.map((item: { internshipId?: unknown }) => item.internshipId) : []);
     const linkedIds = [...savedIds, ...recommendedIds, ...appliedIds];
 

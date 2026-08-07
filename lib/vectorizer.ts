@@ -9,6 +9,13 @@ export interface ResumeVectorResult {
   bert: number[];
 }
 
+function dot(a: number[] | null | undefined, b: number[] | null | undefined): number {
+  if (!a || !b || a.length !== b.length) return 0;
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += a[i] * b[i];
+  return s;
+}
+
 /**
  * Encodes parsed resume data into TF-IDF (15,000-d) and BERT (768-d) vectors
  * by sending a POST request to the Hugging Face Vectorizer API service (/encode-resume).
@@ -114,21 +121,13 @@ export async function vectorizeAndRecommendUser(
     // Load all active internships with vectors
     const internships = await db
       .collection("internships")
-      .find({ isActive: true, tfidf_vector: { $exists: true }, bert_vector: { $exists: true } })
+      .find({
+        $or: [{ isActive: true }, { isActive: { $exists: false } }],
+        tfidf_vector: { $exists: true },
+        bert_vector: { $exists: true },
+      })
       .project({ _id: 1, tfidf_vector: 1, bert_vector: 1 })
       .toArray();
-
-    if (internships.length === 0) {
-      console.log(`[vectorizer] User ${userId} vectorized — no active internships found to score.`);
-      return true;
-    }
-
-    function dot(a: number[], b: number[]): number {
-      if (!a || !b || a.length !== b.length) return 0;
-      let s = 0;
-      for (let i = 0; i < a.length; i++) s += a[i] * b[i];
-      return s;
-    }
 
     const scored = internships
       .map((intern) => ({
@@ -144,9 +143,9 @@ export async function vectorizeAndRecommendUser(
       { _id: userOid },
       {
         $set: {
-          recommendedInternships: scored.map((r) => r.id),
-          recommendedScores: scored.map((r) => ({ id: r.id, score: Math.round(r.score * 1000) / 1000 })),
-          recommendedUpdatedAt: new Date(),
+          "recommendedInternships.updatedAt": new Date(),
+          "recommendedInternships.recommendedList": scored.map((r) => r.id),
+          "recommendedInternships.recommendedScores": scored.map((r) => ({ id: r.id, score: Math.round(r.score * 1000) / 1000 })),
         },
       }
     );
