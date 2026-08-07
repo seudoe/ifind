@@ -109,6 +109,48 @@ export async function GET(request: NextRequest) {
       if (profilePicture && !user.profilePicture) {
         user.profilePicture = profilePicture;
       }
+
+      if (user.deleteDetails && user.deleteDetails.deleted === true) {
+        const deletedAtTime = user.deleteDetails.deletedAt
+          ? new Date(user.deleteDetails.deletedAt).getTime()
+          : Date.now();
+        const daysPassed = (Date.now() - deletedAtTime) / (1000 * 60 * 60 * 24);
+
+        if (daysPassed > 30) {
+          // > 30 days: Reset account data completely
+          user.phone = null;
+          user.dateOfBirth = null;
+          user.gender = null;
+          user.city = null;
+          user.state = null;
+          user.country = null;
+          user.skills = [];
+          user.resume = {
+            driveFileId: null,
+            driveViewLink: null,
+            uploadedAt: null,
+            parsedData: null,
+            tfidf_vector: null,
+            bert_vector: null,
+            pendingFileId: null,
+            pendingViewLink: null,
+            pendingParsedData: null,
+          };
+          user.appliedInternships = [];
+          user.savedInternships = [];
+          user.recommendedInternships = {
+            updatedAt: null,
+            recommendedList: [],
+            recommendedScores: [],
+          };
+          user.profileCompletionScore = 20;
+          user.deleteDetails = { deleted: false, deletedAt: null };
+        } else {
+          // <= 30 days: Cancel deletion & restore profile
+          user.deleteDetails = { deleted: false, deletedAt: null };
+        }
+      }
+
       await user.save();
     } else {
       // Create new student user
@@ -129,8 +171,38 @@ export async function GET(request: NextRequest) {
         email,
         linkedinId: profile.sub,
         linkedinDetails: profile,
-        profilePicture,
+        profilePicture: profilePicture || null,
         role: "student",
+        phone: null,
+        dateOfBirth: null,
+        gender: null,
+        city: null,
+        state: null,
+        country: null,
+        skills: [],
+        resume: {
+          driveFileId: null,
+          driveViewLink: null,
+          uploadedAt: null,
+          parsedData: null,
+          tfidf_vector: null,
+          bert_vector: null,
+          pendingFileId: null,
+          pendingViewLink: null,
+          pendingParsedData: null,
+        },
+        appliedInternships: [],
+        savedInternships: [],
+        recommendedInternships: {
+          updatedAt: null,
+          recommendedList: [],
+          recommendedScores: [],
+        },
+        deleteDetails: {
+          deleted: false,
+          deletedAt: null,
+        },
+        profileCompletionScore: 20,
       });
     }
 

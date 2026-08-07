@@ -58,37 +58,69 @@ async function run() {
 
     const transformedUsers = users.map((user: any) => {
       const existingRecs = user.recommendedInternships;
-      let recObj: { updatedAt: string; recommendedList: any[]; recommendedScores: any[] };
+      let recObj: { updatedAt: string | null; recommendedList: any[]; recommendedScores: any[] };
 
       if (existingRecs && typeof existingRecs === "object" && !Array.isArray(existingRecs)) {
         recObj = {
-          updatedAt: existingRecs.updatedAt || user.recommendedUpdatedAt || new Date().toISOString(),
+          updatedAt: existingRecs.updatedAt || user.recommendedUpdatedAt || null,
           recommendedList: Array.isArray(existingRecs.recommendedList) ? existingRecs.recommendedList : [],
           recommendedScores: Array.isArray(existingRecs.recommendedScores) ? existingRecs.recommendedScores : [],
         };
       } else if (Array.isArray(existingRecs)) {
         recObj = {
-          updatedAt: user.recommendedUpdatedAt || user.updatedAt || new Date().toISOString(),
+          updatedAt: user.recommendedUpdatedAt || user.updatedAt || null,
           recommendedList: existingRecs,
           recommendedScores: Array.isArray(user.recommendedScores) ? user.recommendedScores : [],
         };
       } else {
         recObj = {
-          updatedAt: new Date().toISOString(),
+          updatedAt: null,
           recommendedList: [],
           recommendedScores: [],
         };
       }
 
-      const updatedUser = {
-        ...user,
+      const transformedDoc: any = {
+        _id: user._id,
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        ...(user.password ? { password: user.password } : {}),
+        ...(user.linkedinId ? { linkedinId: user.linkedinId } : {}),
+        linkedinDetails: user.linkedinDetails || null,
+        role: user.role || "student",
+        profilePicture: user.profilePicture || null,
+        phone: user.phone || null,
+        dateOfBirth: user.dateOfBirth || null,
+        gender: user.gender || null,
+        city: user.city || null,
+        state: user.state || null,
+        country: user.country || null,
+        skills: Array.isArray(user.skills) ? user.skills : [],
+        resume: {
+          driveFileId: user.resume?.driveFileId || null,
+          driveViewLink: user.resume?.driveViewLink || null,
+          uploadedAt: user.resume?.uploadedAt || null,
+          parsedData: user.resume?.parsedData || null,
+          tfidf_vector: user.resume?.tfidf_vector || null,
+          bert_vector: user.resume?.bert_vector || null,
+          pendingFileId: user.resume?.pendingFileId || null,
+          pendingViewLink: user.resume?.pendingViewLink || null,
+          pendingParsedData: user.resume?.pendingParsedData || null,
+        },
+        appliedInternships: Array.isArray(user.appliedInternships) ? user.appliedInternships : [],
+        savedInternships: Array.isArray(user.savedInternships) ? user.savedInternships : [],
         recommendedInternships: recObj,
+        profileCompletionScore: typeof user.profileCompletionScore === "number" ? user.profileCompletionScore : 20,
+        deleteDetails: {
+          deleted: user.deleteDetails?.deleted ?? false,
+          deletedAt: user.deleteDetails?.deletedAt || null,
+        },
+        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: user.updatedAt || new Date().toISOString(),
       };
 
-      delete updatedUser.recommendedScores;
-      delete updatedUser.recommendedUpdatedAt;
-
-      return updatedUser;
+      return transformedDoc;
     });
 
     fs.writeFileSync(BACKUP_FILE, JSON.stringify(transformedUsers, null, 2), "utf8");

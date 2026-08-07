@@ -22,8 +22,12 @@ function AuthErrorNotifier() {
   const searchParams = useSearchParams();
   useEffect(() => {
     const error = searchParams.get("error");
+    const deleted = searchParams.get("deleted");
     if (error) {
       toast.error(decodeURIComponent(error));
+    }
+    if (deleted === "true") {
+      toast.info("Your account has been scheduled for deletion. You can retrieve it within 30 days simply by signing in normally.", { duration: 7000 });
     }
   }, [searchParams]);
   return null;
@@ -55,7 +59,11 @@ function UserLoginForm() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Login failed");
-      toast.success("Welcome back!");
+      if (json.notice) {
+        toast.info(json.notice, { duration: 6000 });
+      } else {
+        toast.success("Welcome back!");
+      }
       // Redirect to user's overview — middleware will handle auth guard
       router.push(`/user/${json.data?.username ?? "me"}/overview`);
     } catch (err) {

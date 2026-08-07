@@ -33,9 +33,67 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
     }
 
+    let loginNotice: string | null = null;
+    if (user.deleteDetails && user.deleteDetails.deleted === true) {
+      const deletedAtTime = user.deleteDetails.deletedAt
+        ? new Date(user.deleteDetails.deletedAt).getTime()
+        : Date.now();
+      const daysPassed = (Date.now() - deletedAtTime) / (1000 * 60 * 60 * 24);
+
+      if (daysPassed > 30) {
+        // > 30 days: Reset account data completely
+        user.profilePicture = null;
+        user.phone = null;
+        user.dateOfBirth = null;
+        user.gender = null;
+        user.city = null;
+        user.state = null;
+        user.country = null;
+        user.skills = [];
+        user.resume = {
+          driveFileId: null,
+          driveViewLink: null,
+          uploadedAt: null,
+          parsedData: null,
+          tfidf_vector: null,
+          bert_vector: null,
+          pendingFileId: null,
+          pendingViewLink: null,
+          pendingParsedData: null,
+        };
+        user.appliedInternships = [];
+        user.savedInternships = [];
+        user.recommendedInternships = {
+          updatedAt: null,
+          recommendedList: [],
+          recommendedScores: [],
+        };
+        user.profileCompletionScore = 20;
+        user.deleteDetails = {
+          deleted: false,
+          deletedAt: null,
+        };
+        await user.save();
+        loginNotice = "Your account data expired after 30 days and was reset.";
+      } else {
+        // <= 30 days: Restore account & cancel deletion
+        user.deleteDetails = {
+          deleted: false,
+          deletedAt: null,
+        };
+        await user.save();
+        loginNotice = "Welcome back! Your account deletion was cancelled and your profile has been restored.";
+      }
+    }
+
     const session = { userId: user.id, email: user.email, username: user.username, role: "student" as const };
     const cookie = authCookie(signToken(session));
-    const response = NextResponse.json({ success: true, message: "Logged in", data: { username: user.username } });
+    const response = NextResponse.json({
+      success: true,
+      message: loginNotice || "Logged in",
+      notice: loginNotice,
+      data: { username: user.username },
+    });
     response.cookies.set(cookie.name, cookie.value, cookie.options);
     return response;
   } catch (error) {

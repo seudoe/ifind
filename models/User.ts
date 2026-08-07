@@ -29,6 +29,11 @@ export interface IRecommendedInternships {
   recommendedScores?: IRecommendationScore[];
 }
 
+export interface IDeleteDetails {
+  deleted?: boolean | null;
+  deletedAt?: Date | string | null;
+}
+
 export interface IUser extends Document {
   name: string;
   username: string;
@@ -39,13 +44,17 @@ export interface IUser extends Document {
   profilePicture?: string | null;
   role: "student";
   phone?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
   city: string | null;
   state?: string | null;
   country?: string | null;
+  skills?: string[];
   resume: IResume;
   appliedInternships: IAppliedInternship[];
   savedInternships: mongoose.Types.ObjectId[];
   recommendedInternships?: IRecommendedInternships;
+  deleteDetails?: IDeleteDetails;
   profileCompletionScore: number;
   createdAt: Date;
   updatedAt: Date;
@@ -84,6 +93,14 @@ const RecommendedInternshipsSchema = new Schema(
   { _id: false },
 );
 
+const DeleteDetailsSchema = new Schema(
+  {
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+  },
+  { _id: false },
+);
+
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
@@ -95,13 +112,17 @@ const UserSchema = new Schema<IUser>(
     profilePicture: { type: String, default: null },
     role: { type: String, enum: ["student"], default: "student" },
     phone: { type: String, default: null, trim: true },
+    dateOfBirth: { type: String, default: null, trim: true },
+    gender: { type: String, default: null, trim: true },
     city: { type: String, default: null, trim: true },
     state: { type: String, default: null, trim: true },
     country: { type: String, default: null, trim: true },
+    skills: { type: [String], default: [] },
     resume: { type: ResumeSchema, default: () => ({}) },
     appliedInternships: { type: [AppliedInternshipSchema], default: [] },
     savedInternships: { type: [Schema.Types.ObjectId], default: [] },
     recommendedInternships: { type: RecommendedInternshipsSchema, default: () => ({}) },
+    deleteDetails: { type: DeleteDetailsSchema, default: () => ({ deleted: false, deletedAt: null }) },
     profileCompletionScore: { type: Number, default: 20 },
   },
   { timestamps: true },
