@@ -37,6 +37,9 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
         fetchModerators();
     }, []);
 
+    const currentModeratorPriority =
+        moderators.find((m) => m._id === currentModeratorId)?.priority ?? 999;
+
     const handleVerify = async (moderatorId: string) => {
         // Optimistic update — mark as verified immediately
         const previous = moderators;
@@ -47,6 +50,7 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
                           ...m,
                           isVerified: true,
                           verifiedAt: new Date().toISOString(),
+                          priority: currentModeratorPriority + 1,
                       }
                     : m,
             ),
@@ -124,9 +128,6 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
             toast.error("Failed to update ban status");
         }
     };
-
-    const currentModeratorPriority =
-        moderators.find((m) => m._id === currentModeratorId)?.priority ?? 999;
 
     return (
         <div className="space-y-4">
