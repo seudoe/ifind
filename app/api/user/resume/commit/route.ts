@@ -42,6 +42,9 @@ export async function POST() {
     user.resume.pendingParsedData = null;
 
     user.profileCompletionScore = Math.min(100, (user.profileCompletionScore || 20) + 30);
+    if (pendingParsedData) {
+      user.vectorizationStatus = "processing";
+    }
     await user.save();
 
     // Trigger vectorization & recommendation scoring in background

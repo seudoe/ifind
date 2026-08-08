@@ -62,6 +62,7 @@ export interface IUser extends Document {
     bannedAt?: Date | null;
     aiExtractionUsedThisMonth?: number;
     aiExtractionMonthYear?: string | null;
+    vectorizationStatus: "idle" | "processing" | "completed" | "failed";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -164,8 +165,9 @@ const UserSchema = new Schema<IUser>(
         bannedAt: { type: Date, default: null },
         aiExtractionUsedThisMonth: { type: Number, default: 0 },
         aiExtractionMonthYear: { type: String, default: null }, // format: "YYYY-MM"
+        vectorizationStatus: { type: String, enum: ["idle", "processing", "completed", "failed"], default: "idle" },
     },
-    { timestamps: true },
+    { timestamps: true }
 );
 
 UserSchema.index({ email: 1 }, { unique: true });

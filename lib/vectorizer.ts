@@ -107,7 +107,17 @@ export async function vectorizeAndRecommendUser(
 ): Promise<boolean> {
   try {
     const vectors = await encodeAndSaveUserResume(userId, parsedData);
-    if (!vectors) return false;
+    if (!vectors) {
+      await connectDB();
+      const db = mongoose.connection.db;
+      if (db) {
+        await db.collection("users").updateOne(
+          { _id: new mongoose.Types.ObjectId(userId) },
+          { $set: { vectorizationStatus: "failed" } }
+        );
+      }
+      return false;
+    }
 
     await connectDB();
     const db = mongoose.connection.db;
@@ -146,6 +156,7 @@ export async function vectorizeAndRecommendUser(
           "recommendedInternships.updatedAt": new Date(),
           "recommendedInternships.recommendedList": scored.map((r) => r.id),
           "recommendedInternships.recommendedScores": scored.map((r) => ({ id: r.id, score: Math.round(r.score * 1000) / 1000 })),
+          vectorizationStatus: "completed",
         },
       }
     );
@@ -154,6 +165,18 @@ export async function vectorizeAndRecommendUser(
     return true;
   } catch (err) {
     console.error("[vectorizer] Error in vectorizeAndRecommendUser:", err);
+    try {
+      await connectDB();
+      const db = mongoose.connection.db;
+      if (db) {
+        await db.collection("users").updateOne(
+          { _id: new mongoose.Types.ObjectId(userId) },
+          { $set: { vectorizationStatus: "failed" } }
+        );
+      }
+    } catch (e) {
+      // Ignore inner error
+    }
     return false;
   }
 }
