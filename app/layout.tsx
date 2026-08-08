@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   keywords: ["internship", "jobs", "students", "placement", "career"],
 };
 
+import { VectorizationProgressBar } from "@/components/dashboard/VectorizationProgressBar";
+
 export default function RootLayout({
   children,
 }: {
@@ -25,6 +27,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         {children}
         <Toaster position="top-right" richColors />
+        <VectorizationProgressBar />
       </body>
     </html>
   );

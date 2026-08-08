@@ -1,3 +1,4 @@
+import { log } from "console";
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -16,6 +17,7 @@ global.__ifindMongoose = cached;
 
 /** Reuses the connection across Next.js hot reloads and API requests. */
 export async function connectDB(): Promise<typeof mongoose> {
+  log(MONGODB_URI)
   if (!MONGODB_URI) {
     throw new Error("MONGODB_URI is not configured. Add it to .env.local.");
   }

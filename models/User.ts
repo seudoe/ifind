@@ -60,6 +60,7 @@ export interface IUser extends Document {
   bannedReason?: string | null;
   bannedBy?: mongoose.Types.ObjectId | null;
   bannedAt?: Date | null;
+  vectorizationStatus: "idle" | "processing" | "completed" | "failed";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -135,6 +136,7 @@ const UserSchema = new Schema<IUser>(
     bannedReason: { type: String, default: null },
     bannedBy: { type: Schema.Types.ObjectId, ref: "Moderator", default: null },
     bannedAt: { type: Date, default: null },
+    vectorizationStatus: { type: String, enum: ["idle", "processing", "completed", "failed"], default: "idle" },
   },
   { timestamps: true }
 );

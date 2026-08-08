@@ -103,18 +103,6 @@ export async function PUT(request: Request) {
     setFields["profileCompletionScore"] = Math.min(100, 35 + Math.round((completedCount / fieldsCount) * 65));
     setFields["updatedAt"] = new Date().toISOString();
 
-    const result = await db.collection("users").findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(session.userId) },
-      { $set: setFields },
-      { returnDocument: "after" }
-    );
-
-    if (!result) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-    }
-
-    const updatedUser = 'value' in result ? result.value : result;
-
     // Smart change detection: check if updated data differs from existing data
     let hasChanged = false;
     for (const [key, val] of Object.entries(setFields)) {
@@ -133,6 +121,22 @@ export async function PUT(request: Request) {
         }
       }
     }
+
+    if (hasChanged && mergedUser.resume?.parsedData) {
+      setFields["vectorizationStatus"] = "processing";
+    }
+
+    const result = await db.collection("users").findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(session.userId) },
+      { $set: setFields },
+      { returnDocument: "after" }
+    );
+
+    if (!result) {
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+    }
+
+    const updatedUser = 'value' in result ? result.value : result;
 
     // Only re-encode vectors & update recommended internships if section data actually changed
     if (hasChanged && mergedUser.resume?.parsedData) {
