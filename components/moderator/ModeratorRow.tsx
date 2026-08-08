@@ -97,9 +97,9 @@ export function ModeratorRow({
                         <p className="text-xs text-[var(--text-2)]">
                             by{" "}
                             <span className="font-medium text-[var(--text)]">
-                                {typeof moderator.verifiedBy === "object"
-                                    ? moderator.verifiedBy.name
-                                    : moderator.verifiedBy}
+                                {moderator.verifiedBy && typeof moderator.verifiedBy === "object"
+                                    ? ("name" in moderator.verifiedBy ? String((moderator.verifiedBy as any).name) : "Unknown")
+                                    : String(moderator.verifiedBy || "")}
                             </span>
                         </p>
                         {moderator.verifiedAt && (

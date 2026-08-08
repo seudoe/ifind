@@ -13,12 +13,11 @@ import type { ParsedResumeData } from "@/types/resume";
 const HF_SPACE_URL = "https://seudoe-resume-extract.hf.space";
 
 // Time (in ms) to wait for HuggingFace Space before moving to OpenAI fallback
-const MAX_WAIT_FOR_HF_MS = 1;
-//  process.env.MAX_WAIT_FOR_HF
-//   ? Number(process.env.MAX_WAIT_FOR_HF) > 1000
-//     ? Number(process.env.MAX_WAIT_FOR_HF)
-//     : Number(process.env.MAX_WAIT_FOR_HF) * 1000
-//   : 15_000;
+const MAX_WAIT_FOR_HF_MS = process.env.MAX_WAIT_FOR_HF
+  ? Number(process.env.MAX_WAIT_FOR_HF) > 1000
+    ? Number(process.env.MAX_WAIT_FOR_HF)
+    : Number(process.env.MAX_WAIT_FOR_HF) * 1000
+  : 60_000;
 
 const SYSTEM_PROMPT = `You are a resume parsing assistant. Extract all information from the resume and return it in the exact JSON format specified. Be thorough and extract all available information. If a field is not present in the resume, use null or empty array as appropriate.`;
 

@@ -42,13 +42,7 @@ export function VectorizationProgressBar() {
 
       const currentStatus = data.status as Status;
       
-      setStatus((prev) => {
-        // If we transitioned from processing to completed, trigger refresh
-        if (prev === "processing" && currentStatus === "completed") {
-          router.refresh(); // Refresh current route to fetch new recommendations
-        }
-        return currentStatus;
-      });
+      setStatus(currentStatus);
 
     } catch (err) {
       console.error("Failed to fetch vectorization status", err);
@@ -65,6 +59,7 @@ export function VectorizationProgressBar() {
       return () => clearInterval(interval);
     } else if (status === "completed") {
       setProgress(100);
+      router.refresh(); // Refresh current route to fetch new recommendations
       // Hide after 5 seconds
       const timeout = setTimeout(() => {
         setStatus("idle");
