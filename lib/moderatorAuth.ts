@@ -15,7 +15,7 @@ function getModJwtSecret(): string {
     const secret = process.env.MOD_JWT_SECRET;
     if (!secret) {
         throw new Error(
-            "MOD_JWT_SECRET is not configured. Add it to .env.local.",
+            "MOD_JWT_SECRET is not configured. Add it to .env.local.",  
         );
     }
     return secret;
