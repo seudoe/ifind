@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:algorithms": "tsx test-algorithms.ts",
+    "test:system": "tsx test-hnsw-system.ts",
+    "test:flow": "tsx test-recommendation-flow.ts",
+    "test:vectorization": "tsx test-internship-vectorization.ts",
+    "test:all": "tsx test-algorithms.ts && tsx test-hnsw-system.ts && tsx test-recommendation-flow.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
@@ -34,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
