@@ -1,6 +1,6 @@
 import { connectDB } from "./db";
 import mongoose from "mongoose";
-import { generateAndSaveRecommendations } from "./recommendation";
+import { generateAndSaveRecommendations, invalidateUserCache } from "./recommendation";
 
 const HF_BASE = process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space";
 const BOOST_WEIGHT = 0.15;
@@ -102,6 +102,9 @@ export async function vectorizeAndRecommendUser(
   parsedData: unknown
 ): Promise<boolean> {
   try {
+    // Step 0: Invalidate cache since user's resume is changing
+    await invalidateUserCache(userId);
+
     // Step 1: Encode resume and save vectors
     const vectors = await encodeAndSaveUserResume(userId, parsedData);
     if (!vectors) {
