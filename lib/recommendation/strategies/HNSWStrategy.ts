@@ -1,11 +1,8 @@
 /**
  * HNSW (Hierarchical Navigable Small World) Recommendation Strategy
  * 
- * PLACEHOLDER - Not yet implemented
- * 
- * This strategy will use HNSW graph-based approximate nearest neighbor
- * search to efficiently retrieve the most relevant candidates without
- * scoring all internships.
+ * Uses HNSW graph-based approximate nearest neighbor search to efficiently
+ * retrieve the most relevant candidates without scoring all internships.
  * 
  * Advantages:
  * - Efficient approximate k-NN search
@@ -17,35 +14,24 @@
  * - Requires pre-built HNSW index
  * - Returns approximate (not exact) results
  * - Index must be rebuilt when internships change
- * 
- * Implementation Plan:
- * 1. Load HNSW graph from MongoDB (internships.graph collection)
- * 2. Deserialize graph structure and ID mappings
- * 3. Perform approximate k-NN search using user's BERT vector
- * 4. Fetch full candidate data for top-k results
- * 5. Return candidates for final scoring
  */
 
+import mongoose from "mongoose";
+import { connectDB } from "@/lib/db";
+import { getIndexManager } from "@/lib/hnsw";
 import type { InternshipCandidate } from "../types";
 import type { RecommendationStrategy, StrategyContext } from "./types";
 
 export class HNSWStrategy implements RecommendationStrategy {
   readonly name = "hnsw" as const;
 
-  /**
-   * HNSW graph and metadata (to be loaded from database)
-   */
-  private hnswIndex: unknown = null;
-  private idMappings: Map<number, string> = new Map();
   private isInitialized = false;
 
   /**
    * Retrieve candidates using HNSW approximate nearest neighbor search
    * 
-   * TODO: Implement HNSW search algorithm
-   * - Load graph if not loaded
-   * - Perform k-NN search with user's BERT vector
-   * - Fetch candidate details for top results
+   * Uses the user's BERT vector to perform approximate k-NN search,
+   * then fetches full candidate data from MongoDB.
    */
   async retrieveCandidates(context: StrategyContext): Promise<InternshipCandidate[]> {
     if (!this.isInitialized) {
@@ -54,45 +40,88 @@ export class HNSWStrategy implements RecommendationStrategy {
       );
     }
 
-    // TODO: Implement HNSW search
-    throw new Error(
-      "[HNSWStrategy] HNSW search not yet implemented. " +
-      "This is a placeholder for future development."
-    );
+    try {
+      const indexManager = getIndexManager();
+
+      if (!indexManager.isReady()) {
+        throw new Error("[HNSWStrategy] Index not ready");
+      }
+
+      // Get k value (default to limit * 2 or 40 if no limit specified)
+      const k = context.limit ? context.limit * 2 : 40;
+
+      // Perform HNSW search using BERT vector
+      const searchResults = await indexManager.searchNearestNeighbors(
+        context.userVectors.bert,
+        k
+      );
+
+      console.log(
+        `[HNSWStrategy] HNSW search returned ${searchResults.length} candidates`
+      );
+
+      // Fetch full candidate data from MongoDB
+      await connectDB();
+      const db = mongoose.connection.db;
+
+      if (!db) {
+        throw new Error("Database connection not available");
+      }
+
+      const internshipIds = searchResults.map((result) => 
+        new mongoose.Types.ObjectId(result.id)
+      );
+
+      const internships = await db
+        .collection("internships")
+        .find({ _id: { $in: internshipIds } })
+        .project({ _id: 1, tfidf_vector: 1, bert_vector: 1 })
+        .toArray();
+
+      console.log(
+        `[HNSWStrategy] Retrieved ${internships.length} full candidate records`
+      );
+
+      return internships as unknown as InternshipCandidate[];
+    } catch (error) {
+      console.error("[HNSWStrategy] Failed to retrieve candidates:", error);
+      throw error;
+    }
   }
 
   /**
-   * Initialize HNSW strategy by loading the graph from MongoDB
+   * Initialize HNSW strategy by loading the index from database
    * 
-   * TODO: Implement HNSW index loading
-   * - Connect to MongoDB
-   * - Load graph bytes from internships.graph collection
-   * - Deserialize HNSW structure
-   * - Build ID mappings (graph node ID -> MongoDB ObjectId)
+   * Loads the HNSW index from MongoDB and prepares it for search operations.
    */
   async initialize(): Promise<void> {
     console.log("[HNSWStrategy] Initializing HNSW index...");
 
-    // TODO: Implement initialization
-    // - Load from MongoDB internships.graph collection
-    // - Deserialize HNSW binary format
-    // - Build reverse ID mappings
+    try {
+      const indexManager = getIndexManager();
 
-    this.isInitialized = false; // Set to true when implemented
+      // Load index from database (or initialize if not exists)
+      await indexManager.loadFromDatabase();
 
-    throw new Error(
-      "[HNSWStrategy] HNSW initialization not yet implemented. " +
-      "This is a placeholder for future development."
-    );
+      const stats = indexManager.getStats();
+      console.log(
+        `[HNSWStrategy] Index initialized with ${stats.vectorCount} vectors, ` +
+        `${stats.dimensions} dimensions`
+      );
+
+      this.isInitialized = true;
+    } catch (error) {
+      console.error("[HNSWStrategy] Failed to initialize:", error);
+      this.isInitialized = false;
+      throw error;
+    }
   }
 
   /**
    * Clean up HNSW resources
    */
   async dispose(): Promise<void> {
-    console.log("[HNSWStrategy] Disposing HNSW index...");
-    this.hnswIndex = null;
-    this.idMappings.clear();
+    console.log("[HNSWStrategy] Disposing HNSW strategy...");
     this.isInitialized = false;
   }
 }
