@@ -1,5 +1,6 @@
 import { connectDB } from "./db";
 import mongoose from "mongoose";
+import { generateAndSaveRecommendations } from "./recommendation";
 
 const HF_BASE = process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space";
 const BOOST_WEIGHT = 0.15;
@@ -7,13 +8,6 @@ const BOOST_WEIGHT = 0.15;
 export interface ResumeVectorResult {
   tfidf: number[];
   bert: number[];
-}
-
-function dot(a: number[] | null | undefined, b: number[] | null | undefined): number {
-  if (!a || !b || a.length !== b.length) return 0;
-  let s = 0;
-  for (let i = 0; i < a.length; i++) s += a[i] * b[i];
-  return s;
 }
 
 /**
@@ -100,12 +94,15 @@ export async function encodeAndSaveUserResume(
 /**
  * Full end-to-end trigger: Encodes user resume/profile data, saves vectors to DB,
  * and re-calculates recommended internships.
+ * 
+ * Now uses the dedicated recommendation service for cleaner separation of concerns.
  */
 export async function vectorizeAndRecommendUser(
   userId: string,
   parsedData: unknown
 ): Promise<boolean> {
   try {
+    // Step 1: Encode resume and save vectors
     const vectors = await encodeAndSaveUserResume(userId, parsedData);
     if (!vectors) {
       await connectDB();
@@ -119,50 +116,32 @@ export async function vectorizeAndRecommendUser(
       return false;
     }
 
-    await connectDB();
-    const db = mongoose.connection.db;
-    if (!db) return false;
-
-    const W_TFIDF = 0.4;
-    const W_BERT = 0.6;
-    const TOP_N = 20;
-    const THRESHOLD = 0.1;
-
-    // Load all active internships with vectors
-    const internships = await db
-      .collection("internships")
-      .find({
-        $or: [{ isActive: true }, { isActive: { $exists: false } }],
-        tfidf_vector: { $exists: true },
-        bert_vector: { $exists: true },
-      })
-      .project({ _id: 1, tfidf_vector: 1, bert_vector: 1 })
-      .toArray();
-
-    const scored = internships
-      .map((intern) => ({
-        id: intern._id,
-        score: dot(vectors.tfidf, intern.tfidf_vector) * W_TFIDF + dot(vectors.bert, intern.bert_vector) * W_BERT,
-      }))
-      .filter((s) => s.score >= THRESHOLD)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, TOP_N);
-
-    const userOid = new mongoose.Types.ObjectId(userId);
-    await db.collection("users").updateOne(
-      { _id: userOid },
+    // Step 2: Generate and save recommendations using the recommendation service
+    const recommendationsGenerated = await generateAndSaveRecommendations(
+      userId,
       {
-        $set: {
-          "recommendedInternships.updatedAt": new Date(),
-          "recommendedInternships.recommendedList": scored.map((r) => r.id),
-          "recommendedInternships.recommendedScores": scored.map((r) => ({ id: r.id, score: Math.round(r.score * 1000) / 1000 })),
-          vectorizationStatus: "completed",
-        },
+        tfidf: vectors.tfidf,
+        bert: vectors.bert,
       }
     );
 
-    console.log(`[vectorizer] User ${userId} vectors re-encoded & ${scored.length} recommendations updated.`);
-    return true;
+    // Step 3: Update vectorization status
+    await connectDB();
+    const db = mongoose.connection.db;
+    if (db) {
+      await db.collection("users").updateOne(
+        { _id: new mongoose.Types.ObjectId(userId) },
+        { $set: { vectorizationStatus: recommendationsGenerated ? "completed" : "failed" } }
+      );
+    }
+
+    if (recommendationsGenerated) {
+      console.log(`[vectorizer] User ${userId} vectorization and recommendation generation completed successfully.`);
+    } else {
+      console.warn(`[vectorizer] User ${userId} vectors saved but recommendation generation failed.`);
+    }
+
+    return recommendationsGenerated;
   } catch (err) {
     console.error("[vectorizer] Error in vectorizeAndRecommendUser:", err);
     try {
