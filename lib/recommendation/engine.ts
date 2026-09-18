@@ -3,9 +3,11 @@
  * 
  * Main recommendation generation logic. This module orchestrates
  * the recommendation pipeline: retrieval, scoring, filtering, and ranking.
+ * 
+ * Now supports pluggable retrieval strategies through the Strategy Pattern.
  */
 
-import { fetchInternshipCandidates } from "./retrieval";
+import { getDefaultStrategy } from "./strategies";
 import { computeSimilarityScore } from "./scoring";
 import type {
   GenerateRecommendationsParams,
@@ -13,6 +15,7 @@ import type {
   RecommendationResult,
   ScoredRecommendation,
 } from "./types";
+import type { RecommendationStrategy } from "./strategies";
 
 /**
  * Default recommendation configuration
@@ -29,17 +32,19 @@ const DEFAULT_CONFIG: RecommendationConfig = {
  * 
  * This is the main entry point for recommendation generation.
  * It handles the complete recommendation pipeline:
- * 1. Retrieve candidate internships
+ * 1. Retrieve candidate internships (using pluggable strategy)
  * 2. Score each candidate against user vectors
  * 3. Filter by threshold
  * 4. Sort by score (descending)
  * 5. Return top N recommendations
  * 
  * @param params - Generation parameters including user vectors and config
+ * @param strategy - Optional custom strategy (uses default if not provided)
  * @returns Recommendation result with scored recommendations and metadata
  */
 export async function generateRecommendations(
-  params: GenerateRecommendationsParams
+  params: GenerateRecommendationsParams,
+  strategy?: RecommendationStrategy
 ): Promise<RecommendationResult> {
   const { userVectors, config: userConfig } = params;
   
@@ -58,8 +63,15 @@ export async function generateRecommendations(
     );
   }
 
-  // Step 1: Retrieve candidate internships
-  const candidates = await fetchInternshipCandidates();
+  // Get strategy (use provided or get default)
+  const activeStrategy = strategy || (await getDefaultStrategy());
+  console.log(`[recommendation-engine] Using strategy: ${activeStrategy.name}`);
+
+  // Step 1: Retrieve candidate internships using strategy
+  const candidates = await activeStrategy.retrieveCandidates({
+    userVectors,
+    limit: config.topN * 2, // Retrieve more than needed for better filtering
+  });
 
   // Step 2: Score all candidates
   const scored: ScoredRecommendation[] = candidates.map((candidate) => ({
@@ -82,6 +94,11 @@ export async function generateRecommendations(
 
   // Step 5: Take top N
   const recommendations = sorted.slice(0, config.topN);
+
+  console.log(
+    `[recommendation-engine] Generated ${recommendations.length} recommendations ` +
+    `from ${candidates.length} candidates (filtered from ${scored.length})`
+  );
 
   return {
     recommendations,
