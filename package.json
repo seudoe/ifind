@@ -11,6 +11,8 @@
     "test:system": "tsx test-hnsw-system.ts",
     "test:flow": "tsx test-recommendation-flow.ts",
     "test:vectorization": "tsx test-internship-vectorization.ts",
+    "test:mock": "tsx test-with-mock-data.ts",
+    "test:simple": "tsx test-end-to-end-simple.ts",
     "test:all": "tsx test-algorithms.ts && tsx test-hnsw-system.ts && tsx test-recommendation-flow.ts"
   },
   "dependencies": {
@@ -38,6 +40,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "mongodb-memory-server": "^9.5.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
     "typescript": "^5"
