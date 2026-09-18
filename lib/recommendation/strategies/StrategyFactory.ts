@@ -22,10 +22,10 @@ export interface StrategyConfig {
 
 /**
  * Default strategy configuration
- * Uses brute-force as the default safe strategy
+ * Uses HNSW for scalable performance, with brute-force as fallback
  */
 const DEFAULT_STRATEGY_CONFIG: StrategyConfig = {
-  type: StrategyType.BRUTE_FORCE,
+  type: StrategyType.HNSW,
 };
 
 /**
@@ -117,7 +117,7 @@ export class StrategyFactory {
           );
           // Fall back to brute-force on initialization failure
           if (this.activeStrategy.name !== "brute-force") {
-            console.warn("[StrategyFactory] Falling back to brute-force strategy");
+            console.warn("[StrategyFactory] Falling back to brute-force strategy due to initialization error");
             this.activeStrategy = new BruteForceStrategy();
             await this.activeStrategy.initialize?.();
           } else {
@@ -125,6 +125,8 @@ export class StrategyFactory {
           }
         }
       }
+
+      console.log(`[StrategyFactory] Active strategy: ${this.activeStrategy.name}`);
     }
 
     return this.activeStrategy;
