@@ -51,16 +51,19 @@ export class HNSWStrategy implements RecommendationStrategy {
       const k = context.limit ? context.limit * 2 : 40;
 
       // Perform HNSW search using BERT vector
+      const hnswSearchStart = Date.now();
       const searchResults = await indexManager.searchNearestNeighbors(
         context.userVectors.bert,
         k
       );
+      const hnswSearchTime = Date.now() - hnswSearchStart;
 
       console.log(
-        `[HNSWStrategy] HNSW search returned ${searchResults.length} candidates`
+        `[HNSWStrategy] HNSW search returned ${searchResults.length} candidates in ${hnswSearchTime}ms`
       );
 
       // Fetch full candidate data from MongoDB
+      const fetchStart = Date.now();
       await connectDB();
       const db = mongoose.connection.db;
 
@@ -77,9 +80,11 @@ export class HNSWStrategy implements RecommendationStrategy {
         .find({ _id: { $in: internshipIds } })
         .project({ _id: 1, tfidf_vector: 1, bert_vector: 1 })
         .toArray();
+      
+      const fetchTime = Date.now() - fetchStart;
 
       console.log(
-        `[HNSWStrategy] Retrieved ${internships.length} full candidate records`
+        `[HNSWStrategy] Retrieved ${internships.length} full candidate records in ${fetchTime}ms`
       );
 
       return internships as unknown as InternshipCandidate[];

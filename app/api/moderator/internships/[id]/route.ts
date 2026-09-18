@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import Internship from "@/models/Internship";
+import { vectorizeAndIndexInternship } from "@/lib/internship-vectorizer";
 
 export const runtime = "nodejs";
 
@@ -89,6 +90,19 @@ export async function PATCH(
                     },
                 },
             );
+
+            // Trigger vectorization and indexing in background (non-blocking)
+            vectorizeAndIndexInternship(id, {
+                name: internship.name,
+                company: internship.company,
+                summary: internship.summary,
+                skills: internship.skills,
+                responsibilities: internship.responsibilities,
+                tags: internship.tags,
+                field: internship.field,
+            }).catch(err => {
+                console.error(`[moderator/internships/[id]] Failed to vectorize internship ${id}:`, err);
+            });
         } else {
             // action === "reject"
             // Use $set to update only moderation subdocument fields

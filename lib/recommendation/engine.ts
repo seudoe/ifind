@@ -46,6 +46,7 @@ export async function generateRecommendations(
   params: GenerateRecommendationsParams,
   strategy?: RecommendationStrategy
 ): Promise<RecommendationResult> {
+  const startTime = Date.now();
   const { userVectors, config: userConfig } = params;
   
   // Merge user config with defaults
@@ -68,12 +69,16 @@ export async function generateRecommendations(
   console.log(`[recommendation-engine] Using strategy: ${activeStrategy.name}`);
 
   // Step 1: Retrieve candidate internships using strategy
+  const retrievalStart = Date.now();
   const candidates = await activeStrategy.retrieveCandidates({
     userVectors,
     limit: config.topN * 2, // Retrieve more than needed for better filtering
   });
+  const retrievalTime = Date.now() - retrievalStart;
+  console.log(`[recommendation-engine] Candidate retrieval took ${retrievalTime}ms`);
 
   // Step 2: Score all candidates
+  const scoringStart = Date.now();
   const scored: ScoredRecommendation[] = candidates.map((candidate) => ({
     id: candidate._id,
     score: computeSimilarityScore(
@@ -85,6 +90,8 @@ export async function generateRecommendations(
       config.bertWeight
     ),
   }));
+  const scoringTime = Date.now() - scoringStart;
+  console.log(`[recommendation-engine] Cosine similarity scoring took ${scoringTime}ms`);
 
   // Step 3: Filter by threshold
   const filtered = scored.filter((item) => item.score >= config.threshold);
@@ -95,9 +102,14 @@ export async function generateRecommendations(
   // Step 5: Take top N
   const recommendations = sorted.slice(0, config.topN);
 
+  const totalTime = Date.now() - startTime;
   console.log(
     `[recommendation-engine] Generated ${recommendations.length} recommendations ` +
-    `from ${candidates.length} candidates (filtered from ${scored.length})`
+    `from ${candidates.length} candidates (filtered from ${scored.length}) in ${totalTime}ms`
+  );
+  console.log(
+    `[recommendation-engine] Pipeline breakdown: ` +
+    `retrieval=${retrievalTime}ms, scoring=${scoringTime}ms, total=${totalTime}ms`
   );
 
   return {
