@@ -14,20 +14,36 @@
 import fs from "fs";
 import path from "path";
 
-// Load environment variables
-const envPath = path.resolve(process.cwd(), ".env.local");
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, "utf-8");
-  for (const line of envContent.split("\n")) {
+// Load environment variables from .env.local or .env
+const envLocalPath = path.resolve(process.cwd(), ".env.local");
+const envPath = path.resolve(process.cwd(), ".env");
+
+if (fs.existsSync(envLocalPath)) {
+  const envContent = fs.readFileSync(envLocalPath, "utf-8");
+  envContent.split("\n").forEach((line) => {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const equalIdx = trimmed.indexOf("=");
-    if (equalIdx !== -1) {
-      const key = trimmed.slice(0, equalIdx).trim();
-      const val = trimmed.slice(equalIdx + 1).trim();
-      process.env[key] = val.replace(/^['"]|['"]$/g, "");
+    if (trimmed && !trimmed.startsWith("#")) {
+      const [key, ...valueParts] = trimmed.split("=");
+      if (key && valueParts.length > 0) {
+        process.env[key.trim()] = valueParts.join("=").trim();
+      }
     }
-  }
+  });
+  console.log("✓ Loaded environment from .env.local");
+} else if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, "utf-8");
+  envContent.split("\n").forEach((line) => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) {
+      const [key, ...valueParts] = trimmed.split("=");
+      if (key && valueParts.length > 0) {
+        process.env[key.trim()] = valueParts.join("=").trim();
+      }
+    }
+  });
+  console.log("✓ Loaded environment from .env");
+} else {
+  console.warn("⚠️  No .env.local or .env file found");
 }
 
 interface TestResult {
