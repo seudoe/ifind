@@ -6,13 +6,23 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:algorithms": "tsx test-algorithms.ts",
+    "test:system": "tsx test-hnsw-system.ts",
+    "test:flow": "tsx test-recommendation-flow.ts",
+    "test:vectorization": "tsx test-internship-vectorization.ts",
+    "test:mock": "tsx test-with-mock-data.ts",
+    "test:simple": "tsx test-end-to-end-simple.ts",
+    "test:cache": "tsx test-recommendation-with-cache.ts",
+    "test:all": "tsx test-algorithms.ts && tsx test-hnsw-system.ts && tsx test-recommendation-flow.ts",
+    "env-manager": "node env-manager.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "dotenv": "^18.0.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.28.0",
     "mongoose": "^9.9.1",
@@ -33,7 +43,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "mongodb-memory-server": "^9.5.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

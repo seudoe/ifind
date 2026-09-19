@@ -96,6 +96,8 @@ export interface IInternship extends Document {
     fingerprint?: string | null;
     linkVerification?: ILinkVerification;
     moderation: IModeration;
+    tfidf_vector?: number[] | null;
+    bert_vector?: number[] | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -243,6 +245,8 @@ const InternshipSchema = new Schema<IInternship>(
         fingerprint: { type: String, default: null, trim: true },
         linkVerification: { type: LinkVerificationSchema, default: undefined },
         moderation: { type: ModerationSchema, default: () => ({}) },
+        tfidf_vector: { type: Schema.Types.Mixed, default: null },
+        bert_vector: { type: Schema.Types.Mixed, default: null },
     },
     { timestamps: true },
 );
