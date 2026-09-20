@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.1",
+    "groq-sdk": "^1.6.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.28.0",
     "mongoose": "^9.9.1",
