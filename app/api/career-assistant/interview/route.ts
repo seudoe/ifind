@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
-import { verifyAuth } from '@/lib/auth';
+import { connectDB } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import User from '@/models/User';
+import { extractResumeText, extractSkills } from '@/lib/resume/resumeTextExtractor';
 import { generateJSON } from '@/lib/groq/groqService';
 
 /**
@@ -10,8 +11,8 @@ import { generateJSON } from '@/lib/groq/groqService';
  */
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,9 +29,9 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     // Get user's skills and experience
-    const user = await User.findById(authResult.user._id).lean();
-    const skills = user?.extractedSkills?.map((s: any) => s.skill).join(', ') || 'general skills';
-    const experience = user?.parsedContent?.experience || [];
+    const user = await User.findById(session.userId).lean();
+    const skills = extractSkills(user || {}).join(', ') || 'general skills';
+    const experience = user?.resume?.parsedData?.workHistory || [];
 
     const difficultyLevel = difficulty || 'medium';
     const questionCount = count || 10;

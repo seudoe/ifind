@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import JobDescription from '@/models/JobDescription';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 /**
  * GET /api/job-descriptions/[id]
@@ -9,19 +9,20 @@ import { verifyAuth } from '@/lib/auth';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const jobDescription = await JobDescription.findOne({
-      _id: params.id,
-      userId: authResult.user._id,
+      _id: id,
+      userId: session.userId,
     }).lean();
 
     if (!jobDescription) {
@@ -50,22 +51,23 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await req.json();
 
     await connectDB();
 
     const jobDescription = await JobDescription.findOneAndUpdate(
       {
-        _id: params.id,
-        userId: authResult.user._id,
+        _id: id,
+        userId: session.userId,
       },
       { $set: body },
       { new: true, runValidators: true }
@@ -98,19 +100,20 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const jobDescription = await JobDescription.findOneAndDelete({
-      _id: params.id,
-      userId: authResult.user._id,
+      _id: id,
+      userId: session.userId,
     });
 
     if (!jobDescription) {

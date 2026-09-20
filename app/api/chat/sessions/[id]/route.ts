@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import ChatSession from '@/models/ChatSession';
 import ChatMessage from '@/models/ChatMessage';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 /**
  * GET /api/chat/sessions/[id]
@@ -10,22 +10,23 @@ import { verifyAuth } from '@/lib/auth';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
-    const session = await ChatSession.findOne({
-      _id: params.id,
-      userId: authResult.user._id,
+    const chatSession = await ChatSession.findOne({
+      _id: id,
+      userId: session.userId,
     }).lean();
 
-    if (!session) {
+    if (!chatSession) {
       return NextResponse.json(
         { error: 'Chat session not found' },
         { status: 404 }
@@ -33,14 +34,14 @@ export async function GET(
     }
 
     // Get messages for this session
-    const messages = await ChatMessage.find({ sessionId: params.id })
+    const messages = await ChatMessage.find({ sessionId: id })
       .sort({ createdAt: 1 })
       .lean();
 
     return NextResponse.json({
       success: true,
       data: {
-        session,
+        session: chatSession,
         messages,
       },
     });
@@ -59,14 +60,15 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await req.json();
     const { title, isArchived } = body;
 
@@ -76,16 +78,16 @@ export async function PATCH(
     if (title !== undefined) updateData.title = title;
     if (isArchived !== undefined) updateData.isArchived = isArchived;
 
-    const session = await ChatSession.findOneAndUpdate(
+    const chatSession = await ChatSession.findOneAndUpdate(
       {
-        _id: params.id,
-        userId: authResult.user._id,
+        _id: id,
+        userId: session.userId,
       },
       { $set: updateData },
       { new: true }
     );
 
-    if (!session) {
+    if (!chatSession) {
       return NextResponse.json(
         { error: 'Chat session not found' },
         { status: 404 }
@@ -94,7 +96,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      data: session,
+      data: chatSession,
       message: 'Chat session updated successfully',
     });
   } catch (error: any) {
@@ -112,23 +114,24 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     // Delete session
-    const session = await ChatSession.findOneAndDelete({
-      _id: params.id,
-      userId: authResult.user._id,
+    const chatSession = await ChatSession.findOneAndDelete({
+      _id: id,
+      userId: session.userId,
     });
 
-    if (!session) {
+    if (!chatSession) {
       return NextResponse.json(
         { error: 'Chat session not found' },
         { status: 404 }
@@ -136,7 +139,7 @@ export async function DELETE(
     }
 
     // Delete all messages in this session
-    await ChatMessage.deleteMany({ sessionId: params.id });
+    await ChatMessage.deleteMany({ sessionId: id });
 
     return NextResponse.json({
       success: true,

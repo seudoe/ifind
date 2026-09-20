@@ -27,7 +27,7 @@ export async function generateChatCompletion(
     top_p?: number;
     stream?: boolean;
   } = {}
-) {
+): Promise<Groq.Chat.Completions.ChatCompletion> {
   try {
     const completion = await groq.chat.completions.create({
       model: options.model || DEFAULT_MODEL,
@@ -35,10 +35,10 @@ export async function generateChatCompletion(
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
       top_p: options.top_p ?? 1,
-      stream: options.stream ?? false,
+      stream: false, // Force stream to false for type safety
     });
 
-    return completion;
+    return completion as Groq.Chat.Completions.ChatCompletion;
   } catch (error: any) {
     console.error('Groq API error:', error);
     throw new Error(`Groq API error: ${error.message}`);
