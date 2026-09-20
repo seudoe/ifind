@@ -29,6 +29,16 @@ import {
     ShieldAlert,
     BadgeCheck,
     Link2,
+    BarChart3,
+    TrendingUp,
+    Target,
+    Zap,
+    Brain,
+    Star,
+    AlertTriangle,
+    Lightbulb,
+    Tag,
+    Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -43,6 +53,41 @@ interface ResumeTabProps {
 
 type UploadPhase = "idle" | "uploading" | "extracting";
 
+// Analysis types
+interface AnalysisData {
+    _id: string;
+    user: string;
+    analysisStatus: "pending" | "processing" | "completed" | "failed";
+    overallScore: number;
+    atsScore: number;
+    readabilityScore: number;
+    formatScore: number;
+    contentScore: number;
+    strengths: string[];
+    weaknesses: string[];
+    keywordMatches: Array<{
+        keyword: string;
+        category: string;
+        frequency: number;
+    }>;
+    missingSkills: Array<{
+        skill: string;
+        category: string;
+        importance: "high" | "medium" | "low";
+    }>;
+    recommendations: string[];
+    summary: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface ExtractedSkill {
+    name: string;
+    category: "technical" | "soft" | "language" | "tool";
+    proficiency: "beginner" | "intermediate" | "advanced" | "expert";
+    verified: boolean;
+}
+
 export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const [dragging, setDragging] = useState(false);
     const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
@@ -56,6 +101,13 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [localResume, setLocalResume] = useState(user.resume);
     const fileRef = useRef<HTMLInputElement>(null);
+
+    // Analysis states
+    const [analyzing, setAnalyzing] = useState(false);
+    const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
+    const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
+    const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+    const [activeAnalysisTab, setActiveAnalysisTab] = useState<"overview" | "details">("overview");
 
     const hasResume = Boolean(localResume?.driveViewLink);
     const isUploading = uploadPhase !== "idle";
@@ -264,13 +316,102 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
         if (file) handleFile(file);
     };
 
+    // ── Analysis Functions ──────────────────────────────────────────────
+    const handleAnalyze = async () => {
+        if (!localResume?.parsedData) {
+            toast.error("Please upload and extract resume data first");
+            return;
+        }
+
+        setAnalyzing(true);
+        try {
+            const res = await fetch("/api/user/resume/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || "Analysis failed");
+
+            setAnalysis(json.analysis);
+            setExtractedSkills(json.extractedSkills || []);
+            toast.success("Resume analysis completed!");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Analysis failed");
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    const fetchExistingAnalysis = async () => {
+        if (!hasResume || !localResume?.parsedData) return;
+
+        setLoadingAnalysis(true);
+        try {
+            const res = await fetch("/api/user/resume/analyze", {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (res.ok) {
+                const json = await res.json();
+                setAnalysis(json.analysis);
+                setExtractedSkills(json.extractedSkills || []);
+            }
+        } catch (err) {
+            // Silently fail - analysis may not exist yet
+        } finally {
+            setLoadingAnalysis(false);
+        }
+    };
+
+    // Fetch existing analysis on mount
+    useState(() => {
+        fetchExistingAnalysis();
+    });
+
+    const getScoreColor = (score: number) => {
+        if (score >= 85) return "text-green-600 bg-green-50 border-green-200";
+        if (score >= 70) return "text-blue-600 bg-blue-50 border-blue-200";
+        if (score >= 50) return "text-yellow-600 bg-yellow-50 border-yellow-200";
+        return "text-red-600 bg-red-50 border-red-200";
+    };
+
+    const getScoreLabel = (score: number) => {
+        if (score >= 90) return "Excellent";
+        if (score >= 80) return "Very Good";
+        if (score >= 70) return "Good";
+        if (score >= 60) return "Fair";
+        if (score >= 50) return "Needs Work";
+        return "Poor";
+    };
+
+    const getProficiencyColor = (proficiency: string) => {
+        switch (proficiency) {
+            case "expert": return "bg-purple-100 text-purple-700 border-purple-200";
+            case "advanced": return "bg-blue-100 text-blue-700 border-blue-200";
+            case "intermediate": return "bg-green-100 text-green-700 border-green-200";
+            case "beginner": return "bg-gray-100 text-gray-700 border-gray-200";
+            default: return "bg-gray-100 text-gray-600 border-gray-200";
+        }
+    };
+
+    const getImportanceColor = (importance: string) => {
+        switch (importance) {
+            case "high": return "bg-red-100 text-red-700 border-red-200";
+            case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+            case "low": return "bg-green-100 text-green-700 border-green-200";
+            default: return "bg-gray-100 text-gray-600 border-gray-200";
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold text-gray-900">Resume</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Resume Analyzer</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                    Upload your resume in PDF format. Stored securely on
-                    ImageKit & parsed with AI.
+                    Upload your resume, extract data with AI, and get comprehensive analysis with ATS scoring.
                 </p>
             </div>
 
@@ -695,6 +836,355 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     </div>
                 )
             )}
+
+            {/* Resume Analysis Section */}
+            {!isComparing && localResume?.parsedData && (
+                <div className="space-y-4">
+                    {/* Analysis Header & Trigger */}
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5 text-indigo-600" />
+                            <h3 className="font-semibold text-gray-900">
+                                Resume Analysis
+                            </h3>
+                            {analysis && (
+                                <Badge variant="secondary" className="text-xs">
+                                    Last analyzed {new Date(analysis.updatedAt).toLocaleDateString()}
+                                </Badge>
+                            )}
+                        </div>
+                        <Button
+                            size="sm"
+                            onClick={handleAnalyze}
+                            loading={analyzing}
+                            disabled={analyzing || isUploading}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                            <Brain className="h-3.5 w-3.5 mr-1.5" />
+                            {analyzing ? "Analyzing..." : analysis ? "Re-analyze Resume" : "Analyze Resume"}
+                        </Button>
+                    </div>
+
+                    {/* Analysis Content */}
+                    {loadingAnalysis && !analysis && (
+                        <div className="bg-gray-50 rounded-xl border border-gray-200 p-8 text-center">
+                            <Loader2 className="h-8 w-8 text-gray-400 animate-spin mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">Loading analysis...</p>
+                        </div>
+                    )}
+
+                    {!loadingAnalysis && !analysis && !analyzing && (
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-8 text-center">
+                            <Brain className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
+                            <p className="text-sm font-medium text-gray-900 mb-1">
+                                Get AI-Powered Resume Analysis
+                            </p>
+                            <p className="text-xs text-gray-600 mb-4">
+                                Get comprehensive scoring, skill extraction, and actionable recommendations
+                            </p>
+                            <Button
+                                size="sm"
+                                onClick={handleAnalyze}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                            >
+                                <Brain className="h-3.5 w-3.5 mr-1.5" />
+                                Analyze Now
+                            </Button>
+                        </div>
+                    )}
+
+                    {analysis && analysis.analysisStatus === "completed" && (
+                        <div className="space-y-4">
+                            {/* Score Cards */}
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                <ScoreCard
+                                    icon={<Star className="h-4 w-4" />}
+                                    label="Overall"
+                                    score={analysis.overallScore}
+                                    getScoreColor={getScoreColor}
+                                    getScoreLabel={getScoreLabel}
+                                />
+                                <ScoreCard
+                                    icon={<Target className="h-4 w-4" />}
+                                    label="ATS"
+                                    score={analysis.atsScore}
+                                    getScoreColor={getScoreColor}
+                                    getScoreLabel={getScoreLabel}
+                                />
+                                <ScoreCard
+                                    icon={<FileText className="h-4 w-4" />}
+                                    label="Readability"
+                                    score={analysis.readabilityScore}
+                                    getScoreColor={getScoreColor}
+                                    getScoreLabel={getScoreLabel}
+                                />
+                                <ScoreCard
+                                    icon={<Zap className="h-4 w-4" />}
+                                    label="Format"
+                                    score={analysis.formatScore}
+                                    getScoreColor={getScoreColor}
+                                    getScoreLabel={getScoreLabel}
+                                />
+                                <ScoreCard
+                                    icon={<Briefcase className="h-4 w-4" />}
+                                    label="Content"
+                                    score={analysis.contentScore}
+                                    getScoreColor={getScoreColor}
+                                    getScoreLabel={getScoreLabel}
+                                />
+                            </div>
+
+                            {/* Summary */}
+                            {analysis.summary && (
+                                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                    <div className="flex items-start gap-3">
+                                        <div className="h-9 w-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                            <FileText className="h-4 w-4 text-indigo-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-semibold text-gray-900 text-sm mb-2">Summary</h4>
+                                            <p className="text-sm text-gray-700 leading-relaxed">{analysis.summary}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tabs */}
+                            <div className="flex gap-2 border-b border-gray-200">
+                                <button
+                                    onClick={() => setActiveAnalysisTab("overview")}
+                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                                        activeAnalysisTab === "overview"
+                                            ? "border-indigo-600 text-indigo-600"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                    }`}
+                                >
+                                    Overview
+                                </button>
+                                <button
+                                    onClick={() => setActiveAnalysisTab("details")}
+                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                                        activeAnalysisTab === "details"
+                                            ? "border-indigo-600 text-indigo-600"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                    }`}
+                                >
+                                    Detailed Analysis
+                                </button>
+                            </div>
+
+                            {/* Overview Tab */}
+                            {activeAnalysisTab === "overview" && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Strengths */}
+                                    {analysis.strengths?.length > 0 && (
+                                        <div className="bg-green-50 rounded-xl border border-green-200 p-5">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <TrendingUp className="h-4 w-4 text-green-600" />
+                                                <h4 className="font-semibold text-green-900 text-sm">
+                                                    Strengths ({analysis.strengths.length})
+                                                </h4>
+                                            </div>
+                                            <ul className="space-y-2">
+                                                {analysis.strengths.map((strength, idx) => (
+                                                    <li key={idx} className="flex items-start gap-2 text-sm text-green-800">
+                                                        <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                                        <span>{strength}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {/* Weaknesses */}
+                                    {analysis.weaknesses?.length > 0 && (
+                                        <div className="bg-amber-50 rounded-xl border border-amber-200 p-5">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                                <h4 className="font-semibold text-amber-900 text-sm">
+                                                    Areas to Improve ({analysis.weaknesses.length})
+                                                </h4>
+                                            </div>
+                                            <ul className="space-y-2">
+                                                {analysis.weaknesses.map((weakness, idx) => (
+                                                    <li key={idx} className="flex items-start gap-2 text-sm text-amber-800">
+                                                        <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                                        <span>{weakness}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {/* Recommendations */}
+                                    {analysis.recommendations?.length > 0 && (
+                                        <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 md:col-span-2">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Lightbulb className="h-4 w-4 text-blue-600" />
+                                                <h4 className="font-semibold text-blue-900 text-sm">
+                                                    Recommendations ({analysis.recommendations.length})
+                                                </h4>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                {analysis.recommendations.map((rec, idx) => (
+                                                    <div key={idx} className="flex items-start gap-2 text-sm text-blue-800 bg-white rounded-lg p-3 border border-blue-100">
+                                                        <span className="font-semibold text-blue-600 flex-shrink-0">{idx + 1}.</span>
+                                                        <span>{rec}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Details Tab */}
+                            {activeAnalysisTab === "details" && (
+                                <div className="space-y-4">
+                                    {/* Extracted Skills */}
+                                    {extractedSkills?.length > 0 && (
+                                        <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <Code className="h-4 w-4 text-purple-600" />
+                                                <h4 className="font-semibold text-gray-900 text-sm">
+                                                    Extracted Skills ({extractedSkills.length})
+                                                </h4>
+                                                <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                {extractedSkills.map((skill, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${getProficiencyColor(skill.proficiency)}`}
+                                                    >
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-medium text-sm truncate">{skill.name}</p>
+                                                            <p className="text-xs opacity-75 capitalize">{skill.category}</p>
+                                                        </div>
+                                                        <Badge variant="secondary" className="text-xs capitalize flex-shrink-0">
+                                                            {skill.proficiency}
+                                                        </Badge>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Missing Skills */}
+                                    {analysis.missingSkills?.length > 0 && (
+                                        <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <Search className="h-4 w-4 text-orange-600" />
+                                                <h4 className="font-semibold text-gray-900 text-sm">
+                                                    Missing Skills ({analysis.missingSkills.length})
+                                                </h4>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                {analysis.missingSkills.map((skill, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${getImportanceColor(skill.importance)}`}
+                                                    >
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-medium text-sm truncate">{skill.skill}</p>
+                                                            <p className="text-xs opacity-75">{skill.category}</p>
+                                                        </div>
+                                                        <Badge variant="secondary" className="text-xs capitalize flex-shrink-0">
+                                                            {skill.importance}
+                                                        </Badge>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Keyword Matches */}
+                                    {analysis.keywordMatches?.length > 0 && (
+                                        <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <Tag className="h-4 w-4 text-cyan-600" />
+                                                <h4 className="font-semibold text-gray-900 text-sm">
+                                                    Keyword Matches ({analysis.keywordMatches.length})
+                                                </h4>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {analysis.keywordMatches
+                                                    .sort((a, b) => b.frequency - a.frequency)
+                                                    .slice(0, 30)
+                                                    .map((kw, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="flex items-center gap-1.5 bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-1.5"
+                                                        >
+                                                            <span className="text-sm font-medium text-cyan-900">{kw.keyword}</span>
+                                                            <Badge variant="secondary" className="text-xs">×{kw.frequency}</Badge>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {analysis && analysis.analysisStatus === "processing" && (
+                        <div className="bg-indigo-50 rounded-xl border border-indigo-200 p-8 text-center">
+                            <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mx-auto mb-2" />
+                            <p className="text-sm font-medium text-indigo-900">Analysis in progress...</p>
+                            <p className="text-xs text-indigo-600 mt-1">This may take 20-30 seconds</p>
+                        </div>
+                    )}
+
+                    {analysis && analysis.analysisStatus === "failed" && (
+                        <div className="bg-red-50 rounded-xl border border-red-200 p-5">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-medium text-red-900">Analysis Failed</p>
+                                    <p className="text-xs text-red-700 mt-1">{analysis.errorMessage || "An error occurred during analysis"}</p>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleAnalyze}
+                                        className="mt-3"
+                                    >
+                                        <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                                        Retry Analysis
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ScoreCard({
+    icon,
+    label,
+    score,
+    getScoreColor,
+    getScoreLabel,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    score: number;
+    getScoreColor: (score: number) => string;
+    getScoreLabel: (score: number) => string;
+}) {
+    return (
+        <div className={`rounded-xl border p-4 ${getScoreColor(score)}`}>
+            <div className="flex items-center gap-2 mb-2">
+                {icon}
+                <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
+            </div>
+            <div className="space-y-1">
+                <p className="text-3xl font-bold">{score}</p>
+                <p className="text-xs font-medium">{getScoreLabel(score)}</p>
+            </div>
         </div>
     );
 }

@@ -15,7 +15,7 @@ import type { User as StudentUser } from "@/types";
 const NAV = [
   { tab: "overview", label: "Overview", icon: LayoutDashboard },
   { tab: "browse",   label: "Browse",   icon: Search },
-  { tab: "resume",   label: "Resume",   icon: FileText },
+  { tab: "resume",   label: "Resume Analyzer",   icon: FileText },
   { tab: "saved",    label: "Saved",    icon: Bookmark },
   { tab: "profile",  label: "Profile",  icon: User },
   { tab: "settings", label: "Settings", icon: Settings },
@@ -92,7 +92,7 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
   const TAB_TITLES: Record<string, string> = {
     overview: "Overview",
     browse:   "Browse Internships",
-    resume:   "My Resume",
+    resume:   "Resume Analyzer",
     saved:    "Saved",
     profile:  "My Profile",
     settings: "Settings",
