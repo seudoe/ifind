@@ -1,6 +1,14 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
 
+export interface IExtractedSkill {
+    name: string;
+    category: 'technical' | 'soft' | 'language' | 'tool';
+    proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+    verified: boolean;
+}
+
 export interface IResume {
+    // Existing iFind fields
     driveFileId?: string | null;
     driveViewLink?: string | null;
     uploadedAt?: Date | null;
@@ -10,6 +18,12 @@ export interface IResume {
     pendingFileId?: string | null;
     pendingViewLink?: string | null;
     pendingParsedData?: any | null;
+    
+    // IPD Enhanced Fields
+    extractedSkills?: IExtractedSkill[];
+    contentEmbedding?: number[] | null;
+    summaryEmbedding?: number[] | null;
+    lastAnalyzedAt?: Date | null;
 }
 
 export interface IAppliedInternship {
@@ -67,8 +81,27 @@ export interface IUser extends Document {
     updatedAt: Date;
 }
 
+const ExtractedSkillSchema = new Schema(
+    {
+        name: { type: String, required: true },
+        category: { 
+            type: String, 
+            enum: ['technical', 'soft', 'language', 'tool'],
+            default: 'technical'
+        },
+        proficiency: { 
+            type: String, 
+            enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+            default: 'intermediate'
+        },
+        verified: { type: Boolean, default: false },
+    },
+    { _id: false },
+);
+
 const ResumeSchema = new Schema(
     {
+        // Existing iFind fields
         driveFileId: { type: String, default: null },
         driveViewLink: { type: String, default: null },
         uploadedAt: { type: Date, default: null },
@@ -78,6 +111,12 @@ const ResumeSchema = new Schema(
         pendingFileId: { type: String, default: null },
         pendingViewLink: { type: String, default: null },
         pendingParsedData: { type: Schema.Types.Mixed, default: null },
+        
+        // IPD Enhanced fields
+        extractedSkills: { type: [ExtractedSkillSchema], default: [] },
+        contentEmbedding: { type: [Number], default: null },
+        summaryEmbedding: { type: [Number], default: null },
+        lastAnalyzedAt: { type: Date, default: null },
     },
     { _id: false },
 );
