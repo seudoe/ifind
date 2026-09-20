@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import JobDescription from '@/models/JobDescription';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { generateJSON } from '@/lib/groq/groqService';
 
 /**
@@ -10,14 +10,14 @@ import { generateJSON } from '@/lib/groq/groqService';
  */
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
 
-    const jobDescriptions = await JobDescription.find({ userId: authResult.user._id })
+    const jobDescriptions = await JobDescription.find({ userId: session.userId })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -98,7 +98,7 @@ ${description}`;
 
     // Create job description
     const jobDescription = await JobDescription.create({
-      userId: authResult.user._id,
+      userId: session.userId,
       title,
       company,
       description,

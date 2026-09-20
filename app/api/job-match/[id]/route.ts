@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import JobMatch from '@/models/JobMatch';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 /**
  * GET /api/job-match/[id]
@@ -9,19 +9,20 @@ import { verifyAuth } from '@/lib/auth';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const jobMatch = await JobMatch.findOne({
-      _id: params.id,
-      userId: authResult.user._id,
+      _id: id,
+      userId: session.userId,
     })
       .populate('jobDescriptionId')
       .lean();
@@ -52,19 +53,20 @@ export async function GET(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
 
     const jobMatch = await JobMatch.findOneAndDelete({
-      _id: params.id,
-      userId: authResult.user._id,
+      _id: id,
+      userId: session.userId,
     });
 
     if (!jobMatch) {

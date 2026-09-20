@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
-import { verifyAuth } from '@/lib/auth';
+import { connectDB } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import { generateJSON } from '@/lib/groq/groqService';
 
 /**
@@ -9,8 +9,8 @@ import { generateJSON } from '@/lib/groq/groqService';
  */
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

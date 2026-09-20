@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import JobMatch from '@/models/JobMatch';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { generateJobMatch, saveJobMatch } from '@/lib/jobMatch/jobMatchService';
 
 /**
@@ -10,8 +10,8 @@ import { generateJobMatch, saveJobMatch } from '@/lib/jobMatch/jobMatchService';
  */
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     // Generate match analysis
     const matchResult = await generateJobMatch(
-      authResult.user._id.toString(),
+      session.userId.toString(),
       resumeId,
       jobDescriptionId
     );
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // Save to database
     const jobMatch = await saveJobMatch(
-      authResult.user._id.toString(),
+      session.userId.toString(),
       resumeId,
       jobDescriptionId,
       matchResult,
@@ -67,8 +67,8 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     const resumeId = searchParams.get('resumeId');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    const query: any = { userId: authResult.user._id };
+    const query: any = { userId: session.userId };
     if (resumeId) {
       query.resumeId = resumeId;
     }

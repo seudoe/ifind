@@ -2,6 +2,7 @@ import { generateJSON, generateText } from '@/lib/groq/groqService';
 import User from '@/models/User';
 import JobDescription, { IJobDescription } from '@/models/JobDescription';
 import JobMatch from '@/models/JobMatch';
+import { extractResumeText, extractSkills } from '@/lib/resume/resumeTextExtractor';
 
 interface ResumeData {
   extractedSkills?: Array<{ skill: string; proficiency?: string }>;
@@ -73,9 +74,9 @@ export async function generateJobMatch(
     }
 
     const resumeData: ResumeData = {
-      extractedSkills: user.extractedSkills || [],
-      parsedContent: user.parsedContent || {},
-      contentText: user.contentText || '',
+      extractedSkills: extractSkills(user).map(skill => ({ skill })),
+      parsedContent: user.resume?.parsedData || {},
+      contentText: extractResumeText(user.resume?.parsedData),
     };
 
     // Step 1: Skills matching

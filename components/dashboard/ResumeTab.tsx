@@ -77,6 +77,7 @@ interface AnalysisData {
     }>;
     recommendations: string[];
     summary: string;
+    errorMessage?: string; // Added for error handling
     createdAt: string;
     updatedAt: string;
 }

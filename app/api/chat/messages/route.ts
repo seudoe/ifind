@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import ChatSession from '@/models/ChatSession';
 import ChatMessage from '@/models/ChatMessage';
 import User from '@/models/User';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { generateChatCompletion } from '@/lib/groq/groqService';
 import { prepareChatContext, detectResumeSection, extractSection } from '@/lib/chat/embeddingService';
+import { extractResumeText } from '@/lib/resume/resumeTextExtractor';
 
 /**
  * POST /api/chat/messages
@@ -13,8 +14,8 @@ import { prepareChatContext, detectResumeSection, extractSection } from '@/lib/c
  */
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const authSession = await getSession();
+    if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -31,12 +32,12 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     // Get session
-    const session = await ChatSession.findOne({
+    const chatSession = await ChatSession.findOne({
       _id: sessionId,
-      userId: authResult.user._id,
+      userId: authSession.userId,
     });
 
-    if (!session) {
+    if (!chatSession) {
       return NextResponse.json(
         { error: 'Chat session not found' },
         { status: 404 }
@@ -44,20 +45,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Get user's resume
-    const user = await User.findById(authResult.user._id).lean();
-    if (!user || !user.contentText) {
+    const user = await User.findById(authSession.userId).lean();
+    if (!user || !user.resume?.parsedData) {
       return NextResponse.json(
         { error: 'Resume not found. Please upload a resume first.' },
         { status: 404 }
       );
     }
 
-    const resumeText = user.contentText;
+    const resumeText = extractResumeText(user.resume.parsedData);
 
     // Save user message
     const userMessage = await ChatMessage.create({
       sessionId,
-      userId: authResult.user._id,
+      userId: authSession.userId,
       role: 'user',
       content,
     });
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
     // Save AI message
     const aiMessage = await ChatMessage.create({
       sessionId,
-      userId: authResult.user._id,
+      userId: authSession.userId,
       role: 'assistant',
       content: aiResponse,
       sources: sources.map(s => ({
@@ -167,8 +168,8 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const authSession = await getSession();
+    if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -185,12 +186,12 @@ export async function GET(req: NextRequest) {
     await connectDB();
 
     // Verify session belongs to user
-    const session = await ChatSession.findOne({
+    const chatSession = await ChatSession.findOne({
       _id: sessionId,
-      userId: authResult.user._id,
+      userId: authSession.userId,
     });
 
-    if (!session) {
+    if (!chatSession) {
       return NextResponse.json(
         { error: 'Chat session not found' },
         { status: 404 }

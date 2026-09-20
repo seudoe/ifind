@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import ChatSession from '@/models/ChatSession';
 import ChatMessage from '@/models/ChatMessage';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 /**
  * GET /api/chat/sessions
@@ -10,8 +10,8 @@ import { verifyAuth } from '@/lib/auth';
  */
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const includeArchived = searchParams.get('includeArchived') === 'true';
 
-    const query: any = { userId: authResult.user._id };
+    const query: any = { userId: session.userId };
     if (!includeArchived) {
       query.isArchived = false;
     }
@@ -48,8 +48,8 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await verifyAuth(req);
-    if (!authResult.isValid || !authResult.user) {
+    const authSession = await getSession();
+    if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -65,8 +65,8 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const session = await ChatSession.create({
-      userId: authResult.user._id,
+    const chatSession = await ChatSession.create({
+      userId: authSession.userId,
       resumeId,
       title: title || 'New Chat',
       messageCount: 0,
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: session,
+      data: chatSession,
       message: 'Chat session created successfully',
     });
   } catch (error: any) {
