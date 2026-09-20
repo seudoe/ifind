@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Search, FileText, Bookmark, User,
   Settings, Briefcase, LogOut, AlertTriangle, BadgeCheck, Link2Off,
+  Target, MessageSquare, Sparkles,
 } from "lucide-react";
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
@@ -16,6 +17,9 @@ const NAV = [
   { tab: "overview", label: "Overview", icon: LayoutDashboard },
   { tab: "browse",   label: "Browse",   icon: Search },
   { tab: "resume",   label: "Resume Analyzer",   icon: FileText },
+  { tab: "job-match", label: "Job Match", icon: Target },
+  { tab: "chat", label: "AI Chat", icon: MessageSquare },
+  { tab: "career", label: "Career Assistant", icon: Sparkles },
   { tab: "saved",    label: "Saved",    icon: Bookmark },
   { tab: "profile",  label: "Profile",  icon: User },
   { tab: "settings", label: "Settings", icon: Settings },
@@ -93,6 +97,9 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
     overview: "Overview",
     browse:   "Browse Internships",
     resume:   "Resume Analyzer",
+    "job-match": "Job Match",
+    chat: "AI Resume Chat",
+    career: "Career Assistant",
     saved:    "Saved",
     profile:  "My Profile",
     settings: "Settings",
