@@ -51,6 +51,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-geist-sans), "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px; /* Increased base font size from default 14px */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

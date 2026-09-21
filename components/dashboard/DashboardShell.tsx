@@ -132,13 +132,13 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
                     key={tab}
                     href={href(tab)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-all duration-[var(--transition)] relative",
+                      "flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-sm)] text-[15px] font-medium transition-all duration-[var(--transition)] relative",
                       active
                         ? "bg-[var(--primary-bg)] text-[var(--primary)]"
                         : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-4 w-4" />
                     {label}
                     {active && (
                       <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4/5 rounded-full bg-[var(--primary)]" />
@@ -157,24 +157,24 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
 
             {/* User + logout */}
             <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
-              <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
+              <div className="flex items-center gap-2 text-sm text-[var(--text-3)]">
                 <span>{currentUser.profileCompletionScore}%</span>
                 <div className="w-16"><ProgressBar value={currentUser.profileCompletionScore} /></div>
               </div>
               <Link
                 href={href("profile")}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors"
               >
                 <Avatar src={currentUser.profilePicture} name={currentUser.name} size="xs" />
-                <span className="text-sm font-medium text-[var(--text)] max-w-[100px] truncate">{currentUser.name}</span>
+                <span className="text-[15px] font-medium text-[var(--text)] max-w-[100px] truncate">{currentUser.name}</span>
                 <LinkedInStatusIndicator linkedinDetails={linkedinDetails} />
               </Link>
               <button
                 onClick={handleLogout}
                 title="Logout"
-                className="p-1.5 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
+                className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4.5 w-4.5" />
               </button>
             </div>
           </div>
@@ -183,7 +183,7 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
       <main className={`flex-1 ${maxWidthClass} mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6`}>
-        <h1 className="text-base font-semibold text-[var(--text)] mb-5">
+        <h1 className="text-xl font-semibold text-[var(--text)] mb-6">
           {TAB_TITLES[activeTab] ?? "Dashboard"}
         </h1>
         {children}
@@ -198,11 +198,11 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
               key={tab}
               href={href(tab)}
               className={cn(
-                "flex-1 flex flex-col items-center py-2 text-[10px] font-medium transition-colors gap-0.5",
+                "flex-1 flex flex-col items-center py-2.5 text-[11px] font-medium transition-colors gap-1",
                 active ? "text-[var(--primary)]" : "text-[var(--text-3)]"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-5 w-5" />
               {label}
             </Link>
           );
