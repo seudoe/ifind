@@ -18,7 +18,6 @@ const NAV = [
   { tab: "overview", label: "Overview", icon: LayoutDashboard },
   { tab: "browse",   label: "Browse",   icon: Search },
   { tab: "resume",   label: "Resume Analyzer",   icon: FileText },
-  { tab: "job-match", label: "Internship Match", icon: Target },
   { tab: "career", label: "Career Assistant", icon: Sparkles },
   { tab: "saved",    label: "Saved",    icon: Bookmark },
   { tab: "profile",  label: "Profile",  icon: User },
