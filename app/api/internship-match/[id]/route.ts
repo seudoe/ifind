@@ -4,8 +4,8 @@ import JobMatch from '@/models/JobMatch';
 import { getSession } from '@/lib/auth';
 
 /**
- * GET /api/job-match/[id]
- * Get a specific job match by ID
+ * GET /api/internship-match/[id]
+ * Get a specific internship match by ID
  */
 export async function GET(
   req: NextRequest,
@@ -29,7 +29,7 @@ export async function GET(
 
     if (!jobMatch) {
       return NextResponse.json(
-        { error: 'Job match not found' },
+        { error: 'Internship match not found' },
         { status: 404 }
       );
     }
@@ -39,17 +39,17 @@ export async function GET(
       data: jobMatch,
     });
   } catch (error: any) {
-    console.error('Error fetching job match:', error);
+    console.error('Error fetching internship match:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch job match', message: error.message },
+      { error: 'Failed to fetch internship match', message: error.message },
       { status: 500 }
     );
   }
 }
 
 /**
- * DELETE /api/job-match/[id]
- * Delete a job match
+ * DELETE /api/internship-match/[id]
+ * Delete an internship match
  */
 export async function DELETE(
   req: NextRequest,
@@ -71,19 +71,19 @@ export async function DELETE(
 
     if (!jobMatch) {
       return NextResponse.json(
-        { error: 'Job match not found' },
+        { error: 'Internship match not found' },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Job match deleted successfully',
+      message: 'Internship match deleted successfully',
     });
   } catch (error: any) {
-    console.error('Error deleting job match:', error);
+    console.error('Error deleting internship match:', error);
     return NextResponse.json(
-      { error: 'Failed to delete job match', message: error.message },
+      { error: 'Failed to delete internship match', message: error.message },
       { status: 500 }
     );
   }

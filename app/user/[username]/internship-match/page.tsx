@@ -16,7 +16,7 @@ export default function JobMatchPage() {
   }
 
   return (
-    <DashboardShell activeTab="job-match" user={data.user}>
+    <DashboardShell activeTab="internship-match" user={data.user}>
       <JobMatchTab />
     </DashboardShell>
   );

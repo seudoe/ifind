@@ -82,7 +82,7 @@ export function JobMatchTab() {
   const loadJobMatches = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/job-match');
+      const res = await fetch('/api/internship-match');
       const data = await res.json();
       if (data.success) {
         setJobMatches(data.data);
@@ -127,7 +127,7 @@ export function JobMatchTab() {
     setError(null);
 
     try {
-      const res = await fetch('/api/job-match', {
+      const res = await fetch('/api/internship-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
