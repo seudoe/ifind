@@ -414,8 +414,8 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold text-gray-900">Resume Analyzer</h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <h2 className="text-2xl font-semibold text-gray-900">Resume Analyzer</h2>
+                <p className="text-base text-gray-500 mt-1">
                     Upload your resume, extract data with AI, and get comprehensive analysis with ATS scoring.
                 </p>
             </div>
