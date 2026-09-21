@@ -53,7 +53,7 @@ export function JobMatchTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form state for creating job description
+  // Form state for creating internship description
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -75,7 +75,7 @@ export function JobMatchTab() {
         setJobDescriptions(data.data);
       }
     } catch (err) {
-      console.error('Error loading job descriptions:', err);
+      console.error('Error loading internship descriptions:', err);
     }
   };
 
@@ -88,7 +88,7 @@ export function JobMatchTab() {
         setJobMatches(data.data);
       }
     } catch (err) {
-      console.error('Error loading job matches:', err);
+      console.error('Error loading internship matches:', err);
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export function JobMatchTab() {
         await generateMatch(data.data._id);
         setFormData({ title: '', company: '', description: '', location: '', employmentType: 'full-time' });
       } else {
-        setError(data.error || 'Failed to create job description');
+        setError(data.error || 'Failed to create internship description');
       }
     } catch (err: any) {
       setError(err.message);
@@ -169,8 +169,8 @@ export function JobMatchTab() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Add Job Description</h2>
-            <p className="text-gray-600 mt-1">Compare your resume with a job posting</p>
+            <h2 className="text-2xl font-bold text-gray-900">Add Internship Description</h2>
+            <p className="text-gray-600 mt-1">Compare your resume with an internship posting</p>
           </div>
           <button
             onClick={() => setStep('list')}
@@ -241,14 +241,14 @@ export function JobMatchTab() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Job Description *
+              Internship Description *
             </label>
             <textarea
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 min-h-[300px]"
-              placeholder="Paste the full job description here..."
+              placeholder="Paste the full internship description here..."
             />
           </div>
 
@@ -459,8 +459,8 @@ export function JobMatchTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Job Match</h2>
-          <p className="text-gray-600 mt-1">Compare your resume with job descriptions</p>
+          <h2 className="text-2xl font-bold text-gray-900">Internship Match</h2>
+          <p className="text-gray-600 mt-1">Compare your resume with internship descriptions</p>
         </div>
         <button
           onClick={() => setStep('create')}
@@ -480,12 +480,12 @@ export function JobMatchTab() {
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
           <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No matches yet</h3>
-          <p className="text-gray-600 mb-4">Start by adding a job description to analyze</p>
+          <p className="text-gray-600 mb-4">Start by adding an internship description to analyze</p>
           <button
             onClick={() => setStep('create')}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Add Job Description
+            Add Internship Description
           </button>
         </div>
       ) : (

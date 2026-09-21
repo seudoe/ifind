@@ -1068,7 +1068,9 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                                             <div className="flex-shrink-0 w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
                                                                 <span className="font-bold text-blue-700 text-sm">{idx + 1}</span>
                                                             </div>
-                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">{rec}</span>
+                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">
+                                                                {formatRecommendationText(rec)}
+                                                            </span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -1238,6 +1240,27 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                 </div>
             )}
         </div>
+    );
+}
+
+// Helper function to format markdown-style text
+function formatRecommendationText(text: string) {
+    // Split by ** to find bold sections
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    
+    return (
+        <>
+            {parts.map((part, idx) => {
+                // Check if this part should be bold
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    // Remove ** and make bold
+                    const boldText = part.slice(2, -2);
+                    return <strong key={idx} className="font-semibold text-gray-900">{boldText}</strong>;
+                }
+                // Regular text
+                return <span key={idx}>{part}</span>;
+            })}
+        </>
     );
 }
 
