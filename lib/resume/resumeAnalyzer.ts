@@ -2,10 +2,10 @@
  * Resume Analyzer Service for iFind
  * Comprehensive resume analysis with scoring, skill extraction, and recommendations
  * 
- * Uses Groq API (llama-3.3-70b-versatile) for cost-effective AI analysis
+ * Uses AI Service (Groq preferred, Gemini fallback) for cost-effective analysis
  */
 
-import groqService from '../groq/groqService';
+import aiService from '../ai/aiService';
 import type { IExtractedSkill } from '../../models/User';
 
 export interface AnalysisInput {
@@ -117,10 +117,10 @@ Return ONLY valid JSON (no markdown, no code blocks):
   "summary": <string>
 }`;
 
-        // Call Groq service for analysis
-        const response = await groqService.chat(analysisPrompt, [], true);
+        // Call AI service for analysis (Groq preferred, Gemini fallback)
+        const response = await aiService.chat(analysisPrompt, [], true);
 
-        console.log('[ResumeAnalyzer] Received response from Groq');
+        console.log('[ResumeAnalyzer] Received response from AI service');
 
         // Parse and validate response
         const analysisResult = parseAnalysisResponse(response);
@@ -183,8 +183,8 @@ Return ONLY a JSON array with NO markdown, NO code blocks:
 
 Extract at least 10-20 skills if available. Be thorough.`;
 
-        const response = await groqService.chat(skillsPrompt, [], true);
-        console.log('[ResumeAnalyzer] Skills extracted from Groq');
+        const response = await aiService.chat(skillsPrompt, [], true);
+        console.log('[ResumeAnalyzer] Skills extracted from AI service');
         
         const skills = parseSkillsResponse(response);
         console.log(`[ResumeAnalyzer] Parsed ${skills.length} skills`);
