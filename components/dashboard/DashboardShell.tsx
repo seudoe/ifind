@@ -10,6 +10,7 @@ import {
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { FloatingChatButton } from "@/components/dashboard/FloatingChatButton";
 import type { User as StudentUser } from "@/types";
 
 // ── Nav definition ────────────────────────────────────────────────────────
@@ -18,7 +19,6 @@ const NAV = [
   { tab: "browse",   label: "Browse",   icon: Search },
   { tab: "resume",   label: "Resume Analyzer",   icon: FileText },
   { tab: "job-match", label: "Internship Match", icon: Target },
-  { tab: "chat", label: "AI Chat", icon: MessageSquare },
   { tab: "career", label: "Career Assistant", icon: Sparkles },
   { tab: "saved",    label: "Saved",    icon: Bookmark },
   { tab: "profile",  label: "Profile",  icon: User },
@@ -98,7 +98,6 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
     browse:   "Browse Internships",
     resume:   "Resume Analyzer",
     "job-match": "Internship Match",
-    chat: "AI Resume Chat",
     career: "Career Assistant",
     saved:    "Saved",
     profile:  "My Profile",
@@ -210,6 +209,9 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
           );
         })}
       </nav>
+
+      {/* ── Floating Chat Button (LinkedIn-style) ─────────────────────────── */}
+      <FloatingChatButton />
     </div>
   );
 }

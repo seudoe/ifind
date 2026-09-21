@@ -77,38 +77,37 @@ export function VectorizationProgressBar() {
   if (status === "idle") return null;
 
   return (
-    <div className="fixed bottom-6 right-6 w-80 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg p-4 z-50 flex flex-col gap-3 animate-in slide-in-from-bottom-5">
-      <div className="flex items-center gap-3">
+    <div className="fixed bottom-24 right-6 w-72 bg-white border border-gray-200 rounded-lg shadow-md p-3 z-40 flex flex-col gap-2 animate-in slide-in-from-bottom-3">
+      <div className="flex items-center gap-2">
         {status === "processing" && (
-          <Loader2 className="w-5 h-5 text-blue-500 animate-spin shrink-0" />
+          <Loader2 className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
         )}
         {status === "completed" && (
-          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
         )}
         {status === "failed" && (
-          <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-            <div className="w-2 h-2 rounded-full bg-red-500" />
+          <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
           </div>
         )}
         
         <div className="flex-1">
-          <p className="text-sm font-medium text-[var(--text)]">
-            {status === "processing" && "Analyzing profile & matches..."}
+          <p className="text-xs font-medium text-gray-900">
+            {status === "processing" && "Updating recommendations..."}
             {status === "completed" && "Recommendations updated!"}
-            {status === "failed" && "Analysis failed."}
+            {status === "failed" && "Update failed"}
           </p>
         </div>
       </div>
 
-      <div className="w-full h-1.5 bg-[var(--surface-2)] rounded-full overflow-hidden">
-        <div 
-          className={`h-full rounded-full transition-all duration-500 ease-out ${
-            status === "completed" ? "bg-green-500" : 
-            status === "failed" ? "bg-red-500" : "bg-blue-500"
-          }`}
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      {status === "processing" && (
+        <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div 
+            className="h-full rounded-full transition-all duration-500 ease-out bg-blue-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }
