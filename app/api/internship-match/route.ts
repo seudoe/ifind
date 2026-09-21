@@ -5,8 +5,8 @@ import { getSession } from '@/lib/auth';
 import { generateJobMatch, saveJobMatch } from '@/lib/jobMatch/jobMatchService';
 
 /**
- * POST /api/job-match
- * Generate a new job match analysis
+ * POST /api/internship-match
+ * Generate a new internship match analysis
  */
 export async function POST(req: NextRequest) {
   try {
@@ -50,20 +50,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: jobMatch,
-      message: 'Job match generated successfully',
+      message: 'Internship match generated successfully',
     });
   } catch (error: any) {
-    console.error('Error generating job match:', error);
+    console.error('Error generating internship match:', error);
     return NextResponse.json(
-      { error: 'Failed to generate job match', message: error.message },
+      { error: 'Failed to generate internship match', message: error.message },
       { status: 500 }
     );
   }
 }
 
 /**
- * GET /api/job-match
- * Get all job matches for the current user
+ * GET /api/internship-match
+ * Get all internship matches for the current user
  */
 export async function GET(req: NextRequest) {
   try {
@@ -94,9 +94,9 @@ export async function GET(req: NextRequest) {
       data: jobMatches,
     });
   } catch (error: any) {
-    console.error('Error fetching job matches:', error);
+    console.error('Error fetching internship matches:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch job matches', message: error.message },
+      { error: 'Failed to fetch internship matches', message: error.message },
       { status: 500 }
     );
   }

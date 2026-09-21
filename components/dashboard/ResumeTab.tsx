@@ -1258,7 +1258,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             <p className="text-sm text-gray-600 mb-4">
                                 Use AI-powered matching to compare your resume against internship descriptions and get detailed compatibility scores with personalized recommendations.
                             </p>
-                            <Link href={`/user/${username}/job-match`}>
+                            <Link href={`/user/${username}/internship-match`}>
                                 <Button
                                     size="sm"
                                     className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md"

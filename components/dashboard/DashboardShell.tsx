@@ -96,7 +96,7 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
     overview: "Overview",
     browse:   "Browse Internships",
     resume:   "Resume Analyzer",
-    "job-match": "Internship Match",
+    "internship-match": "Internship Match",
     career: "Career Assistant",
     saved:    "Saved",
     profile:  "My Profile",
