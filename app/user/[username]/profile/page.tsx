@@ -1113,7 +1113,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                     <Trash2 className="h-4 w-4" />
                   </button>
 
-                  <FormField label="Job Title" required>
+                  <FormField label="Position Title" required>
                     <input type="text" value={history.title} onChange={e => {
                       const next = [...(section === "internships" ? internshipsList : employmentList)];
                       next[idx].title = e.target.value;

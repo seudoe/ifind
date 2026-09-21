@@ -183,7 +183,7 @@ export function JobMatchTab() {
         <form onSubmit={handleCreateJobDescription} className="space-y-6 bg-white p-6 rounded-lg border">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Job Title *
+              Internship Title *
             </label>
             <input
               type="text"
