@@ -12,6 +12,7 @@ import { getSession } from '@/lib/auth';
 import User from '@/models/User';
 import Analysis from '@/models/Analysis';
 import { analyzeResume, extractSkills } from '@/lib/resume/resumeAnalyzer';
+import aiService from '@/lib/ai/aiService';
 
 /**
  * POST - Trigger resume analysis
@@ -83,12 +84,22 @@ export async function POST(req: NextRequest) {
         });
         console.log('[AnalyzeAPI] Deleted old analysis records for fresh analysis');
 
+        // Determine which AI provider will be used
+        const aiProvider = aiService.getActiveProvider();
+        const aiModel = aiProvider === 'groq' 
+            ? 'groq-llama-3.3-70b' 
+            : aiProvider === 'gemini' 
+                ? 'gemini-2.5-flash' 
+                : 'unknown';
+
+        console.log(`[AnalyzeAPI] Will use AI provider: ${aiProvider}`);
+
         // Create pending analysis record
         const newAnalysis = new Analysis({
             user: session.userId,
             analysisStatus: 'processing',
             analysisStartedAt: new Date(),
-            aiModel: 'groq-llama-3.3-70b',
+            aiModel,
             analysisVersion: '2.0',
         });
         await newAnalysis.save();
