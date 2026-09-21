@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import {
     Upload,
     FileText,
@@ -90,6 +92,8 @@ interface ExtractedSkill {
 }
 
 export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
+    const params = useParams();
+    const username = (params?.username as string) ?? user.username;
     const [dragging, setDragging] = useState(false);
     const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
     const [deleting, setDeleting] = useState(false);
@@ -1237,6 +1241,34 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Internship Match CTA Card */}
+            {hasResume && localResume?.parsedData && (
+                <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 rounded-xl border border-purple-200 p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <Target className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 text-base mb-1.5">
+                                Find Your Perfect Internship Match
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Use AI-powered matching to compare your resume against internship descriptions and get detailed compatibility scores with personalized recommendations.
+                            </p>
+                            <Link href={`/user/${username}/job-match`}>
+                                <Button
+                                    size="sm"
+                                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md"
+                                >
+                                    <Target className="h-3.5 w-3.5 mr-1.5" />
+                                    Go to Internship Match
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
