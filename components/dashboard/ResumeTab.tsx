@@ -951,23 +951,23 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             )}
 
                             {/* Tabs */}
-                            <div className="flex gap-2 border-b border-gray-200">
+                            <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
                                 <button
                                     onClick={() => setActiveAnalysisTab("overview")}
-                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                                         activeAnalysisTab === "overview"
-                                            ? "border-indigo-600 text-indigo-600"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "bg-white text-indigo-700 shadow-sm"
+                                            : "text-gray-600 hover:text-gray-900"
                                     }`}
                                 >
                                     Overview
                                 </button>
                                 <button
                                     onClick={() => setActiveAnalysisTab("details")}
-                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                                         activeAnalysisTab === "details"
-                                            ? "border-indigo-600 text-indigo-600"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "bg-white text-indigo-700 shadow-sm"
+                                            : "text-gray-600 hover:text-gray-900"
                                     }`}
                                 >
                                     Detailed Analysis
@@ -976,63 +976,102 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                             {/* Overview Tab */}
                             {activeAnalysisTab === "overview" && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Strengths */}
+                                <div className="space-y-6">
+                                    {/* Strengths Section */}
                                     {analysis.strengths?.length > 0 && (
-                                        <div className="bg-green-50 rounded-xl border border-green-200 p-5">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <TrendingUp className="h-4 w-4 text-green-600" />
-                                                <h4 className="font-semibold text-green-900 text-sm">
-                                                    Strengths ({analysis.strengths.length})
-                                                </h4>
-                                            </div>
-                                            <ul className="space-y-2">
-                                                {analysis.strengths.map((strength, idx) => (
-                                                    <li key={idx} className="flex items-start gap-2 text-sm text-green-800">
-                                                        <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                                        <span>{strength}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    {/* Weaknesses */}
-                                    {analysis.weaknesses?.length > 0 && (
-                                        <div className="bg-amber-50 rounded-xl border border-amber-200 p-5">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                                                <h4 className="font-semibold text-amber-900 text-sm">
-                                                    Areas to Improve ({analysis.weaknesses.length})
-                                                </h4>
-                                            </div>
-                                            <ul className="space-y-2">
-                                                {analysis.weaknesses.map((weakness, idx) => (
-                                                    <li key={idx} className="flex items-start gap-2 text-sm text-amber-800">
-                                                        <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                                        <span>{weakness}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    {/* Recommendations */}
-                                    {analysis.recommendations?.length > 0 && (
-                                        <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 md:col-span-2">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <Lightbulb className="h-4 w-4 text-blue-600" />
-                                                <h4 className="font-semibold text-blue-900 text-sm">
-                                                    Recommendations ({analysis.recommendations.length})
-                                                </h4>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {analysis.recommendations.map((rec, idx) => (
-                                                    <div key={idx} className="flex items-start gap-2 text-sm text-blue-800 bg-white rounded-lg p-3 border border-blue-100">
-                                                        <span className="font-semibold text-blue-600 flex-shrink-0">{idx + 1}.</span>
-                                                        <span>{rec}</span>
+                                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 shadow-sm overflow-hidden">
+                                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-green-200">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-green-100 rounded-lg">
+                                                        <TrendingUp className="h-5 w-5 text-green-600" />
                                                     </div>
-                                                ))}
+                                                    <div>
+                                                        <h3 className="font-bold text-green-900 text-base">
+                                                            Strengths
+                                                        </h3>
+                                                        <p className="text-xs text-green-700">
+                                                            {analysis.strengths.length} positive {analysis.strengths.length === 1 ? 'highlight' : 'highlights'} identified
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="p-6">
+                                                <ul className="space-y-3">
+                                                    {analysis.strengths.map((strength, idx) => (
+                                                        <li key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                                                            <div className="mt-0.5">
+                                                                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                                                            </div>
+                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">{strength}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Areas to Improve Section */}
+                                    {analysis.weaknesses?.length > 0 && (
+                                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 shadow-sm overflow-hidden">
+                                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-amber-200">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-amber-100 rounded-lg">
+                                                        <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-amber-900 text-base">
+                                                            Areas to Improve
+                                                        </h3>
+                                                        <p className="text-xs text-amber-700">
+                                                            {analysis.weaknesses.length} {analysis.weaknesses.length === 1 ? 'area' : 'areas'} needing attention
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="p-6">
+                                                <ul className="space-y-3">
+                                                    {analysis.weaknesses.map((weakness, idx) => (
+                                                        <li key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                                                            <div className="mt-0.5">
+                                                                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                                                            </div>
+                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">{weakness}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Recommendations Section */}
+                                    {analysis.recommendations?.length > 0 && (
+                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 shadow-sm overflow-hidden">
+                                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-blue-200">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-blue-100 rounded-lg">
+                                                        <Lightbulb className="h-5 w-5 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-blue-900 text-base">
+                                                            Recommendations
+                                                        </h3>
+                                                        <p className="text-xs text-blue-700">
+                                                            {analysis.recommendations.length} actionable {analysis.recommendations.length === 1 ? 'suggestion' : 'suggestions'} to enhance your resume
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="p-6">
+                                                <div className="space-y-3">
+                                                    {analysis.recommendations.map((rec, idx) => (
+                                                        <div key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                                                            <div className="flex-shrink-0 w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                                                                <span className="font-bold text-blue-700 text-sm">{idx + 1}</span>
+                                                            </div>
+                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">{rec}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -1041,86 +1080,125 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                             {/* Details Tab */}
                             {activeAnalysisTab === "details" && (
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     {/* Extracted Skills */}
                                     {extractedSkills?.length > 0 && (
-                                        <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <Code className="h-4 w-4 text-purple-600" />
-                                                <h4 className="font-semibold text-gray-900 text-sm">
-                                                    Extracted Skills ({extractedSkills.length})
-                                                </h4>
-                                                <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                                {extractedSkills.map((skill, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${getProficiencyColor(skill.proficiency)}`}
-                                                    >
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-medium text-sm truncate">{skill.name}</p>
-                                                            <p className="text-xs opacity-75 capitalize">{skill.category}</p>
+                                        <div className="bg-white rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
+                                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-200">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-purple-100 rounded-lg">
+                                                            <Code className="h-5 w-5 text-purple-600" />
                                                         </div>
-                                                        <Badge variant="secondary" className="text-xs capitalize flex-shrink-0">
-                                                            {skill.proficiency}
-                                                        </Badge>
+                                                        <div>
+                                                            <h3 className="font-bold text-purple-900 text-base">
+                                                                Extracted Skills
+                                                            </h3>
+                                                            <p className="text-xs text-purple-700">
+                                                                {extractedSkills.length} skills identified from your resume
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                ))}
+                                                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-200">
+                                                        AI-Powered
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            <div className="p-6">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {extractedSkills.map((skill, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-md transition-all ${getProficiencyColor(skill.proficiency)}`}
+                                                        >
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-semibold text-sm truncate">{skill.name}</p>
+                                                                <p className="text-xs opacity-70 capitalize mt-0.5">{skill.category}</p>
+                                                            </div>
+                                                            <Badge variant="secondary" className="text-xs capitalize flex-shrink-0 font-medium">
+                                                                {skill.proficiency}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Missing Skills */}
                                     {analysis.missingSkills?.length > 0 && (
-                                        <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <Search className="h-4 w-4 text-orange-600" />
-                                                <h4 className="font-semibold text-gray-900 text-sm">
-                                                    Missing Skills ({analysis.missingSkills.length})
-                                                </h4>
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                                {analysis.missingSkills.map((skill, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${getImportanceColor(skill.importance)}`}
-                                                    >
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-medium text-sm truncate">{skill.skill}</p>
-                                                            <p className="text-xs opacity-75">{skill.category}</p>
-                                                        </div>
-                                                        <Badge variant="secondary" className="text-xs capitalize flex-shrink-0">
-                                                            {skill.importance}
-                                                        </Badge>
+                                        <div className="bg-white rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
+                                            <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-orange-200">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <Search className="h-5 w-5 text-orange-600" />
                                                     </div>
-                                                ))}
+                                                    <div>
+                                                        <h3 className="font-bold text-orange-900 text-base">
+                                                            Skills Gap Analysis
+                                                        </h3>
+                                                        <p className="text-xs text-orange-700">
+                                                            {analysis.missingSkills.length} in-demand skills missing from your profile
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="p-6">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {analysis.missingSkills.map((skill, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-md transition-all ${getImportanceColor(skill.importance)}`}
+                                                        >
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-semibold text-sm truncate">{skill.skill}</p>
+                                                                <p className="text-xs opacity-70 capitalize mt-0.5">{skill.category}</p>
+                                                            </div>
+                                                            <Badge variant="secondary" className="text-xs capitalize flex-shrink-0 font-medium">
+                                                                {skill.importance}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Keyword Matches */}
                                     {analysis.keywordMatches?.length > 0 && (
-                                        <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <Tag className="h-4 w-4 text-cyan-600" />
-                                                <h4 className="font-semibold text-gray-900 text-sm">
-                                                    Keyword Matches ({analysis.keywordMatches.length})
-                                                </h4>
+                                        <div className="bg-white rounded-2xl border-2 border-cyan-200 shadow-sm overflow-hidden">
+                                            <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-cyan-200">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-cyan-100 rounded-lg">
+                                                        <Tag className="h-5 w-5 text-cyan-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-cyan-900 text-base">
+                                                            Keyword Matches
+                                                        </h3>
+                                                        <p className="text-xs text-cyan-700">
+                                                            {analysis.keywordMatches.length} industry keywords found in your resume
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {analysis.keywordMatches
-                                                    .sort((a, b) => b.frequency - a.frequency)
-                                                    .slice(0, 30)
-                                                    .map((kw, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className="flex items-center gap-1.5 bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-1.5"
-                                                        >
-                                                            <span className="text-sm font-medium text-cyan-900">{kw.keyword}</span>
-                                                            <Badge variant="secondary" className="text-xs">×{kw.frequency}</Badge>
-                                                        </div>
-                                                    ))}
+                                            <div className="p-6">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {analysis.keywordMatches
+                                                        .sort((a, b) => b.frequency - a.frequency)
+                                                        .slice(0, 30)
+                                                        .map((kw, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center gap-2 bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-xl px-4 py-2 hover:shadow-md transition-all hover:scale-105"
+                                                            >
+                                                                <span className="text-sm font-semibold text-cyan-900">{kw.keyword}</span>
+                                                                <Badge variant="secondary" className="text-xs bg-cyan-100 text-cyan-700 border-cyan-200 font-bold">
+                                                                    ×{kw.frequency}
+                                                                </Badge>
+                                                            </div>
+                                                        ))}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -1176,15 +1254,23 @@ function ScoreCard({
     getScoreColor: (score: number) => string;
     getScoreLabel: (score: number) => string;
 }) {
+    const baseColor = getScoreColor(score);
+    
     return (
-        <div className={`rounded-xl border p-4 ${getScoreColor(score)}`}>
-            <div className="flex items-center gap-2 mb-2">
-                {icon}
-                <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
-            </div>
-            <div className="space-y-1">
-                <p className="text-3xl font-bold">{score}</p>
-                <p className="text-xs font-medium">{getScoreLabel(score)}</p>
+        <div className={`relative rounded-xl border-2 p-5 transition-all hover:scale-105 hover:shadow-lg ${baseColor}`}>
+            <div className="flex flex-col h-full">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="opacity-70">
+                        {icon}
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-wider opacity-75">{label}</span>
+                </div>
+                <div className="flex-1 flex flex-col justify-end">
+                    <div className="mb-1">
+                        <p className="text-4xl font-bold leading-none">{score}</p>
+                    </div>
+                    <p className="text-xs font-medium opacity-75">{getScoreLabel(score)}</p>
+                </div>
             </div>
         </div>
     );
