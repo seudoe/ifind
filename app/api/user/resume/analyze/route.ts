@@ -76,11 +76,20 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Delete any old completed/failed analysis to ensure fresh results
+        await Analysis.deleteMany({
+            user: session.userId,
+            analysisStatus: { $in: ['completed', 'failed'] },
+        });
+        console.log('[AnalyzeAPI] Deleted old analysis records for fresh analysis');
+
         // Create pending analysis record
         const newAnalysis = new Analysis({
             user: session.userId,
             analysisStatus: 'processing',
             analysisStartedAt: new Date(),
+            aiModel: 'groq-llama-3.3-70b',
+            analysisVersion: '2.0',
         });
         await newAnalysis.save();
 
