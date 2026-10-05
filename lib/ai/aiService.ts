@@ -3,7 +3,7 @@
  * Uses Groq when available (cost-effective), falls back to Gemini
  */
 
-import groqService from '../groq/groqService';
+import { generateChatCompletion } from '../groq/groqService';
 import geminiService from '../resume/geminiService';
 
 /**
@@ -72,7 +72,7 @@ export async function chat(
                 }
             }
 
-            const completion = await groqService.generateChatCompletion(messages, {
+            const completion = await generateChatCompletion(messages, {
                 temperature: expectJSON ? 0.3 : 0.7,
                 max_tokens: expectJSON ? 4096 : 2048,
             });

@@ -9,11 +9,12 @@ import { ModerationQueueCard } from "./ModerationQueueCard";
 import { ModerationRejectModal } from "./ModerationRejectModal";
 import type { ModerationQueueItem } from "@/types/moderator";
 
-type StatusFilter = "pending_review" | "auto_rejected";
+type StatusFilter = "pending_review" | "auto_rejected" | "manually_rejected";
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
     { value: "pending_review", label: "Pending Review" },
     { value: "auto_rejected", label: "Auto Rejected" },
+    { value: "manually_rejected", label: "Manually Rejected" },
 ];
 
 export function InternshipsPanel() {
@@ -98,7 +99,12 @@ export function InternshipsPanel() {
                 throw new Error(err?.error ?? "Approve failed");
             }
 
-            toast.success(`"${item.name}" has been approved`);
+            const body = await res.json().catch(() => ({}));
+            if (body?.published === false) {
+                toast.warning(`"${item.name}" approved — indexing is pending and will retry`);
+            } else {
+                toast.success(`"${item.name}" has been approved`);
+            }
         } catch (err) {
             // Revert optimistic update on failure
             setItems((prev) => [item, ...prev]);

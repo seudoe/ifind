@@ -84,8 +84,6 @@ export interface ParsedResumeData {
   awards: Award[];
   interests: { activity: string; description: string; commitmentMetric?: string }[];
   metaDetails: ResumeMetaDetails;
-  bert_vector : number[] | null;
-  tfidf__vector : number[] | null;
 }
 
 export interface Resume {
@@ -93,6 +91,8 @@ export interface Resume {
   driveViewLink?: string | null;
   uploadedAt?: string | null;
   parsedData?: ParsedResumeData | null;
+  tfidf_vector?: number[] | null;
+  bert_vector?: number[] | null;
 }
 
 // OLD ---------------
