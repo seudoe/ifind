@@ -27,7 +27,6 @@ function emptyResume(user: User): ParsedResumeData {
     summary: "",
     metaDetails: { name: user.name, phone_no: user.phone ?? "", gender: null, email: user.email, github_profile: null, linkedin: null, address: { city: user.city ?? "", state: user.state ?? "", country: user.country ?? "", postal_code: "" }, extra_links: [] },
     workHistory: [], education: [], skills: [], projects: [], certifications: [], languages: [], publications: [], affiliations: [], awards: [], interests: [],
-    bert_vector: null, tfidf__vector: null,
   };
 }
 

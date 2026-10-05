@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
-import Internship from "@/models/Internship";
-import { vectorizeAndIndexInternship } from "@/lib/internship-vectorizer";
+import Internship, { StagedInternship } from "@/models/Internship";
+import { publishApprovedInternships } from "@/lib/internship-vectorizer";
 
 export const runtime = "nodejs";
 
@@ -53,8 +53,15 @@ export async function PATCH(
         await connectDB();
 
         // 404 if internship not found
-        const internship = await Internship.findById(id);
+        // The moderator queue lives in staging; approved listings are moved out of it.
+        const internship = await StagedInternship.findById(id);
         if (!internship) {
+            if (await Internship.exists({ _id: id })) {
+                return NextResponse.json(
+                    { success: false, error: "Internship is already approved and published." },
+                    { status: 409 },
+                );
+            }
             return NextResponse.json(
                 { success: false, error: "Internship not found" },
                 { status: 404 },
@@ -79,34 +86,26 @@ export async function PATCH(
         const moderatorId = session.moderatorId;
 
         if (action === "approve") {
-            // Use $set to update only moderation subdocument fields
-            await Internship.updateOne(
+            await StagedInternship.updateOne(
                 { _id: id },
                 {
                     $set: {
                         "moderation.status": "manually_approved",
                         "moderation.reviewedBy": moderatorId,
                         "moderation.reviewedAt": now,
+                        "moderation.rejectionReason": null,
                     },
                 },
             );
 
-            // Trigger vectorization and indexing in background (non-blocking)
-            vectorizeAndIndexInternship(id, {
-                name: internship.name,
-                company: internship.company,
-                summary: internship.summary,
-                skills: internship.skills,
-                responsibilities: internship.responsibilities,
-                tags: internship.tags,
-                field: internship.field,
-            }).catch(err => {
-                console.error(`[moderator/internships/[id]] Failed to vectorize internship ${id}:`, err);
-            });
+            // Vectorize → HNSW graph → move to `internships` → recommend to students.
+            // On failure the doc stays in staging as manually_approved and is retried.
+            const published = (await publishApprovedInternships([id])).includes(id);
+            return NextResponse.json({ success: true, published }, { status: 200 });
         } else {
             // action === "reject"
-            // Use $set to update only moderation subdocument fields
-            await Internship.updateOne(
+            // Rejected listings stay in staging with their status.
+            await StagedInternship.updateOne(
                 { _id: id },
                 {
                     $set: {

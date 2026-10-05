@@ -129,7 +129,16 @@ export async function POST(req: NextRequest) {
                 100,
                 (user.profileCompletionScore || 20) + 40,
             );
+            if (pendingParsedData) {
+                user.vectorizationStatus = "processing";
+            }
             await user.save();
+
+            // Trigger vectorization in background for auto-commit
+            if (pendingParsedData) {
+                const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
+                void vectorizeAndRecommendUser((user._id || user.id).toString(), pendingParsedData);
+            }
 
             return NextResponse.json({
                 success: true,

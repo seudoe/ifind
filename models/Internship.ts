@@ -215,8 +215,7 @@ const ModerationSchema = new Schema<IModeration>(
     { _id: false },
 );
 
-const InternshipSchema = new Schema<IInternship>(
-    {
+const listingFields = {
         name: { type: String, required: true, trim: true },
         company: { type: String, required: true, trim: true },
         applyLink: { type: String, required: true, trim: true },
@@ -245,22 +244,43 @@ const InternshipSchema = new Schema<IInternship>(
         fingerprint: { type: String, default: null, trim: true },
         linkVerification: { type: LinkVerificationSchema, default: undefined },
         moderation: { type: ModerationSchema, default: () => ({}) },
+};
+
+// LIVE schema ('internships'): approved listings + vectors written by the vectorizer.
+const InternshipSchema = new Schema<IInternship>(
+    {
+        ...listingFields,
         tfidf_vector: { type: Schema.Types.Mixed, default: null },
         bert_vector: { type: Schema.Types.Mixed, default: null },
     },
     { timestamps: true },
 );
 
+// STAGING schema ('internships.mod-unvectorised'): scraped listing + moderation/scam
+// details only. Never carries vectors (strict mode drops them); the vectorizer adds
+// them when it moves an approved listing into the live collection.
+const StagedInternshipSchema = new Schema<IInternship>(listingFields, { timestamps: true });
+
 InternshipSchema.index({ "moderation.status": 1, createdAt: -1 });
 InternshipSchema.index({ fingerprint: 1 }, { unique: true, sparse: true });
+StagedInternshipSchema.index({ "moderation.status": 1, createdAt: -1 });
+StagedInternshipSchema.index({ fingerprint: 1 }, { unique: true, sparse: true });
 
-// Delete cached model in Next.js dev environment to ensure schema updates take effect
-if (process.env.NODE_ENV !== "production" && mongoose.models.Internship) {
+// Delete cached models in Next.js dev environment to ensure schema updates take effect
+if (process.env.NODE_ENV !== "production") {
     delete mongoose.models.Internship;
+    delete mongoose.models.StagedInternship;
 }
+
+export const STAGING_COLLECTION = "internships.mod-unvectorised";
 
 const Internship: Model<IInternship> =
     mongoose.models.Internship ||
-    mongoose.model<IInternship>("Internship", InternshipSchema);
+    mongoose.model<IInternship>("Internship", InternshipSchema, "internships");
+
+/** Moderator queue: reads/writes the staging collection. */
+export const StagedInternship: Model<IInternship> =
+    mongoose.models.StagedInternship ||
+    mongoose.model<IInternship>("StagedInternship", StagedInternshipSchema, STAGING_COLLECTION);
 
 export default Internship;

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
-import Internship from "@/models/Internship";
+import Internship, { StagedInternship } from "@/models/Internship";
 
 export const runtime = "nodejs";
+
+// Approved listings leave staging (they are vectorized and moved to `internships`),
+// so only these statuses are read from the live collection.
+const PUBLISHED_STATUSES = ["auto_approved", "manually_approved"];
 
 export async function GET(request: NextRequest) {
     try {
@@ -33,7 +37,7 @@ export async function GET(request: NextRequest) {
                   ? 100
                   : rawLimit;
 
-        // Optional search string
+        // Optional search string (escaped: it is user input going into a RegExp)
         const search = searchParams.get("search")?.trim() ?? "";
 
         // Build query on moderation.status
@@ -43,17 +47,18 @@ export async function GET(request: NextRequest) {
 
         // Add case-insensitive regex on name and company when search provided
         if (search) {
-            const regex = new RegExp(search, "i");
+            const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
             query.$or = [{ name: regex }, { company: regex }];
         }
 
         await connectDB();
 
         const skip = (page - 1) * limit;
+        const Model = PUBLISHED_STATUSES.includes(status) ? Internship : StagedInternship;
 
         const [total, results] = await Promise.all([
-            Internship.countDocuments(query),
-            Internship.find(query)
+            Model.countDocuments(query),
+            Model.find(query)
                 .select(
                     "name company applyLink datePublished source moderation linkVerification createdAt",
                 )

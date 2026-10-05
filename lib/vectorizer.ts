@@ -46,7 +46,7 @@ export async function encodeResume(parsedData: unknown): Promise<ResumeVectorRes
 
 /**
  * Saves generated TF-IDF and BERT vectors into the user document in MongoDB.
- * Sets both user.resume.tfidf_vector / bert_vector and user.resume.parsedData fields.
+ * Sets user.resume.tfidf_vector and user.resume.bert_vector fields.
  */
 export async function saveUserResumeVectors(
   userId: string,
@@ -64,9 +64,6 @@ export async function saveUserResumeVectors(
         $set: {
           "resume.tfidf_vector": vectors.tfidf,
           "resume.bert_vector": vectors.bert,
-          "resume.parsedData.tfidf__vector": vectors.tfidf,
-          "resume.parsedData.bert_vector": vectors.bert,
-          "resume.parsedData.tfidf_vector": vectors.tfidf,
         },
       }
     );

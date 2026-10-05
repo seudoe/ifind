@@ -18,9 +18,23 @@
 
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
-import { getIndexManager } from "@/lib/hnsw";
 import type { InternshipCandidate } from "../types";
 import type { RecommendationStrategy, StrategyContext } from "./types";
+import { BruteForceStrategy } from "./BruteForceStrategy";
+
+const HF_BASE = (process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space").replace(/\/$/, "");
+
+/** k-NN over the persisted graph ('internships.graph'), served by the vectorizer service. */
+async function searchGraph(vector: number[], k: number): Promise<string[]> {
+  const res = await fetch(`${HF_BASE}/search-internships`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ vector, k }),
+  });
+  if (!res.ok) throw new Error(`graph search failed ${res.status}`);
+  const data = await res.json();
+  return (data.results as { id: string }[]).map((r) => r.id);
+}
 
 export class HNSWStrategy implements RecommendationStrategy {
   readonly name = "hnsw" as const;
@@ -41,56 +55,31 @@ export class HNSWStrategy implements RecommendationStrategy {
     }
 
     try {
-      const indexManager = getIndexManager();
-
-      if (!indexManager.isReady()) {
-        throw new Error("[HNSWStrategy] Index not ready");
-      }
-
-      // Get k value (default to limit * 2 or 40 if no limit specified)
       const k = context.limit ? context.limit * 2 : 40;
 
-      // Perform HNSW search using BERT vector
-      const hnswSearchStart = Date.now();
-      const searchResults = await indexManager.searchNearestNeighbors(
-        context.userVectors.bert,
-        k
-      );
-      const hnswSearchTime = Date.now() - hnswSearchStart;
+      const searchStart = Date.now();
+      const ids = await searchGraph(context.userVectors.bert, k);
+      console.log(`[HNSWStrategy] Graph search returned ${ids.length} candidates in ${Date.now() - searchStart}ms`);
 
-      console.log(
-        `[HNSWStrategy] HNSW search returned ${searchResults.length} candidates in ${hnswSearchTime}ms`
-      );
-
-      // Fetch full candidate data from MongoDB
-      const fetchStart = Date.now();
       await connectDB();
       const db = mongoose.connection.db;
+      if (!db) throw new Error("Database connection not available");
 
-      if (!db) {
-        throw new Error("Database connection not available");
-      }
-
-      const internshipIds = searchResults.map((result) => 
-        new mongoose.Types.ObjectId(result.id)
-      );
-
+      // isActive filter: deactivated listings can linger in the graph until the next rebuild.
       const internships = await db
         .collection("internships")
-        .find({ _id: { $in: internshipIds } })
+        .find({
+          _id: { $in: ids.map((id) => new mongoose.Types.ObjectId(id)) },
+          $or: [{ isActive: true }, { isActive: { $exists: false } }],
+        })
         .project({ _id: 1, tfidf_vector: 1, bert_vector: 1 })
         .toArray();
-      
-      const fetchTime = Date.now() - fetchStart;
-
-      console.log(
-        `[HNSWStrategy] Retrieved ${internships.length} full candidate records in ${fetchTime}ms`
-      );
 
       return internships as unknown as InternshipCandidate[];
     } catch (error) {
-      console.error("[HNSWStrategy] Failed to retrieve candidates:", error);
-      throw error;
+      // Graph unavailable: degrade to a full scan rather than returning no recommendations.
+      console.error("[HNSWStrategy] Graph search failed, falling back to brute force:", error);
+      return new BruteForceStrategy().retrieveCandidates(context);
     }
   }
 
@@ -100,26 +89,8 @@ export class HNSWStrategy implements RecommendationStrategy {
    * Loads the HNSW index from MongoDB and prepares it for search operations.
    */
   async initialize(): Promise<void> {
-    console.log("[HNSWStrategy] Initializing HNSW index...");
-
-    try {
-      const indexManager = getIndexManager();
-
-      // Load index from database (or initialize if not exists)
-      await indexManager.loadFromDatabase();
-
-      const stats = indexManager.getStats();
-      console.log(
-        `[HNSWStrategy] Index initialized with ${stats.vectorCount} vectors, ` +
-        `${stats.dimensions} dimensions`
-      );
-
-      this.isInitialized = true;
-    } catch (error) {
-      console.error("[HNSWStrategy] Failed to initialize:", error);
-      this.isInitialized = false;
-      throw error;
-    }
+    // The graph lives in the vectorizer service; nothing to load locally.
+    this.isInitialized = true;
   }
 
   /**

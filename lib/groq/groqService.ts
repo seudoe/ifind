@@ -1,9 +1,12 @@
 import Groq from 'groq-sdk';
 
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Lazy client: constructing it at import time throws when GROQ_API_KEY is unset,
+// which breaks `next build` even for routes that never run.
+let _groq: Groq | null = null;
+function getGroq(): Groq {
+  if (!_groq) _groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  return _groq;
+}
 
 // Default model
 const DEFAULT_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
@@ -29,7 +32,7 @@ export async function generateChatCompletion(
   } = {}
 ): Promise<Groq.Chat.Completions.ChatCompletion> {
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroq().chat.completions.create({
       model: options.model || DEFAULT_MODEL,
       messages,
       temperature: options.temperature ?? 0.7,
@@ -57,7 +60,7 @@ export async function generateStreamingCompletion(
   } = {}
 ) {
   try {
-    const stream = await groq.chat.completions.create({
+    const stream = await getGroq().chat.completions.create({
       model: options.model || DEFAULT_MODEL,
       messages,
       temperature: options.temperature ?? 0.7,
@@ -184,4 +187,4 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
   return dotProduct / (normA * normB);
 }
 
-export default groq;
+export default getGroq;
