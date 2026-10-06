@@ -22,6 +22,7 @@ export function InternshipsPanel() {
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const [source, setSource] = useState<"scraped" | "employer">("scraped");
     const [statusFilter, setStatusFilter] =
         useState<StatusFilter>("pending_review");
     const [search, setSearch] = useState("");
@@ -48,6 +49,7 @@ export function InternshipsPanel() {
             try {
                 const params = new URLSearchParams({
                     status: statusFilter,
+                    ...(source === "employer" ? { source } : {}),
                     page: String(page),
                     limit: String(limit),
                 });
@@ -74,7 +76,12 @@ export function InternshipsPanel() {
         };
 
         fetchQueue();
-    }, [page, statusFilter, debouncedSearch]);
+    }, [page, statusFilter, debouncedSearch, source]);
+
+    const handleSourceChange = (next: "scraped" | "employer") => {
+        setSource(next);
+        setPage(1);
+    };
 
     const handleStatusFilterChange = (status: StatusFilter) => {
         setStatusFilter(status);
@@ -91,7 +98,7 @@ export function InternshipsPanel() {
                 method: "PATCH",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "approve" }),
+                body: JSON.stringify({ action: "approve", ...(source === "employer" ? { source } : {}) }),
             });
 
             if (!res.ok) {
@@ -140,6 +147,7 @@ export function InternshipsPanel() {
                     body: JSON.stringify({
                         action: "reject",
                         rejectionReason: reason,
+                        ...(source === "employer" ? { source } : {}),
                     }),
                 },
             );
@@ -164,6 +172,22 @@ export function InternshipsPanel() {
 
     return (
         <div className="space-y-4">
+            {/* Source switch */}
+            <div className="inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] p-0.5 text-sm">
+                {([["scraped", "Scraped"], ["employer", "Employer-posted"]] as const).map(([value, label]) => (
+                    <button
+                        key={value}
+                        onClick={() => handleSourceChange(value)}
+                        className={cn(
+                            "px-3 py-1 rounded-[calc(var(--radius-sm)-2px)] font-medium transition-colors",
+                            source === value ? "bg-[var(--primary)] text-white" : "text-[var(--text-2)] hover:text-[var(--text)]",
+                        )}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+
             {/* Status filter tabs */}
             <div className="flex items-center gap-1 border-b border-[var(--border)] pb-0">
                 {STATUS_TABS.map(({ value, label }) => (

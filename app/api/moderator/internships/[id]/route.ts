@@ -3,6 +3,9 @@ import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import Internship, { StagedInternship } from "@/models/Internship";
 import { publishApprovedInternships } from "@/lib/internship-vectorizer";
+import { notify } from "@/lib/employer/notify";
+import Company from "@/models/Company";
+import PlatformInternship from "@/models/PlatformInternship";
 
 export const runtime = "nodejs";
 
@@ -51,6 +54,34 @@ export async function PATCH(
         }
 
         await connectDB();
+
+        // Employer-posted listings: moderation only. No vectorizer here: the student-side
+        // phase decides how platform internships reach the feed.
+        if (body.source === "employer") {
+            const doc = await PlatformInternship.findOne({ _id: id, status: { $ne: "draft" } });
+            if (!doc) return NextResponse.json({ success: false, error: "Internship not found" }, { status: 404 });
+            if (action === "approve" && doc.moderation.status === "manually_approved") {
+                return NextResponse.json({ success: false, error: "Internship is already manually approved." }, { status: 409 });
+            }
+            const approved = action === "approve";
+            doc.moderation.status = approved ? "manually_approved" : "manually_rejected";
+            doc.moderation.reviewedBy = session.moderatorId;
+            doc.moderation.reviewedAt = new Date();
+            doc.moderation.rejectionReason = approved ? null : rejectionReason.trim();
+            await doc.save();
+
+            const company = await Company.findById(doc.companyId).select("members").lean();
+            await notify({
+                recipientType: "employer",
+                recipientIds: (company?.members ?? []).map((m) => m.employerId),
+                type: approved ? "internship_approved" : "internship_rejected",
+                title: approved ? `"${doc.name}" was approved` : `"${doc.name}" was rejected`,
+                body: approved ? "A moderator approved your listing." : `Reason: ${rejectionReason.trim()}`,
+                link: `/employer/company/${doc.companyId}/internships/${doc._id}/overview`,
+                companyId: doc.companyId,
+            });
+            return NextResponse.json({ success: true }, { status: 200 });
+        }
 
         // 404 if internship not found
         // The moderator queue lives in staging; approved listings are moved out of it.
