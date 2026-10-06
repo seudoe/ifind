@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 
 type Status = "idle" | "processing" | "completed" | "failed";
@@ -11,6 +11,12 @@ export function VectorizationProgressBar() {
   const [status, setStatus] = useState<Status>("idle");
   const [progress, setProgress] = useState(0);
   const router = useRouter();
+  const pathname = usePathname();
+  // Not relevant on the landing page or the moderator area.
+  const hidden = pathname === "/" || pathname.startsWith("/moderator");
+  // "completed" is persisted on the user; only announce it if we watched it finish.
+  const sawProcessing = useRef(false);
+  const announced = useRef(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -40,8 +46,16 @@ export function VectorizationProgressBar() {
       const data = await res.json();
       if (!data.success) return;
 
-      const currentStatus = data.status as Status;
-      
+      let currentStatus = data.status as Status;
+      if (currentStatus === "processing") {
+        sawProcessing.current = true;
+        announced.current = false;
+      } else if (!sawProcessing.current || announced.current) {
+        currentStatus = "idle"; // stale persisted status, or already announced
+      } else {
+        announced.current = true;
+      }
+
       setStatus(currentStatus);
 
     } catch (err) {
@@ -74,7 +88,7 @@ export function VectorizationProgressBar() {
     }
   }, [status]);
 
-  if (status === "idle") return null;
+  if (hidden || status === "idle") return null;
 
   return (
     <div className="fixed bottom-24 right-6 w-72 bg-white border border-gray-200 rounded-lg shadow-md p-3 z-40 flex flex-col gap-2 animate-in slide-in-from-bottom-3">

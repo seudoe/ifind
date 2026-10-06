@@ -7,6 +7,7 @@ import {
     Users,
     ListChecks,
     UserCheck,
+    Activity,
     LogOut,
     AlertTriangle,
 } from "lucide-react";
@@ -21,6 +22,11 @@ const NAV = [
         icon: ListChecks,
     },
     {
+        tab: "scrapes" as const,
+        label: "Scrapes",
+        icon: Activity,
+    },
+    {
         tab: "users" as const,
         label: "Users",
         icon: Users,
@@ -33,7 +39,7 @@ const NAV = [
 ];
 
 interface ModeratorShellProps {
-    activeTab: "internships" | "users" | "moderators";
+    activeTab: "internships" | "scrapes" | "users" | "moderators";
     children: React.ReactNode;
     moderator: ModeratorSession;
 }
@@ -57,6 +63,7 @@ export function ModeratorShell({
 
     const TAB_TITLES: Record<string, string> = {
         internships: "Internship Queue",
+        scrapes: "Scrapes",
         users: "User Management",
         moderators: "Moderator Accounts",
     };

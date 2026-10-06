@@ -111,7 +111,7 @@ async function main() {
   
   // Test 2: Populate HNSW Index
   await runTest("Test 2: Populate HNSW Index", async () => {
-    const { getIndexManager } = await import('./lib/hnsw');
+    const { getIndexManager } = await import('../lib/hnsw');
     const indexManager = getIndexManager();
     
     // Reset index
@@ -139,7 +139,7 @@ async function main() {
   
   // Test 3: HNSW Search Performance
   await runTest("Test 3: HNSW Search Performance", async () => {
-    const { getIndexManager } = await import('./lib/hnsw');
+    const { getIndexManager } = await import('../lib/hnsw');
     const indexManager = getIndexManager();
     
     const testUser = mockUsers[0];
@@ -206,7 +206,7 @@ async function main() {
   
   // Test 5: Mock Recommendation Pipeline
   await runTest("Test 5: Full Recommendation Pipeline (Mock)", async () => {
-    const { getIndexManager } = await import('./lib/hnsw');
+    const { getIndexManager } = await import('../lib/hnsw');
     const indexManager = getIndexManager();
     
     const testUser = mockUsers[0];
@@ -270,7 +270,7 @@ async function main() {
   
   // Test 6: Compare with Brute Force
   await runTest("Test 6: Performance Comparison (HNSW vs Brute-Force)", async () => {
-    const { getIndexManager } = await import('./lib/hnsw');
+    const { getIndexManager } = await import('../lib/hnsw');
     const indexManager = getIndexManager();
     
     const testUser = mockUsers[1];
@@ -336,7 +336,7 @@ async function main() {
   
   // Test 7: Multiple User Batch
   await runTest("Test 7: Batch Process Multiple Users", async () => {
-    const { getIndexManager } = await import('./lib/hnsw');
+    const { getIndexManager } = await import('../lib/hnsw');
     const indexManager = getIndexManager();
     
     console.log(`  Processing ${mockUsers.length} users...`);
@@ -367,7 +367,7 @@ async function main() {
   
   // Test 8: Index Operations (Insert/Delete)
   await runTest("Test 8: Dynamic Index Operations", async () => {
-    const { getIndexManager } = await import('./lib/hnsw');
+    const { getIndexManager } = await import('../lib/hnsw');
     const indexManager = getIndexManager();
     
     const initialStats = indexManager.getStats();

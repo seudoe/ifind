@@ -34,7 +34,7 @@ async function main() {
   try {
     // Step 1: Connect to database
     console.log("\n📦 Step 1: Connecting to database...");
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     await connectDB();
     const db = mongoose.default.connection.db;
@@ -62,7 +62,7 @@ async function main() {
     
     // Step 3: Test HNSW index
     console.log("\n🔍 Step 3: Checking HNSW index...");
-    const { getIndexManager } = await import("./lib/hnsw");
+    const { getIndexManager } = await import("../lib/hnsw");
     const indexManager = getIndexManager();
     
     await indexManager.loadFromDatabase();

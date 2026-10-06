@@ -200,7 +200,7 @@ async function main() {
 
     // Test 2: HNSW Index Population
     await runTest("2. HNSW Index Population", async () => {
-      const { getIndexManager } = await import('./lib/hnsw');
+      const { getIndexManager } = await import('../lib/hnsw');
       const indexManager = getIndexManager();
       
       console.log("  Rebuilding HNSW index from mock data...");
@@ -218,7 +218,7 @@ async function main() {
 
     // Test 3: HNSW Search
     await runTest("3. HNSW Search with Mock Vectors", async () => {
-      const { getIndexManager } = await import('./lib/hnsw');
+      const { getIndexManager } = await import('../lib/hnsw');
       const indexManager = getIndexManager();
       
       // Get a random user's vector
@@ -253,8 +253,8 @@ async function main() {
 
     // Test 4: Recommendation Generation (BruteForce)
     await runTest("4. Recommendation Generation (BruteForce)", async () => {
-      const { generateRecommendations } = await import('./lib/recommendation/engine');
-      const { StrategyType, StrategyFactory } = await import('./lib/recommendation/strategies');
+      const { generateRecommendations } = await import('../lib/recommendation/engine');
+      const { StrategyType, StrategyFactory } = await import('../lib/recommendation/strategies');
       
       // Switch to BruteForce
       const factory = StrategyFactory.getInstance();
@@ -297,8 +297,8 @@ async function main() {
 
     // Test 5: Recommendation Generation (HNSW)
     await runTest("5. Recommendation Generation (HNSW)", async () => {
-      const { generateRecommendations } = await import('./lib/recommendation/engine');
-      const { StrategyType, StrategyFactory } = await import('./lib/recommendation/strategies');
+      const { generateRecommendations } = await import('../lib/recommendation/engine');
+      const { StrategyType, StrategyFactory } = await import('../lib/recommendation/strategies');
       
       // Switch to HNSW
       const factory = StrategyFactory.getInstance();
@@ -342,7 +342,7 @@ async function main() {
     // Test 6: Cache Operations
     await runTest("6. Cache Operations with Mock DB", async () => {
       const { getRecommendationCache, generateConfigHash, generateVectorHash } = 
-        await import('./lib/recommendation/cache');
+        await import('../lib/recommendation/cache');
       
       const cache = getRecommendationCache();
       
@@ -386,7 +386,7 @@ async function main() {
 
     // Test 7: Full Recommendation Pipeline with Caching
     await runTest("7. Full Pipeline: Generate & Save with Cache", async () => {
-      const { generateAndSaveRecommendations } = await import('./lib/recommendation');
+      const { generateAndSaveRecommendations } = await import('../lib/recommendation');
       
       // Get a user
       const user = await db!.collection('users').findOne({});
@@ -428,7 +428,7 @@ async function main() {
 
     // Test 8: Background Refresh Simulation
     await runTest("8. Background Refresh with Mock Data", async () => {
-      const { getRefreshManager } = await import('./lib/recommendation/background-refresh');
+      const { getRefreshManager } = await import('../lib/recommendation/background-refresh');
       
       const refreshManager = getRefreshManager({
         batchSize: 5,
@@ -453,8 +453,8 @@ async function main() {
 
     // Test 9: Performance Comparison
     await runTest("9. Performance: BruteForce vs HNSW", async () => {
-      const { generateRecommendations } = await import('./lib/recommendation/engine');
-      const { StrategyType, StrategyFactory } = await import('./lib/recommendation/strategies');
+      const { generateRecommendations } = await import('../lib/recommendation/engine');
+      const { StrategyType, StrategyFactory } = await import('../lib/recommendation/strategies');
       
       const factory = StrategyFactory.getInstance();
       const user = await db!.collection('users').findOne({});
