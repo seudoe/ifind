@@ -115,10 +115,12 @@ export function resetModeration(doc: InternshipDoc) {
 }
 
 /** The raw shape internScraper's pipeline expects (see internScraper/pipeline.py _prepare_candidates). */
-function toPipelineItem(doc: InternshipDoc) {
+function toPipelineItem(doc: InternshipDoc, companyVerified: boolean) {
     const app = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
     return {
         id: String(doc._id),
+        // internScraper never auto-approves a post unless this is exactly true
+        companyVerified,
         name: doc.name,
         company: doc.company,
         // Employer listings have no external apply link; the pipeline needs a URL, so use the listing's own page
@@ -139,17 +141,23 @@ function toPipelineItem(doc: InternshipDoc) {
  * the same validation + scam detection the scraped listings get. Scam-clear listings are auto-approved,
  * the grey band goes to a moderator, blocked ones are rejected. With no INTERNSCRAPER_URL, or on any failure,
  * the listing goes to a moderator (fail closed). An unverified company is never auto-approved.
+ *
+ * internScraper also records the verdict on the document itself and, when auto-approved, sends it to the
+ * vectoriser (vectors, graph, every student's recommendations). So the reset is saved BEFORE the call: the vectors
+ * are cleared and the document is pending_review when internScraper looks at it, and our final save below only
+ * writes the verdict fields, never the vectors.
  */
 export async function runModeration(doc: InternshipDoc, companyVerified: boolean) {
     resetModeration(doc);
     const base = process.env.INTERNSCRAPER_URL;
     if (!base) return;
+    await doc.save();
     try {
         const res = await fetch(`${base.replace(/\/$/, "")}/process`, {
             method: "POST",
             headers: { "Content-Type": "application/json", ...(process.env.INTERNSCRAPER_API_KEY ? { "x-api-key": process.env.INTERNSCRAPER_API_KEY } : {}) },
             signal: AbortSignal.timeout(30_000),
-            body: JSON.stringify({ source: "ifind", internship: toPipelineItem(doc) }),
+            body: JSON.stringify({ source: "ifind", internship: toPipelineItem(doc, companyVerified) }),
         });
         if (!res.ok) {
             console.error("[runModeration] pipeline returned", res.status);
@@ -179,8 +187,8 @@ export async function runModeration(doc: InternshipDoc, companyVerified: boolean
 }
 
 /**
- * Once a listing is approved (by the pipeline or a moderator): vectorize it and save the vectors onto the
- * document in 'internships.this-platform'. Fire-and-forget; nothing depends on it yet (student side later).
+ * Moderator approval of an employer post: send it to the vectoriser (vectors in place, graph, every student's
+ * recommendations). Fire-and-forget. Pipeline auto-approvals do not come through here: internScraper sends those.
  */
 export function vectorizeIfApproved(doc: InternshipDoc) {
     const approved = ["auto_approved", "manually_approved"].includes(doc.moderation.status);

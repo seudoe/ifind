@@ -1,90 +1,89 @@
 /**
- * Internship publishing service
+ * Triggers for the vectoriser service (tf-idfs+berts/vectoriser, a Hugging Face Space).
  *
- * Moderator approval hand-off:
- *   staging ('internships.mod-unvectorised')
- *     → HF vectorizer: encode, insert into HNSW graph ('internships.graph'),
- *       move to 'internships', delete from staging
- *     → add the new internship to matching students' recommendations
+ * The vectoriser does all the work: encode, insert into the HNSW graph, then run every student through the graph
+ * so their recommendations improve (recommender.py). This module only calls it.
  *
- * All encoding and graph writes live in the HF service (vectorisationResume);
- * this module only triggers it and then updates recommendations.
+ * Who calls it, per path:
+ *   scraped, auto-approved     internScraper  (script.py)                       -> /vectorize-hnsw
+ *   scraped, moderator         ifind (here)   publishApprovedInternships        -> /vectorize-hnsw {ids}
+ *   employer, auto-approved    internScraper  (pipeline.py, after /process)     -> /vectorize-platform
+ *   employer, moderator        ifind (here)   vectorizePlatformInternships      -> /vectorize-platform {ids}
+ *   admin refresh              ifind (here)   refreshRecommendations            -> both, then /recommend-all
+ *   resume / profile change    ifind          lib/vectorizer.ts                 -> /encode-resume {recommend}
  */
 
 import { connectDB } from "./db";
 import mongoose from "mongoose";
-import { addInternshipToRecommendations } from "./recommendation/onNewInternship";
 
 const HF_BASE = (process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space").replace(/\/$/, "");
+
+async function post<T>(path: string, body: unknown, timeoutMs = 120_000): Promise<T | null> {
+  try {
+    const res = await fetch(`${HF_BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs), // the first call after a cold start loads the models
+    });
+    if (!res.ok) {
+      console.error(`[internship-vectorizer] ${path} failed ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return null;
+    }
+    return (await res.json()) as T;
+  } catch (err) {
+    console.error(`[internship-vectorizer] ${path} unreachable:`, err);
+    return null;
+  }
+}
 
 interface PipelineStats {
   processed: number;
   errors: number;
   skipped: number;
-  indexed_ids: string[];
-}
-
-async function callVectorizer(ids?: string[]): Promise<PipelineStats | null> {
-  try {
-    const res = await fetch(`${HF_BASE}/vectorize-hnsw`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(ids ? { ids } : {}),
-    });
-    if (!res.ok) {
-      console.error(`[internship-vectorizer] /vectorize-hnsw failed ${res.status}: ${(await res.text()).slice(0, 200)}`);
-      return null;
-    }
-    return (await res.json()).stats as PipelineStats;
-  } catch (err) {
-    console.error("[internship-vectorizer] /vectorize-hnsw unreachable:", err);
-    return null;
-  }
+  indexed_ids?: string[];
+  vectorized_ids?: string[];
 }
 
 /**
- * Publish approved staged internships (all approved when `ids` is omitted):
- * vectorize + graph-insert + move to `internships`, then recommend to students.
- * Returns the ids that were published. Failures leave the doc in staging, still
- * approved, so the next run retries it.
+ * Scraped internships a moderator approved (all approved staged ones when `ids` is omitted): vectorize,
+ * insert into the graph, move to `internships`; the vectoriser then re-runs every student through the graph.
+ * Returns the ids that were published. Failures leave the doc in staging, still approved, so the next run retries.
  */
-export async function publishApprovedInternships(ids?: string[]): Promise<string[]> {
-  const stats = await callVectorizer(ids);
-  if (!stats) return [];
-
-  for (const id of stats.indexed_ids) {
-    try {
-      await addInternshipToRecommendations(id);
-    } catch (err) {
-      console.error(`[internship-vectorizer] Recommendation update failed for ${id}:`, err);
-    }
-  }
-  return stats.indexed_ids;
+export async function publishApprovedInternships(ids?: string[], recommend = true): Promise<string[]> {
+  const r = await post<{ stats: PipelineStats }>("/vectorize-hnsw", { ...(ids ? { ids } : {}), recommend });
+  return r?.stats.indexed_ids ?? [];
 }
 
 /**
- * Vectorize approved employer-posted internships (source "ifind"). The vectorizer writes the vectors onto the
- * document in 'internships.this-platform' in place: no staging, no move, and no graph insert (see
- * vectorizer_hnsw_pipeline.run_platform_vectorizer_pipeline). Best effort: returns the ids that were vectorized.
+ * Employer-posted internships a moderator approved: the vectoriser writes the vectors onto the document in
+ * 'internships.this-platform', adds it to the graph and re-runs every student through it.
+ * (Pipeline auto-approvals are sent by internScraper, not from here.) Returns the ids that were vectorized.
  */
-export async function vectorizePlatformInternships(ids: string[]): Promise<string[]> {
+export async function vectorizePlatformInternships(ids: string[], recommend = true): Promise<string[]> {
   if (!ids.length) return [];
-  try {
-    const res = await fetch(`${HF_BASE}/vectorize-platform`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-      signal: AbortSignal.timeout(120_000), // first call after a cold start loads the models
-    });
-    if (!res.ok) {
-      console.error(`[internship-vectorizer] /vectorize-platform failed ${res.status}: ${(await res.text()).slice(0, 200)}`);
-      return [];
-    }
-    return (await res.json()).stats?.vectorized_ids ?? [];
-  } catch (err) {
-    console.error("[internship-vectorizer] /vectorize-platform unreachable:", err);
-    return [];
-  }
+  const r = await post<{ stats: PipelineStats }>("/vectorize-platform", { ids, recommend });
+  return r?.stats.vectorized_ids ?? [];
+}
+
+/**
+ * Admin refresh. Sends anything approved but not yet vectorized to the vectoriser (scraped staging docs and employer
+ * posts without vectors), then asks it to run every student (or just `userIds`) through the whole graph.
+ * The recommendation pass runs in the vectoriser in the background; this returns once it is queued.
+ */
+export async function refreshRecommendations(userIds?: string[]) {
+  const published = await publishApprovedInternships(undefined, false);
+
+  await connectDB();
+  const pending = await mongoose.connection.db!
+    .collection("internships.this-platform")
+    .find({ status: { $ne: "draft" }, isActive: { $ne: false }, "moderation.status": { $in: ["auto_approved", "manually_approved"] }, vectorizedAt: null }, { projection: { _id: 1 } })
+    .limit(50)
+    .toArray();
+  const platform = await vectorizePlatformInternships(pending.map((d) => String(d._id)), false);
+
+  const queued = await post<{ status: string }>("/recommend-all", { ...(userIds?.length ? { user_ids: userIds } : {}), background: true });
+  return { scrapedPublished: published.length, platformVectorized: platform.length, recommendationsQueued: queued?.status === "queued" };
 }
 
 /**

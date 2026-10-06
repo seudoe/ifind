@@ -61,7 +61,8 @@ export async function GET() {
         user,
         browse,
         saved: byOrder(savedIds),
-        recommended: byOrder(recommendedIds),
+        // a recommended employer post may have been paused or closed since the list was built
+        recommended: byOrder(recommendedIds).filter((i) => (i as { source?: string }).source !== "ifind" || (i as { status?: string }).status === "published"),
         applied: byOrder(appliedIds),
       }),
     });

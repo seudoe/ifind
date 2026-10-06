@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
-import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO, vectorizeIfApproved } from "@/lib/employer/internships";
+import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO } from "@/lib/employer/internships";
 import { internshipPublishSchema, zodMessage } from "@/lib/employer/validation";
 import PlatformInternship from "@/models/PlatformInternship";
 
@@ -52,14 +52,16 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
             if (!check.success) return fail(zodMessage(check.error), 400);
             if (doc.deadlineDate && doc.deadlineDate < new Date()) return fail("The application deadline is in the past", 400);
 
-            if (doc.status === "draft") {
+            // Published before moderation runs: if internScraper auto-approves and the vectoriser recommends it to
+            // students within seconds, the post must already be visible (recommendations only include published posts)
+            const wasDraft = doc.status === "draft";
+            doc.status = "published";
+            doc.closedAt = null;
+            if (wasDraft) {
                 doc.datePublished = doc.datePublished ?? new Date();
                 await runModeration(doc, access.company.verification?.status === "verified");
             } // resuming from pause keeps the existing moderation result
-            doc.status = "published";
-            doc.closedAt = null;
             await doc.save();
-            vectorizeIfApproved(doc);
             return NextResponse.json({ success: true, data: toInternshipDTO(doc) });
         }
 
