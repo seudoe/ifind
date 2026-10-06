@@ -12,7 +12,7 @@ import { companySchema, type CompanyInput } from "@/lib/employer/validation";
 import { cn } from "@/lib/utils";
 import { COMPANY_SIZES, COMPANY_TYPES } from "@/types/employer";
 
-const controlCls =
+export const controlCls =
     "w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] hover:border-[var(--border-2)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]";
 const labelCls = "text-xs font-medium text-[var(--text-2)] uppercase tracking-wide";
 
@@ -31,7 +31,7 @@ export const EMPTY_COMPANY: Partial<CompanyInput> = {
     officeLocations: [], perks: [], techStack: [], socials: {}, registration: {},
 };
 
-function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
+export function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
     return (
         <div className="flex flex-col gap-1.5">
             <span className={labelCls}>{label}</span>
