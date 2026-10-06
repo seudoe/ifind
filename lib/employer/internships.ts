@@ -5,6 +5,7 @@ import { stripHtml } from "@/lib/employer/sanitize";
 import type { InternshipInput } from "@/lib/employer/validation";
 import { vectorizePlatformInternships } from "@/lib/internship-vectorizer";
 import Application from "@/models/Application";
+import { internscraperUrl } from "@/lib/services";
 import type { ICompany } from "@/models/Company";
 import PlatformInternship, { type IPlatformInternship } from "@/models/PlatformInternship";
 import type { InternshipStatus, PlatformInternship as InternshipDTO } from "@/types/employer";
@@ -149,11 +150,11 @@ function toPipelineItem(doc: InternshipDoc, companyVerified: boolean) {
  */
 export async function runModeration(doc: InternshipDoc, companyVerified: boolean) {
     resetModeration(doc);
-    const base = process.env.INTERNSCRAPER_URL;
+    const base = internscraperUrl();
     if (!base) return;
     await doc.save();
     try {
-        const res = await fetch(`${base.replace(/\/$/, "")}/process`, {
+        const res = await fetch(`${base}/process`, {
             method: "POST",
             headers: { "Content-Type": "application/json", ...(process.env.INTERNSCRAPER_API_KEY ? { "x-api-key": process.env.INTERNSCRAPER_API_KEY } : {}) },
             signal: AbortSignal.timeout(30_000),

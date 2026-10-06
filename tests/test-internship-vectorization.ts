@@ -114,7 +114,7 @@ async function main() {
     
     // Note: Actual encoding requires the HF service to be running
     console.log("\n⚠️  Note: Actual vectorization requires HF service");
-    console.log(`   Service URL: ${process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space"}`);
+    console.log(`   Service URL: ${process.env.VECTORISER_URL ?? process.env.VECTORIZER_URL ?? "(VECTORISER_URL not set)"}`);
     console.log(`   Endpoint: /encode-internship`);
     
     // Step 6: Test manual vector insertion (if internship has vectors)
