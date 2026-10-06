@@ -56,9 +56,10 @@ Drafts can be deleted; anything else can only be closed or archived. Closed and 
 Employer posts go through the same pipeline as scraped ones (diagram: `internScraper/pipeline-diagram.md`).
 
 1. Publish from `draft` validates completeness (`internshipPublishSchema`), sets `datePublished`, then `runModeration()` (`lib/employer/internships.ts`) calls `POST {INTERNSCRAPER_URL}/process` with `source: "ifind"`. internScraper validates, scam-scores and returns a verdict; it stores nothing. ifind saves the verdict on its own document:
-   - `block -> auto_rejected`, `review -> pending_review`, `clear -> auto_approved` only if the company is `verified`, otherwise `pending_review` (flag `unverified_company`).
+   - `block -> auto_rejected`, `review -> pending_review`, `clear -> auto_approved` only if the company is `verified`, otherwise `pending_review` (flag `unverified_company`). ifind sends `companyVerified` and internScraper applies the rule.
+   - `runModeration()` saves the reset (pending, vectors cleared, post already `published`) BEFORE calling `/process`. internScraper then writes the verdict onto the document and, when auto-approved, calls the vectoriser itself; ifind's own save afterwards only writes the same verdict fields.
    - With `INTERNSCRAPER_URL` unset, or on any failure/timeout (30 s), the post goes to `pending_review` (fail closed).
-2. Once approved, by the pipeline or a moderator, `vectorizeIfApproved()` calls the vectorizer (`POST {VECTORIZER_URL}/vectorize-platform`) which writes the vectors onto the same document. Fire-and-forget; the graph is not touched yet.
+2. Vectorisation: pipeline auto-approvals are sent to the vectoriser by **internScraper** (`POST /vectorize-platform`); moderator approvals are sent by **ifind** (`vectorizeIfApproved()` in the moderator route). The vectoriser writes the vectors onto the same document, adds it to the HNSW graph and runs every student through the graph (see `internScraper/pipeline-diagram.md`).
 3. Resuming from `paused` keeps the existing moderation result.
 4. Editing a published/paused internship: if `name`, `stipend`, `summary`, `skills` or `applyLink` changed, vectors are cleared and the listing goes back through the pipeline (it may auto-approve again); other edits do nothing.
 5. Moderators: `InternshipsPanel` has a Scraped / Employer-posted switch. `GET /api/moderator/internships?source=employer` lists non-draft posts; `PATCH /api/moderator/internships/[id]` with `source: "employer"` approves (`manually_approved`, then vectorized) or rejects (`manually_rejected`, reason required). All company members are notified.
@@ -112,7 +113,7 @@ Cross-company access is always 404 (company id is part of every child query). Th
 | `IMAGEKIT_PRIVATE_KEY`, `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` | for logos | Existing. Company logo/cover URLs must start with the endpoint. |
 | `INTERNSCRAPER_URL` | optional | Base URL of internScraper (e.g. the Render service). Unset -> every employer post goes to `pending_review`. internScraper itself needs `FIRST_PARTY_DOMAINS` set to iFind's domain(s) for employer posts to be able to auto-approve. |
 | `INTERNSCRAPER_API_KEY` | optional | Sent as `x-api-key`; must match internScraper's `INTERNSCRAPER_API_KEY` if that is set. |
-| `VECTORIZER_URL` | optional | Base URL of the vectorizer (tf-idfs+berts). Default is the existing HF Space. Used for moderator approvals and employer posts. |
+| `VECTORIZER_URL` | optional | Base URL of the vectorizer (tf-idfs+berts). Default is the existing HF Space. Used for moderator approvals, resume/profile changes and the admin refresh. |
 
 ## 9. Scripts
 
@@ -134,7 +135,7 @@ Cross-company access is always 404 (company id is part of every child query). Th
 3. **APIs.** `POST|DELETE /api/internships/[id]/save`; `POST /api/internships/[id]/apply`. Scraped id: recorded on `user.appliedInternships`. iFind id: re-checks visibility, `requireResume`, `requireCoverLetter`, answers (`lib/employer/screening.ts`), then `createApplication()` (409 on duplicate) and records it on the user.
 4. **Status loop.** `changeStatus()` mirrors the pipeline status onto `user.appliedInternships[].status` (shortlisted/interview/offered -> shortlisted, hired -> selected, rejected -> rejected) and writes a `notifications.student` row (`application_status`) except for `under_review`.
 
-Still open: a student bell/page for `notifications.student`; withdraw (`status: "withdrawn"` + `application_withdrawn` to the company); a student-facing status timeline (never expose `notes`, `rating`, `statusHistory.changedBy`; do not reuse `EmployerApplication`); vector-based `matchScore` (`computeMatchScore()` is skill overlap); employer posts are not in the HNSW graph, so they never appear in recommendations.
+Still open: a student bell/page for `notifications.student`; withdraw (`status: "withdrawn"` + `application_withdrawn` to the company); a student-facing status timeline (never expose `notes`, `rating`, `statusHistory.changedBy`; do not reuse `EmployerApplication`); vector-based `matchScore` (`computeMatchScore()` is skill overlap); recommendations now run in the vectoriser (`tf-idfs+berts/vectoriser/recommender.py`), including employer posts.
 
 ## 12. Known gaps
 
