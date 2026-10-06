@@ -5,7 +5,7 @@ import { SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { TagInput } from "@/components/ui/TagInput";
 import type { InternshipFilters } from "@/types";
-import { LOCATIONS, PERKS_OPTIONS } from "@/lib/constants";
+import { LOCATIONS, PERKS_OPTIONS, SOURCE_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface FilterPanelProps {
@@ -17,6 +17,8 @@ interface FilterPanelProps {
   onAddSkill: (skill: string) => void;
   onRemoveSkill: (skill: string) => void;
   userSkills?: string[];
+  /** Listings per source in the loaded list; sources with none are hidden unless selected. */
+  sourceCounts?: Record<string, number>;
 }
 
 export function FilterPanel({
@@ -28,9 +30,11 @@ export function FilterPanel({
   onAddSkill,
   onRemoveSkill,
   userSkills = [],
+  sourceCounts,
 }: FilterPanelProps) {
   const [expanded, setExpanded] = useState({
     sortBy: true,
+    source: true,
     stipend: true,
     location: true,
     duration: true,
@@ -48,6 +52,7 @@ export function FilterPanel({
     filters.durationMin > 1 || filters.durationMax < 12,
     filters.skills.length > 0,
     filters.perks.length > 0,
+    filters.sources.length > 0,
   ].filter(Boolean).length;
 
   return (
@@ -97,6 +102,35 @@ export function FilterPanel({
                 </span>
               </label>
             ))}
+          </div>
+        </FilterSection>
+
+        {/* Source */}
+        <FilterSection
+          title="Source"
+          expanded={expanded.source}
+          onToggle={() => toggle("source")}
+        >
+          <div className="space-y-1.5">
+            {Object.entries(SOURCE_LABELS)
+              .filter(([key]) => !sourceCounts || sourceCounts[key] || filters.sources.includes(key))
+              .map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 cursor-pointer py-0.5 select-none">
+                  <input
+                    type="checkbox"
+                    checked={filters.sources.includes(key)}
+                    onChange={() =>
+                      onUpdate(
+                        "sources",
+                        filters.sources.includes(key) ? filters.sources.filter((s) => s !== key) : [...filters.sources, key],
+                      )
+                    }
+                    className="accent-[var(--primary)] rounded h-3.5 w-3.5"
+                  />
+                  <span className="text-xs text-[var(--text-2)] flex-1">{label}</span>
+                  {sourceCounts && <span className="text-[11px] text-[var(--text-3)] tabular-nums">{sourceCounts[key] ?? 0}</span>}
+                </label>
+              ))}
           </div>
         </FilterSection>
 

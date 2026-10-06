@@ -110,5 +110,6 @@ export interface InternshipFilters {
   skills: string[];
   companies: string[];
   perks: string[];
+  sources: string[];
   sortBy: "latest" | "deadline" | "stipend";
 }
