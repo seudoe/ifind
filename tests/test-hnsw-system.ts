@@ -85,7 +85,7 @@ async function runTest(
 
 // Test 1: Database Connection
 async function testDatabaseConnection() {
-  const { connectDB } = await import("./lib/db");
+  const { connectDB } = await import("../lib/db");
   const mongoose = await import("mongoose");
   
   await connectDB();
@@ -113,7 +113,7 @@ async function testDatabaseConnection() {
 
 // Test 2: HNSW Index Manager Initialization
 async function testHNSWIndexManager() {
-  const { getIndexManager } = await import("./lib/hnsw");
+  const { getIndexManager } = await import("../lib/hnsw");
   
   const indexManager = getIndexManager();
   console.log("✓ Index manager singleton created");
@@ -140,7 +140,7 @@ async function testHNSWIndexManager() {
 
 // Test 3: Insert and Search Test Vectors
 async function testVectorOperations() {
-  const { getIndexManager } = await import("./lib/hnsw");
+  const { getIndexManager } = await import("../lib/hnsw");
   const indexManager = getIndexManager();
   
   // Create test vectors (768 dimensions)
@@ -195,7 +195,7 @@ async function testVectorOperations() {
 // Test 4: Recommendation Cache
 async function testRecommendationCache() {
   const { getRecommendationCache, generateConfigHash, generateVectorHash } = 
-    await import("./lib/recommendation/cache");
+    await import("../lib/recommendation/cache");
   
   const cache = getRecommendationCache();
   console.log("✓ Cache instance created");
@@ -269,7 +269,7 @@ async function testRecommendationCache() {
 // Test 5: Strategy System
 async function testStrategySystem() {
   const { StrategyFactory, StrategyType } = 
-    await import("./lib/recommendation/strategies");
+    await import("../lib/recommendation/strategies");
   
   // Test factory
   const factory = StrategyFactory.getInstance();
@@ -303,7 +303,7 @@ async function testStrategySystem() {
 
 // Test 6: Check Internship Collection
 async function testInternshipCollection() {
-  const { connectDB } = await import("./lib/db");
+  const { connectDB } = await import("../lib/db");
   const mongoose = await import("mongoose");
   
   await connectDB();
@@ -342,7 +342,7 @@ async function testInternshipCollection() {
 
 // Test 7: Check User Collection
 async function testUserCollection() {
-  const { connectDB } = await import("./lib/db");
+  const { connectDB } = await import("../lib/db");
   const mongoose = await import("mongoose");
   
   await connectDB();
@@ -381,7 +381,7 @@ async function testUserCollection() {
 
 // Test 8: System Metrics
 async function testSystemMetrics() {
-  const { getSystemMetrics } = await import("./lib/recommendation/monitoring");
+  const { getSystemMetrics } = await import("../lib/recommendation/monitoring");
   
   const metrics = await getSystemMetrics();
   console.log("✓ System metrics retrieved:");

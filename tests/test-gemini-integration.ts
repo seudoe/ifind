@@ -4,8 +4,8 @@
  */
 
 import 'dotenv/config'; // Load .env file
-import geminiService from './lib/resume/geminiService';
-import { analyzeResume, extractSkills } from './lib/resume/resumeAnalyzer';
+import geminiService from '../lib/resume/geminiService';
+import { analyzeResume, extractSkills } from '../lib/resume/resumeAnalyzer';
 
 const SAMPLE_RESUME_TEXT = `
 John Doe

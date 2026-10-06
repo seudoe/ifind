@@ -42,7 +42,7 @@ async function runTest(name: string, testFn: () => Promise<string>): Promise<voi
 async function main() {
   // Test 1: Database Connection
   await runTest("Test 1: Database Connection & Data Verification", async () => {
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     
     await connectDB();
@@ -72,7 +72,7 @@ async function main() {
 
   // Test 2: HNSW Index Population
   await runTest("Test 2: Populate HNSW Index from Database", async () => {
-    const { rebuildInternshipIndex } = await import("./lib/internship-vectorizer");
+    const { rebuildInternshipIndex } = await import("../lib/internship-vectorizer");
     
     console.log("⏳ Rebuilding HNSW index from database internships...");
     const result = await rebuildInternshipIndex();
@@ -81,7 +81,7 @@ async function main() {
       throw new Error(`Failed to rebuild HNSW index: ${result.failed} failed`);
     }
     
-    const { getIndexManager } = await import("./lib/hnsw");
+    const { getIndexManager } = await import("../lib/hnsw");
     const indexManager = getIndexManager();
     const stats = indexManager.getStats();
     
@@ -95,7 +95,7 @@ async function main() {
 
   // Test 3: Cache Cleanup
   await runTest("Test 3: Cache Cleanup (Prepare for Fresh Test)", async () => {
-    const { getRecommendationCache } = await import("./lib/recommendation/cache");
+    const { getRecommendationCache } = await import("../lib/recommendation/cache");
     const cache = getRecommendationCache();
     
     // Clean up expired entries
@@ -110,7 +110,7 @@ async function main() {
 
   // Test 4: Cold Start - Generate Recommendations (Cache Miss)
   await runTest("Test 4: Cold Start - Generate Recommendations (No Cache)", async () => {
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     
     await connectDB();
@@ -131,13 +131,13 @@ async function main() {
     console.log(`✓ Found test user: ${testUser.name} (${userId})`);
     
     // Clear any existing cache for this user
-    const { getRecommendationCache } = await import("./lib/recommendation/cache");
+    const { getRecommendationCache } = await import("../lib/recommendation/cache");
     const cache = getRecommendationCache();
     await cache.invalidate(userId);
     console.log("✓ Cleared existing cache");
     
     // Generate recommendations (should be cache miss)
-    const { generateAndSaveRecommendations } = await import("./lib/recommendation");
+    const { generateAndSaveRecommendations } = await import("../lib/recommendation");
     
     const startTime = Date.now();
     const result = await generateAndSaveRecommendations(
@@ -172,7 +172,7 @@ async function main() {
 
   // Test 5: Warm Start - Cached Recommendations (Cache Hit)
   await runTest("Test 5: Warm Start - Retrieve from Cache (Cache Hit)", async () => {
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     
     await connectDB();
@@ -193,7 +193,7 @@ async function main() {
     console.log(`✓ Using test user: ${testUser.name}`);
     
     // Try to get recommendations (should be cache hit)
-    const { generateAndSaveRecommendations } = await import("./lib/recommendation");
+    const { generateAndSaveRecommendations } = await import("../lib/recommendation");
     
     const startTime = Date.now();
     const result = await generateAndSaveRecommendations(
@@ -226,7 +226,7 @@ async function main() {
 
   // Test 6: Cache Invalidation on Resume Change
   await runTest("Test 6: Cache Invalidation on Resume Update", async () => {
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     
     await connectDB();
@@ -245,7 +245,7 @@ async function main() {
     
     // Check cache before invalidation
     const { getRecommendationCache, generateConfigHash, generateVectorHash } = 
-      await import("./lib/recommendation/cache");
+      await import("../lib/recommendation/cache");
     const cache = getRecommendationCache();
     
     const configHash = generateConfigHash({ tfidfWeight: 0.4, bertWeight: 0.6, topN: 20, threshold: 0.1 });
@@ -276,7 +276,7 @@ async function main() {
 
   // Test 7: Batch Processing Test
   await runTest("Test 7: Batch Process Multiple Users", async () => {
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     
     await connectDB();
@@ -295,7 +295,7 @@ async function main() {
     
     console.log(`✓ Processing ${testUsers.length} users`);
     
-    const { generateAndSaveRecommendations } = await import("./lib/recommendation");
+    const { generateAndSaveRecommendations } = await import("../lib/recommendation");
     
     const startTime = Date.now();
     let successCount = 0;
@@ -323,7 +323,7 @@ async function main() {
 
   // Test 8: Strategy Comparison
   await runTest("Test 8: Compare HNSW vs BruteForce Performance", async () => {
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     
     await connectDB();
@@ -337,8 +337,8 @@ async function main() {
     
     if (!testUser) throw new Error("No test user found");
     
-    const { StrategyFactory, StrategyType } = await import("./lib/recommendation/strategies");
-    const { generateRecommendations } = await import("./lib/recommendation/engine");
+    const { StrategyFactory, StrategyType } = await import("../lib/recommendation/strategies");
+    const { generateRecommendations } = await import("../lib/recommendation/engine");
     
     const factory = StrategyFactory.getInstance();
     

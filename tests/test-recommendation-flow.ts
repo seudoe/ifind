@@ -34,7 +34,7 @@ async function main() {
   try {
     // Step 1: Connect to database
     console.log("\n📦 Step 1: Connecting to database...");
-    const { connectDB } = await import("./lib/db");
+    const { connectDB } = await import("../lib/db");
     const mongoose = await import("mongoose");
     await connectDB();
     const db = mongoose.default.connection.db;
@@ -77,7 +77,7 @@ async function main() {
     
     // Step 4: Test BruteForce strategy
     console.log("\n🔍 Step 4: Testing BruteForce Strategy...");
-    const { StrategyType, StrategyFactory } = await import("./lib/recommendation/strategies");
+    const { StrategyType, StrategyFactory } = await import("../lib/recommendation/strategies");
     const factory = StrategyFactory.getInstance();
     await factory.setConfig({ type: StrategyType.BRUTE_FORCE });
     
@@ -128,7 +128,7 @@ async function main() {
     
     // Step 6: Test full recommendation generation
     console.log("\n🎯 Step 6: Generating recommendations...");
-    const { generateRecommendations } = await import("./lib/recommendation/engine");
+    const { generateRecommendations } = await import("../lib/recommendation/engine");
     
     const startGen = Date.now();
     const result = await generateRecommendations({
@@ -157,12 +157,12 @@ async function main() {
     const userId = user._id.toString();
     
     // Clear cache first
-    const { invalidateUserCache } = await import("./lib/recommendation");
+    const { invalidateUserCache } = await import("../lib/recommendation");
     await invalidateUserCache(userId);
     console.log("✅ Cache cleared");
     
     // Generate with caching (first time - cache miss)
-    const { generateAndSaveRecommendations } = await import("./lib/recommendation");
+    const { generateAndSaveRecommendations } = await import("../lib/recommendation");
     const startCache1 = Date.now();
     await generateAndSaveRecommendations(
       userId,
