@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { AlertTriangle, BadgeCheck, Briefcase, Link2Off, LogOut, X } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Bell, Briefcase, Link2Off, LogOut, X } from "lucide-react";
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { NAV_GROUPS, findLink, type NavLink } from "@/lib/student-nav";
+import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
 import type { User as StudentUser } from "@/types";
 
 function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: StudentUser["linkedinDetails"] }) {
@@ -54,6 +54,20 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
   const [sheet, setSheet] = useState<{ group: string; at: string } | null>(null);
   const openGroup = sheet && sheet.at === pathname ? NAV_GROUPS.find((g) => g.key === sheet.group) : undefined;
 
+  const [unread, setUnread] = useState(0);
+  // Refresh the badge on navigation, when the notifications page changes it, and every 60 s
+  useEffect(() => {
+    const refresh = () =>
+      fetch("/api/user/notifications?countOnly=1", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => j && setUnread(j.data.unread))
+        .catch(() => {});
+    refresh();
+    window.addEventListener(NOTIFICATIONS_CHANGED, refresh);
+    const t = setInterval(refresh, 60_000);
+    return () => { window.removeEventListener(NOTIFICATIONS_CHANGED, refresh); clearInterval(t); };
+  }, [pathname]);
+
   const base = `/user/${username}`;
   const href = (l: NavLink) => `${base}/${l.path}`;
   const isActive = (l: NavLink) => pathname === href(l) || pathname.startsWith(`${href(l)}/`);
@@ -90,6 +104,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
                   {group.links.filter((l) => !l.hidden).map((l) => (
                     <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}>
                       <l.icon className="h-4 w-4" />{l.label}
+                      {l.path === "notifications" && unread > 0 && <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>}
                     </Link>
                   ))}
                 </div>
@@ -121,7 +136,13 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       {/* ── Top bar (small screens) ───────────────────────────────────────── */}
       <header className="lg:hidden sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
         <Logo />
-        <Link href={`${base}/profile`} aria-label="Profile"><Avatar src={user.profilePicture} name={user.name} size="sm" /></Link>
+        <div className="flex items-center gap-3">
+          <Link href={`${base}/notifications`} aria-label="Notifications" className="relative p-1.5 text-[var(--text-2)]">
+            <Bell className="h-5 w-5" />
+            {unread > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[var(--danger)] text-white text-[10px] leading-4 text-center">{unread > 99 ? "99+" : unread}</span>}
+          </Link>
+          <Link href={`${base}/profile`} aria-label="Profile"><Avatar src={user.profilePicture} name={user.name} size="sm" /></Link>
+        </div>
       </header>
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
@@ -143,7 +164,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
               <button onClick={() => setSheet(null)} aria-label="Close" className="p-1 text-[var(--text-3)]"><X className="h-4 w-4" /></button>
             </div>
             {openGroup.links.filter((l) => !l.hidden).map((l) => (
-              <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}><l.icon className="h-4 w-4" />{l.label}</Link>
+              <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}><l.icon className="h-4 w-4" />{l.label}{l.path === "notifications" && unread > 0 && <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>}</Link>
             ))}
             {openGroup.key === "system" && (
               <button onClick={handleLogout} className={cn(linkCls(false), "w-full text-[var(--danger)]")}><LogOut className="h-4 w-4" />Logout</button>

@@ -1,0 +1,67 @@
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import { connectDB } from "@/lib/db";
+import { StudentNotification as Notification } from "@/models/Notification";
+import type { AppNotification } from "@/types/employer";
+
+export const runtime = "nodejs";
+
+const fail = (error: string, status: number) => NextResponse.json({ success: false, error }, { status });
+
+async function studentId() {
+    const session = await getSession();
+    return session && mongoose.isValidObjectId(session.userId) ? new mongoose.Types.ObjectId(session.userId) : null;
+}
+
+/** `?countOnly=1` returns just the unread count (sidebar badge). */
+export async function GET(request: NextRequest) {
+    try {
+        const id = await studentId();
+        if (!id) return fail("Not authenticated", 401);
+        await connectDB();
+
+        const mine = { recipientType: "student" as const, recipientId: id };
+        const unread = await Notification.countDocuments({ ...mine, readAt: null });
+        if (request.nextUrl.searchParams.get("countOnly")) return NextResponse.json({ success: true, data: { unread } });
+
+        const rows = await Notification.find(mine).sort({ createdAt: -1 }).limit(100).lean();
+        const items: AppNotification[] = rows.map((n) => ({
+            _id: String(n._id),
+            recipientType: n.recipientType,
+            recipientId: String(n.recipientId),
+            type: n.type,
+            title: n.title,
+            body: n.body ?? null,
+            link: n.link ?? null,
+            companyId: n.companyId ? String(n.companyId) : null,
+            readAt: n.readAt?.toISOString() ?? null,
+            createdAt: n.createdAt.toISOString(),
+        }));
+        return NextResponse.json({ success: true, data: { items, unread } });
+    } catch (error) {
+        console.error("[user/notifications GET]", error);
+        return fail("Unable to load notifications", 500);
+    }
+}
+
+/** Body: { id } marks one read, { all: true } marks all read. */
+export async function PATCH(request: NextRequest) {
+    try {
+        const id = await studentId();
+        if (!id) return fail("Not authenticated", 401);
+        const body = await request.json().catch(() => ({}));
+
+        const filter: Record<string, unknown> = { recipientType: "student", recipientId: id, readAt: null };
+        if (body.all !== true) {
+            if (typeof body.id !== "string" || !mongoose.isValidObjectId(body.id)) return fail("id or all required", 400);
+            filter._id = body.id;
+        }
+        await connectDB();
+        await Notification.updateMany(filter, { $set: { readAt: new Date() } });
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("[user/notifications PATCH]", error);
+        return fail("Unable to update notifications", 500);
+    }
+}

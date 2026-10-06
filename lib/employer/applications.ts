@@ -184,7 +184,7 @@ async function syncStudent(applicationId: Id, to: ApplicationStatus) {
             type: "application_status",
             title: `${msg}: ${internship?.name ?? "an internship"}`,
             body: internship?.company ? `${internship.company} updated your application.` : undefined,
-            link: user?.username ? `/user/${user.username}` : undefined,
+            link: user?.username ? `/user/${user.username}/applied-internships/${a.internshipId}` : undefined,
             companyId: a.companyId,
         });
     } catch (err) {
