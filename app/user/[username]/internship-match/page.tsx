@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { JobMatchTab } from "@/components/dashboard/JobMatchTab";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
@@ -16,8 +15,8 @@ export default function JobMatchPage() {
   }
 
   return (
-    <DashboardShell activeTab="internship-match" user={data.user}>
+    <>
       <JobMatchTab />
-    </DashboardShell>
+    </>
   );
 }

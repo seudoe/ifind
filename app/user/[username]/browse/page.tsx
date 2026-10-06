@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { BrowseTab }      from "@/components/dashboard/BrowseTab";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
@@ -18,7 +17,7 @@ export default function BrowsePage() {
     );
   }
 
-  const mobileHeaderAction = (
+  const mobileFilterButton = (
     <button
       type="button"
       onClick={() => setMobileFilterOpen(true)}
@@ -31,17 +30,14 @@ export default function BrowsePage() {
   );
 
   return (
-    <DashboardShell
-      activeTab="browse"
-      user={data.user}
-      headerAction={mobileHeaderAction}
-    >
+    <>
+      <div className="lg:hidden flex justify-end mb-3">{mobileFilterButton}</div>
       <BrowseTab
         internships={data.browse}
         user={data.user}
         mobileFilterOpen={mobileFilterOpen}
         setMobileFilterOpen={setMobileFilterOpen}
       />
-    </DashboardShell>
+    </>
   );
 }
