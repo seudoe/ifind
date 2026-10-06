@@ -13,6 +13,7 @@
 - Stage 2: employer auth (lib/employerAuth.ts, /api/employer/auth/*), proxy guards, LinkedIn intent+state enforcement (fixes CSRF gap), login/register rewired. Verified via curl; LinkedIn browser flow pending user test.
 - Stage 3: EmployerShell (collapse+mobile drawer), CompanySidebar, InternshipTabs, (app) route group + server layouts, companies/profile/settings/notifications pages, profile/account/notifications APIs, lib/employer/access.ts (requireCompanyRole). Verified via curl on :3000.
 - Stage 4: company APIs (create/get/patch/delete, members add/role/remove with role matrix + >=1 owner), /api/employer/uploads (ImageKit; one shared route instead of per-company logo route), CompanyForm (multi-step create, single-page edit), overview/settings/team pages, notify() + slug helpers. Verified via curl: 2 companies, recruiter 403/404, owner rules.
+- Stage 5: internship APIs (list+aggregate counts, create/patch/delete, [action]=publish|pause|close|archive|duplicate), publish validation + moderation (no SCAM_DETECTOR_URL => pending_review; unverified never auto-approved), material edit resets moderation, lazy auto-close + notification, InternshipForm (autosave drafts, screening builder), internships table, overview/details/settings tabs. students-applied and company applicants are empty-state stubs until Stage 7. Env: optional SCAM_DETECTOR_URL.
 
 ## Next
-- Stage 5: post and manage internships.
+- Stage 6: moderator queue for employer posts.

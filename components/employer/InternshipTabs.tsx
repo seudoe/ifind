@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ModerationPill, StatusPill } from "@/components/employer/Pills";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import type { InternshipStatus } from "@/types/employer";
@@ -13,14 +14,6 @@ const TABS = [
     { label: "Students applied", segment: "students-applied" },
     { label: "Settings", segment: "settings" },
 ];
-
-const STATUS_VARIANT: Record<InternshipStatus, "secondary" | "success" | "warning" | "danger" | "outline"> = {
-    draft: "secondary", published: "success", paused: "warning", closed: "danger", archived: "outline",
-};
-const MOD_VARIANT: Record<Moderation["status"], "success" | "warning" | "danger"> = {
-    auto_approved: "success", manually_approved: "success", pending_review: "warning",
-    auto_rejected: "danger", manually_rejected: "danger",
-};
 
 interface Props {
     basePath: string;
@@ -39,8 +32,8 @@ export function InternshipTabs({ basePath, name, status, moderationStatus, appli
             </Link>
             <div className="mt-1 flex flex-wrap items-center gap-2">
                 <h1 className="text-lg font-bold text-[var(--text)] mr-1">{name}</h1>
-                <Badge variant={STATUS_VARIANT[status]} className="capitalize">{status}</Badge>
-                <Badge variant={MOD_VARIANT[moderationStatus]}>{moderationStatus.replace(/_/g, " ")}</Badge>
+                <StatusPill status={status} />
+                {status !== "draft" && <ModerationPill status={moderationStatus} />}
                 <Badge variant="outline">{applicantCount} applicant{applicantCount === 1 ? "" : "s"}</Badge>
             </div>
             <nav className="mt-4 flex gap-1 overflow-x-auto border-b border-[var(--border)]">
