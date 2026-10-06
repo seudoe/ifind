@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 import { notify } from "@/lib/employer/notify";
 import Application, { type IApplication } from "@/models/Application";
 import Company from "@/models/Company";
+import PlatformInternship from "@/models/PlatformInternship";
 import type { IPlatformInternship } from "@/models/PlatformInternship";
-import type { IUser } from "@/models/User";
+import User, { type IUser } from "@/models/User";
 import {
     APPLICATION_STATUSES, APPLICATION_TRANSITIONS,
     type ApplicantSummary, type ApplicationStatus,
@@ -147,5 +148,46 @@ export async function changeStatus(
         { _id: app._id, companyId, status: app.status },
         { $set: { status: to }, $push: { statusHistory: { status: to, changedBy: employerId, changedAt: new Date(), note: note || null } } },
     );
-    return res.modifiedCount ? { ok: true } : { ok: false, status: 409, error: "The application changed, refresh and try again" };
+    if (!res.modifiedCount) return { ok: false, status: 409, error: "The application changed, refresh and try again" };
+    await syncStudent(app._id, to);
+    return { ok: true };
+}
+
+/** Student-side enum on `user.appliedInternships[].status` for each pipeline status. */
+const STUDENT_STATUS: Partial<Record<ApplicationStatus, IUser["appliedInternships"][number]["status"]>> = {
+    applied: "applied", under_review: "applied", rejected: "rejected", hired: "selected",
+    shortlisted: "shortlisted", interview: "shortlisted", offered: "shortlisted",
+};
+const STUDENT_MESSAGE: Partial<Record<ApplicationStatus, string>> = {
+    shortlisted: "You've been shortlisted", interview: "You're invited to interview", offered: "You received an offer",
+    hired: "You've been selected", rejected: "Your application was not taken forward",
+};
+
+/** Mirrors a status change onto the student (their applied list) and tells them. Never throws. */
+async function syncStudent(applicationId: Id, to: ApplicationStatus) {
+    try {
+        const a = await Application.findById(applicationId).select("studentId internshipId companyId").lean();
+        if (!a) return;
+        const mapped = STUDENT_STATUS[to];
+        if (mapped) {
+            await User.updateOne({ _id: a.studentId, "appliedInternships.internshipId": a.internshipId }, { $set: { "appliedInternships.$.status": mapped } });
+        }
+        const msg = STUDENT_MESSAGE[to];
+        if (!msg) return;
+        const [internship, user] = await Promise.all([
+            PlatformInternship.findById(a.internshipId).select("name company").lean(),
+            User.findById(a.studentId).select("username").lean(),
+        ]);
+        await notify({
+            recipientType: "student",
+            recipientIds: [a.studentId],
+            type: "application_status",
+            title: `${msg}: ${internship?.name ?? "an internship"}`,
+            body: internship?.company ? `${internship.company} updated your application.` : undefined,
+            link: user?.username ? `/user/${user.username}` : undefined,
+            companyId: a.companyId,
+        });
+    } catch (err) {
+        console.error("[syncStudent]", err);
+    }
 }
