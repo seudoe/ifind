@@ -13,7 +13,7 @@ export const APPLICATION_STATUSES = [
 ] as const;
 export const NOTIFICATION_TYPES = [
     "new_application", "application_withdrawn", "internship_approved", "internship_rejected",
-    "internship_deadline", "company_verification", "company_member_added", "system",
+    "internship_deadline", "application_status", "company_verification", "company_member_added", "system",
 ] as const;
 export const RECIPIENT_TYPES = ["student", "employer", "moderator"] as const;
 

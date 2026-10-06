@@ -71,7 +71,7 @@ Employer posts go through the same pipeline as scraped ones (diagram: `internScr
 /employer/login, /employer/register         public
 /employer/companies | companies/new | profile | settings | notifications     (global shell)
 /employer/company/[companyId]/{overview, internships, post-new-internship, applicants, team, settings}
-/employer/company/[companyId]/internships/[internshipId]/{overview, internship-details, students-applied, settings}
+/employer/company/[companyId]/internships/[internshipId]/{applicants, internship-details, overview, settings} (the bare internship URL redirects to the most useful tab; `students-applied` redirects to `applicants`)
 ```
 Layouts: `app/employer/(app)/layout.tsx` (account check + `EmployerShell`), `company/[companyId]/layout.tsx` (membership check + `CompanySidebar`), `internships/[internshipId]/layout.tsx` (`InternshipTabs`). The global sidebar collapses to icons inside a company; below 768px both sidebars are drawers.
 
@@ -127,13 +127,14 @@ Cross-company access is always 404 (company id is part of every child query). Th
 - Moderator: `InternshipsPanel`, `ModerationQueueCard`, `types/moderator.ts`, `app/api/moderator/internships/route.ts` and `[id]/route.ts` (employer source only).
 - `components/auth/LinkedInButton.tsx`: optional `as` prop.
 
-## 11. Student-side seams (not built)
+## 11. Student side (built in PROMPT-recruitment)
 
-1. **Feed.** `app/api/user/dashboard/route.ts` (line ~39) reads `db.collection("internships")` only. Either union it with `PlatformInternship.find(visibleToStudentsFilter())` (`lib/employer/visibility.ts`), or push approved platform internships through `lib/internship-vectorizer.ts` into the HNSW graph (they would need `tfidf_vector`/`bert_vector`; the platform schema has none yet). Decide then. `applyLink: null` marks "apply on iFind"; `components/internships/InternshipCard.tsx` / `InternshipDetail.tsx` assume a link.
-2. **Apply API** (new, e.g. `app/api/user/applications/route.ts`). Call `createApplication(internship, user, { coverLetter, answers })` from `lib/employer/applications.ts`: it checks `status === "published"` and `maxApplications`, snapshots the resume (`buildResumeSnapshot`), computes `matchScore`, inserts the `Application` and notifies every company member (`notify()`). Still to add around it: re-check `visibleToStudentsFilter()`, validate `answers` against `screeningQuestions` (required ones, types, option membership), enforce `requireResume` / `requireCoverLetter`, return 409 on the unique-index duplicate, and extend `User.appliedInternships` for platform listings (`IAppliedInternship` in `models/User.ts`, read by `app/api/user/dashboard/route.ts` and `components/dashboard/BrowseTab.tsx`).
-3. **Student-visible status + withdraw.** Map `ApplicationStatus` for students (e.g. `under_review`/`shortlisted`/`interview` -> "In progress"; never expose `notes`, `rating` or `statusHistory.changedBy`). Use a student-specific DTO: do not reuse `EmployerApplication` / `ApplicantSummary` (`types/employer.ts`). Withdraw = set `status: "withdrawn"` (append history, `changedBy: null`) and `notify({ type: "application_withdrawn", ... })` to the company.
-4. **Student notifications.** `notifications.student` exists and `notify({ recipientType: "student", ... })` already routes to it; add a student bell/page.
-5. **Match score.** `computeMatchScore()` is skill overlap. Once platform internships have vectors, use `lib/recommendation/scoring.ts:computeSimilarityScore` when both sides have vectors.
+1. **Feed.** `GET /api/user/dashboard` merges scraped listings with `visibleToStudentsFilter()` posts via `toStudentInternship()` (`lib/employer/visibility.ts`): `source: "ifind"`, `applyLink: ""`, `companyLogo`, `requireResume`, `requireCoverLetter`, `screeningQuestions`; no vectors or moderation data. Saved / recommended / applied lookups search both collections.
+2. **Browse UI.** Source filter (`filters.sources`, `SOURCE_LABELS` in `lib/constants.ts`), green `StipendBadge` for paid, `ApplyButton` (`Apply on {Source}` for scraped, `Apply` for iFind, with `ApplyDialog` behaviour for cover letter / screening questions), no source-site link buttons.
+3. **APIs.** `POST|DELETE /api/internships/[id]/save`; `POST /api/internships/[id]/apply`. Scraped id: recorded on `user.appliedInternships`. iFind id: re-checks visibility, `requireResume`, `requireCoverLetter`, answers (`lib/employer/screening.ts`), then `createApplication()` (409 on duplicate) and records it on the user.
+4. **Status loop.** `changeStatus()` mirrors the pipeline status onto `user.appliedInternships[].status` (shortlisted/interview/offered -> shortlisted, hired -> selected, rejected -> rejected) and writes a `notifications.student` row (`application_status`) except for `under_review`.
+
+Still open: a student bell/page for `notifications.student`; withdraw (`status: "withdrawn"` + `application_withdrawn` to the company); a student-facing status timeline (never expose `notes`, `rating`, `statusHistory.changedBy`; do not reuse `EmployerApplication`); vector-based `matchScore` (`computeMatchScore()` is skill overlap); employer posts are not in the HNSW graph, so they never appear in recommendations.
 
 ## 12. Known gaps
 
