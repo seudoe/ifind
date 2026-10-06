@@ -14,6 +14,7 @@ const DEFAULT_FILTERS: InternshipFilters = {
   skills: [],
   companies: [],
   perks: [],
+  sources: [],
   sortBy: "latest",
 };
 

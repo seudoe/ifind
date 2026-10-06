@@ -64,7 +64,14 @@ export function BrowseTab({
     filters.durationMin > 1 || filters.durationMax < 12,
     filters.skills.length > 0,
     filters.perks.length > 0,
+    filters.sources.length > 0,
   ].filter(Boolean).length;
+
+  const sourceCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of internships) counts[item.source] = (counts[item.source] ?? 0) + 1;
+    return counts;
+  }, [internships]);
 
   const results = useMemo(() => {
     let list = [...internships];
@@ -77,6 +84,11 @@ export function BrowseTab({
           .filter(Boolean)
           .some((val) => String(val).toLowerCase().includes(term))
       );
+    }
+
+    // Source filter (legacy "web_scraping" documents match no specific source)
+    if (filters.sources.length > 0) {
+      list = list.filter((item) => filters.sources.includes(item.source));
     }
 
     // Stipend type filter
@@ -202,6 +214,7 @@ export function BrowseTab({
             onAddSkill={addSkill}
             onRemoveSkill={removeSkill}
             userSkills={user?.skills ?? []}
+            sourceCounts={sourceCounts}
           />
         </div>
       </aside>
@@ -233,6 +246,7 @@ export function BrowseTab({
               onAddSkill={addSkill}
               onRemoveSkill={removeSkill}
               userSkills={user?.skills ?? []}
+              sourceCounts={sourceCounts}
             />
           </div>
         </div>
