@@ -1,5 +1,5 @@
 import type mongoose from "mongoose";
-import Notification from "@/models/Notification";
+import { notificationModel } from "@/models/Notification";
 import type { NotificationType, RecipientType } from "@/types/employer";
 
 interface NotifyInput {
@@ -16,7 +16,7 @@ interface NotifyInput {
 export async function notify({ recipientIds, ...rest }: NotifyInput): Promise<void> {
     if (!recipientIds.length) return;
     try {
-        await Notification.insertMany([...new Set(recipientIds.map(String))].map((id) => ({ ...rest, recipientId: id })));
+        await notificationModel(rest.recipientType).insertMany([...new Set(recipientIds.map(String))].map((id) => ({ ...rest, recipientId: id })));
     } catch (err) {
         console.error("[notify]", err);
     }

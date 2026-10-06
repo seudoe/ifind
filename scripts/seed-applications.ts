@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { createApplication } from "../lib/employer/applications";
 import Application from "../models/Application";
-import Notification from "../models/Notification";
+import { EmployerNotification } from "../models/Notification";
 import PlatformInternship from "../models/PlatformInternship";
 import User from "../models/User";
 
@@ -32,7 +32,7 @@ async function main() {
     try {
         if (clean) {
             const a = await Application.deleteMany({ internshipId, "statusHistory.0.note": SEED_NOTE });
-            const n = await Notification.deleteMany({ type: "new_application", link: new RegExp(`/internships/${internshipId}/`) });
+            const n = await EmployerNotification.deleteMany({ type: "new_application", link: new RegExp(`/internships/${internshipId}/`) });
             console.log(`Removed ${a.deletedCount} seeded applications and ${n.deletedCount} notifications`);
             return;
         }
