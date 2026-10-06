@@ -1,209 +1,168 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard, Search, FileText, Bookmark, User,
-  Settings, Briefcase, LogOut, AlertTriangle, BadgeCheck, Link2Off,
-  Target, MessageSquare, Sparkles,
-} from "lucide-react";
+import { AlertTriangle, BadgeCheck, Briefcase, Link2Off, LogOut, X } from "lucide-react";
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { FloatingChatButton } from "@/components/dashboard/FloatingChatButton";
+import { NAV_GROUPS, findLink, type NavLink } from "@/lib/student-nav";
 import type { User as StudentUser } from "@/types";
-
-// ── Nav definition ────────────────────────────────────────────────────────
-const NAV = [
-  { tab: "overview", label: "Overview", icon: LayoutDashboard },
-  { tab: "browse",   label: "Browse",   icon: Search },
-  { tab: "resume",   label: "Resume Analyzer",   icon: FileText },
-  { tab: "career", label: "Career Assistant", icon: Sparkles },
-  { tab: "saved",    label: "Saved",    icon: Bookmark },
-  { tab: "profile",  label: "Profile",  icon: User },
-  { tab: "settings", label: "Settings", icon: Settings },
-];
-
-// ── Mock user ──────────────────────────────────────────────────────────────
-const MOCK = {
-  name: "Rahul Sharma",
-  username: "rahulsharma",
-  profilePicture: null as string | null,
-  profileCompletionScore: 35,
-};
 
 function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: StudentUser["linkedinDetails"] }) {
   if (!linkedinDetails) {
-    // State C: Not connected through LinkedIn
     return (
-      <span
-        title="User is not connected through LinkedIn"
-        className="inline-flex items-center text-gray-400 hover:text-gray-500 transition-colors"
-      >
+      <span title="User is not connected through LinkedIn" className="inline-flex items-center text-gray-400 hover:text-gray-500 transition-colors">
         <Link2Off className="h-3.5 w-3.5" />
       </span>
     );
   }
-
   if (linkedinDetails.email_verified) {
-    // State A: User is LinkedIn verified
     return (
-      <span
-        title="User is LinkedIn verified"
-        className="inline-flex items-center text-[#0a66c2] hover:opacity-85 transition-opacity"
-      >
+      <span title="User is LinkedIn verified" className="inline-flex items-center text-[#0a66c2] hover:opacity-85 transition-opacity">
         <BadgeCheck className="h-4 w-4 fill-[#0a66c2]/10" />
       </span>
     );
   }
-
-  // State B: Connected but NOT verified on LinkedIn -> Show yellow danger triangle!
   return (
-    <span
-      title="User is not verified on LinkedIn"
-      className="inline-flex items-center text-amber-500 hover:text-amber-600 transition-colors animate-pulse"
-    >
+    <span title="User is not verified on LinkedIn" className="inline-flex items-center text-amber-500 hover:text-amber-600 transition-colors animate-pulse">
       <AlertTriangle className="h-4 w-4 fill-amber-100" />
     </span>
   );
 }
 
-interface Props {
-  children: React.ReactNode;
-  user: StudentUser;
-  maxWidthClass?: string;
+function Logo() {
+  return (
+    <Link href="/user" className="flex items-center gap-2 shrink-0">
+      <div className="h-8 w-8 rounded-[var(--radius-sm)] bg-[var(--primary)] flex items-center justify-center">
+        <Briefcase className="h-4 w-4 text-white" />
+      </div>
+      <span className="text-base font-bold text-[var(--text)]">
+        i<span className="text-[var(--primary)]">Find</span>
+      </span>
+    </Link>
+  );
 }
 
-export function StudentShell({ children, user, maxWidthClass = "max-w-6xl" }: Props) {
+export function StudentShell({ children, user }: { children: React.ReactNode; user: StudentUser }) {
   const params   = useParams();
   const router   = useRouter();
   const pathname = usePathname();
   const username = params?.username as string;
-  const currentUser = user;
-  const activeTab = pathname.split("/")[3] ?? "overview";
+  // The sheet is open only for the path it was opened on, so navigating closes it
+  const [sheet, setSheet] = useState<{ group: string; at: string } | null>(null);
+  const openGroup = sheet && sheet.at === pathname ? NAV_GROUPS.find((g) => g.key === sheet.group) : undefined;
 
-  const href = (tab: string) =>
-    tab === "profile"
-      ? `/user/${username}/profile`
-      : `/user/${username}/${tab}`;
+  const base = `/user/${username}`;
+  const href = (l: NavLink) => `${base}/${l.path}`;
+  const isActive = (l: NavLink) => pathname === href(l) || pathname.startsWith(`${href(l)}/`);
+  const current = findLink(pathname);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     router.push("/user");
   };
 
-  const TAB_TITLES: Record<string, string> = {
-    overview: "Overview",
-    browse:   "Browse Internships",
-    resume:   "Resume Analyzer",
-    "internship-match": "Internship Match",
-    career: "Career Assistant",
-    saved:    "Saved",
-    profile:  "My Profile",
-    settings: "Settings",
-  };
-
-  const linkedinDetails = currentUser.linkedinDetails;
+  const linkCls = (active: boolean) =>
+    cn(
+      "flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-colors",
+      active ? "bg-[var(--primary-bg)] text-[var(--primary)]" : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
+    );
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] flex flex-col">
+    <div className="min-h-screen bg-[var(--bg)]">
 
-      {/* ── Top Navbar ───────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
-        <div className={`${maxWidthClass} mx-auto px-4 sm:px-6 lg:px-8`}>
-          <div className="flex items-center h-14 gap-4">
+      {/* ── Sidebar (large screens) ───────────────────────────────────────── */}
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-60 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
+        <div className="px-4 h-14 flex items-center shrink-0"><Logo /></div>
 
-            {/* Logo */}
-            <Link href="/user" className="flex items-center gap-2 shrink-0 mr-2">
-              <div className="h-7 w-7 rounded-[var(--radius-sm)] bg-[var(--primary)] flex items-center justify-center">
-                <Briefcase className="h-3.5 w-3.5 text-white" />
-              </div>
-              <span className="text-base font-bold text-[var(--text)]">
-                i<span className="text-[var(--primary)]">Find</span>
-              </span>
-            </Link>
-
-            {/* Desktop nav */}
-            <nav className="hidden md:flex items-center gap-0.5 flex-1">
-              {NAV.map(({ tab, label, icon: Icon }) => {
-                const active = activeTab === tab;
-                return (
-                  <Link
-                    key={tab}
-                    href={href(tab)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-sm)] text-[15px] font-medium transition-all duration-[var(--transition)] relative",
-                      active
-                        ? "bg-[var(--primary-bg)] text-[var(--primary)]"
-                        : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                    {active && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4/5 rounded-full bg-[var(--primary)]" />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* User + logout */}
-            <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
-              <div className="flex items-center gap-2 text-sm text-[var(--text-3)]">
-                <span>{currentUser.profileCompletionScore}%</span>
-                <div className="w-16"><ProgressBar value={currentUser.profileCompletionScore} /></div>
-              </div>
-              <Link
-                href={href("profile")}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors"
-              >
-                <Avatar src={currentUser.profilePicture} name={currentUser.name} size="xs" />
-                <span className="text-[15px] font-medium text-[var(--text)] max-w-[100px] truncate">{currentUser.name}</span>
-                <LinkedInStatusIndicator linkedinDetails={linkedinDetails} />
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
+          {NAV_GROUPS.map((group) =>
+            group.links.length === 1 ? (
+              <Link key={group.key} href={href(group.links[0])} className={linkCls(isActive(group.links[0]))}>
+                <group.icon className="h-4 w-4" />{group.label}
               </Link>
-              <button
-                onClick={handleLogout}
-                title="Logout"
-                className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
-              >
-                <LogOut className="h-4.5 w-4.5" />
-              </button>
+            ) : (
+              <div key={group.key}>
+                <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-3)]">{group.label}</p>
+                <div className="space-y-0.5">
+                  {group.links.filter((l) => !l.hidden).map((l) => (
+                    <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}>
+                      <l.icon className="h-4 w-4" />{l.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ),
+          )}
+        </nav>
+
+        <div className="shrink-0 border-t border-[var(--border)] p-3 space-y-3">
+          <div className="px-1">
+            <div className="flex items-center justify-between text-xs text-[var(--text-3)] mb-1">
+              <span>Profile completion</span><span>{user.profileCompletionScore}%</span>
             </div>
+            <ProgressBar value={user.profileCompletionScore} />
+          </div>
+          <div className="flex items-center gap-1">
+            <Link href={`${base}/profile`} className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors">
+              <Avatar src={user.profilePicture} name={user.name} size="xs" />
+              <span className="text-sm font-medium text-[var(--text)] truncate">{user.name}</span>
+              <LinkedInStatusIndicator linkedinDetails={user.linkedinDetails} />
+            </Link>
+            <button onClick={handleLogout} title="Logout" className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors">
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
+      </aside>
+
+      {/* ── Top bar (small screens) ───────────────────────────────────────── */}
+      <header className="lg:hidden sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
+        <Logo />
+        <Link href={`${base}/profile`} aria-label="Profile"><Avatar src={user.profilePicture} name={user.name} size="sm" /></Link>
       </header>
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
-      <main className={`flex-1 ${maxWidthClass} mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6`}>
-        <h1 className="text-xl font-semibold text-[var(--text)] mb-6">
-          {TAB_TITLES[activeTab] ?? "Dashboard"}
-        </h1>
-        {children}
-      </main>
+      <div className="lg:pl-60">
+        <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+          <h1 className="text-xl font-semibold text-[var(--text)] mb-6">
+            {current ? (current.link.title ?? current.link.label) : "Dashboard"}
+          </h1>
+          {children}
+        </main>
+      </div>
 
-      {/* ── Mobile bottom nav ─────────────────────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] flex">
-        {NAV.filter((n) => n.tab !== "settings").map(({ tab, label, icon: Icon }) => {
-          const active = activeTab === tab;
-          return (
-            <Link
-              key={tab}
-              href={href(tab)}
-              className={cn(
-                "flex-1 flex flex-col items-center py-2.5 text-[11px] font-medium transition-colors gap-1",
-                active ? "text-[var(--primary)]" : "text-[var(--text-3)]"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
+      {/* ── Bottom bar + group sheet (small screens) ─────────────────────── */}
+      {openGroup && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setSheet(null)}>
+          <div className="absolute inset-x-0 bottom-14 rounded-t-2xl bg-[var(--surface)] p-3 shadow-[var(--shadow-lg)]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-2 pb-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{openGroup.label}</p>
+              <button onClick={() => setSheet(null)} aria-label="Close" className="p-1 text-[var(--text-3)]"><X className="h-4 w-4" /></button>
+            </div>
+            {openGroup.links.filter((l) => !l.hidden).map((l) => (
+              <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}><l.icon className="h-4 w-4" />{l.label}</Link>
+            ))}
+            {openGroup.key === "system" && (
+              <button onClick={handleLogout} className={cn(linkCls(false), "w-full text-[var(--danger)]")}><LogOut className="h-4 w-4" />Logout</button>
+            )}
+          </div>
+        </div>
+      )}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 h-14 flex bg-[var(--surface)] border-t border-[var(--border)]">
+        {NAV_GROUPS.map((group) => {
+          const active = current?.group.key === group.key;
+          const cls = cn("flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors", active ? "text-[var(--primary)]" : "text-[var(--text-3)]");
+          const inner = <><group.icon className="h-5 w-5" />{group.label}</>;
+          return group.links.length === 1 ? (
+            <Link key={group.key} href={href(group.links[0])} className={cls}>{inner}</Link>
+          ) : (
+            <button key={group.key} onClick={() => setSheet(openGroup?.key === group.key ? null : { group: group.key, at: pathname })} className={cls}>{inner}</button>
           );
         })}
       </nav>
-
-      {/* ── Floating Chat Button (LinkedIn-style) ─────────────────────────── */}
-      <FloatingChatButton />
     </div>
   );
 }
