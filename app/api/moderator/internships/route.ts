@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import Internship, { StagedInternship } from "@/models/Internship";
+import Company from "@/models/Company";
+import PlatformInternship from "@/models/PlatformInternship";
 
 export const runtime = "nodejs";
 
@@ -54,6 +56,39 @@ export async function GET(request: NextRequest) {
         await connectDB();
 
         const skip = (page - 1) * limit;
+
+        // Employer-posted listings live in their own collection; drafts are never moderated
+        if (searchParams.get("source") === "employer") {
+            query.status = { $ne: "draft" };
+            const [total, rows] = await Promise.all([
+                PlatformInternship.countDocuments(query),
+                PlatformInternship.find(query)
+                    .select("name company companyId applyLink datePublished source moderation summary skills createdAt")
+                    .sort({ datePublished: 1 }) // oldest first: fair review order
+                    .skip(skip)
+                    .limit(limit)
+                    .lean(),
+            ]);
+            const companies = await Company.find({ _id: { $in: rows.map((r) => r.companyId) } }).select("verification.status").lean();
+            const data = rows.map((r) => ({
+                _id: r._id,
+                name: r.name,
+                company: r.company,
+                applyLink: r.applyLink ?? null,
+                datePublished: r.datePublished,
+                source: "employer",
+                moderation: r.moderation,
+                createdAt: r.createdAt,
+                priority: 0,
+                employer: {
+                    companyVerified: companies.find((c) => String(c._id) === String(r.companyId))?.verification?.status === "verified",
+                    summary: (r.summary ?? "").slice(0, 400),
+                    skills: r.skills ?? [],
+                },
+            }));
+            return NextResponse.json({ success: true, data, total, page, limit, totalPages: Math.ceil(total / limit) });
+        }
+
         const Model = PUBLISHED_STATUSES.includes(status) ? Internship : StagedInternship;
 
         const [total, results] = await Promise.all([

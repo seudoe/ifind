@@ -8,13 +8,16 @@ export interface ModerationQueueItem {
     _id: string;
     name: string;
     company: string;
-    applyLink: string;
+    /** null for employer-posted listings (applications happen on iFind) */
+    applyLink: string | null;
     datePublished: string;
     source: string;
     moderation: Moderation;
     linkVerification?: LinkVerification;
     createdAt: string;
     priority: number;
+    /** Employer-posted listings only */
+    employer?: { companyVerified: boolean; summary: string; skills: string[] };
 }
 
 export interface UserSummary {

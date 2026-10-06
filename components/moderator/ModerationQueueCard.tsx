@@ -76,6 +76,7 @@ export function ModerationQueueCard({
         datePublished,
         moderation,
         linkVerification,
+        employer,
     } = item;
 
     const formattedDate = datePublished
@@ -103,18 +104,31 @@ export function ModerationQueueCard({
 
             {/* Meta row: apply link + date */}
             <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-3)]">
-                <a
-                    href={applyLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
-                >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Apply Link
-                </a>
+                {employer ? (
+                    <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium border", employer.companyVerified ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
+                        Employer-posted · {employer.companyVerified ? "verified company" : "unverified company"}
+                    </span>
+                ) : (
+                    <a
+                        href={applyLink ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"
+                    >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Apply Link
+                    </a>
+                )}
                 <span>Published: {formattedDate}</span>
-                <LinkStatus reachable={linkVerification?.reachable} />
+                {!employer && <LinkStatus reachable={linkVerification?.reachable} />}
             </div>
+
+            {employer && (
+                <div className="text-xs text-[var(--text-2)] bg-[var(--surface-2)] rounded-[var(--radius-sm)] px-3 py-2 border border-[var(--border)] space-y-1">
+                    <p className="whitespace-pre-line">{employer.summary || "No description"}</p>
+                    {employer.skills.length > 0 && <p className="text-[var(--text-3)]">Skills: {employer.skills.join(", ")}</p>}
+                </div>
+            )}
 
             {/* Moderation flags */}
             {moderation.flags && moderation.flags.length > 0 && (
