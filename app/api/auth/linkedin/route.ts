@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
   const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `${origin}/api/auth/linkedin/callback`;
 
   // Generate state token for CSRF protection
-  const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const state = crypto.randomUUID();
+  const intent = request.nextUrl.searchParams.get("as") === "employer" ? "employer" : "student";
 
   const scope = process.env.LINKEDIN_SCOPE || "openid profile email";
 
@@ -37,6 +38,14 @@ export async function GET(request: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 10, // 10 minutes
+    path: "/",
+  });
+  // Which account type this login is for; read by the callback
+  response.cookies.set("linkedin_oauth_intent", intent, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 10,
     path: "/",
   });
 
