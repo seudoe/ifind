@@ -160,8 +160,8 @@ export interface PlatformInternship {
     ppoAvailable: boolean;
     certificate: boolean;
     whoCanApply?: string | null;
-    stipend: Stipend;
-    duration: Duration;
+    stipend?: Stipend | null;
+    duration?: Duration | null;
     skills: string[];
     degree?: string[] | null;
     field?: string[] | null;

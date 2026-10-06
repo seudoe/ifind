@@ -15,7 +15,10 @@ export interface IScreeningQuestion {
 }
 
 export interface IPlatformInternship
-    extends Omit<IInternship, "applyLink" | "datePublished" | "tfidf_vector" | "bert_vector"> {
+    extends Omit<IInternship, "applyLink" | "datePublished" | "stipend" | "duration" | "tfidf_vector" | "bert_vector"> {
+    // Optional while a draft; the publish step requires them
+    stipend?: IInternship["stipend"];
+    duration?: IInternship["duration"];
     applyLink: string | null;
     datePublished?: Date | null;
     companyId: mongoose.Types.ObjectId;
@@ -54,6 +57,10 @@ const PlatformInternshipSchema = new Schema<IPlatformInternship>(
         ...listingFields,
         applyLink: { type: String, default: null, trim: true },
         datePublished: { type: Date, default: null },
+        // Drafts may be saved with only a title; completeness is enforced at publish time
+        stipend: { ...listingFields.stipend, required: false },
+        duration: { ...listingFields.duration, required: false },
+        summary: { type: String, default: "" },
         companyId: { type: Schema.Types.ObjectId, ref: "Company", required: true, index: true },
         postedBy: { type: Schema.Types.ObjectId, ref: "Employer", required: true },
         status: { type: String, enum: INTERNSHIP_STATUSES, default: "draft" },
