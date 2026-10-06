@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
+import { EMP_COOKIE_NAME, empAuthCookie, signEmpToken, verifyEmpToken } from "@/lib/employerAuth";
 import Employer from "@/models/Employer";
 import User from "@/models/User";
 
@@ -24,8 +24,10 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
   const errorParam = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
-  const isEmployer = request.cookies.get("linkedin_oauth_intent")?.value === "employer";
-  const loginPath = isEmployer ? "/employer/login" : "/user/login";
+  const intent = request.cookies.get("linkedin_oauth_intent")?.value;
+  const isLink = intent === "employer-link";
+  const isEmployer = intent === "employer" || isLink;
+  const loginPath = isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
 
   if (errorParam) {
     console.error("[auth/linkedin/callback] LinkedIn returned error:", errorParam, errorDescription);
@@ -101,6 +103,22 @@ export async function GET(request: NextRequest) {
     const profilePicture = profile.picture || null;
 
     await connectDB();
+
+    if (isLink) {
+      // Logged-in employer linking LinkedIn from settings
+      const token = request.cookies.get(EMP_COOKIE_NAME)?.value;
+      const emp = token ? verifyEmpToken(token) : null;
+      if (!emp) return NextResponse.redirect(`${origin}/employer/login`);
+      const clash = await Employer.exists({ linkedinId: profile.sub, _id: { $ne: emp.employerId } });
+      if (clash) {
+        return NextResponse.redirect(`${origin}/employer/settings?error=${encodeURIComponent("This LinkedIn account is already linked to another employer")}`);
+      }
+      await Employer.updateOne({ _id: emp.employerId }, { $set: { linkedinId: profile.sub, linkedinDetails: profile } });
+      const linkRes = NextResponse.redirect(`${origin}/employer/settings?linked=1`);
+      linkRes.cookies.delete("linkedin_oauth_state");
+      linkRes.cookies.delete("linkedin_oauth_intent");
+      return linkRes;
+    }
 
     if (isEmployer) {
       let employer = await Employer.findOne({
