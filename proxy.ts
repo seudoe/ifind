@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyModToken } from "@/lib/moderatorAuth";
+import { verifyEmpToken } from "@/lib/employerAuth";
 
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -68,9 +69,35 @@ export function proxy(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // ── Employer pages (public: login, register; landing is /employer exactly) ──
+    if (pathname.startsWith("/employer/")) {
+        const isPublic = pathname === "/employer/login" || pathname === "/employer/register";
+        if (!isPublic) {
+            const token = request.cookies.get("ifind_emp_token")?.value;
+            if (!token || !verifyEmpToken(token)) {
+                return NextResponse.redirect(new URL("/employer/login", request.url));
+            }
+        }
+        return NextResponse.next();
+    }
+
+    // ── Employer API (auth routes are public) ──
+    if (pathname.startsWith("/api/employer/") && !pathname.startsWith("/api/employer/auth/")) {
+        const token = request.cookies.get("ifind_emp_token")?.value;
+        if (!token || !verifyEmpToken(token)) {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+        return NextResponse.next();
+    }
+
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/moderator/:path*", "/api/moderator/((?!auth/).*)"],
+    matcher: [
+        "/moderator/:path*",
+        "/api/moderator/((?!auth/).*)",
+        "/employer/:path*",
+        "/api/employer/((?!auth/).*)",
+    ],
 };

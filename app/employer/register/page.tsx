@@ -10,13 +10,13 @@ import { Eye, EyeOff, ArrowRight, Check, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input }  from "@/components/ui/Input";
 import { toast }  from "sonner";
+import { LinkedInButton } from "@/components/auth/LinkedInButton";
 
 const schema = z.object({
-  companyName: z.string().min(2, "Company name required"),
-  username:    z.string().min(3).max(30).regex(/^[a-z0-9_-]+$/, "Lowercase, numbers, hyphens only"),
+  name:        z.string().min(2, "Name required").max(100),
+  designation: z.string().max(80).optional(),
   email:       z.string().email("Valid email required"),
   password:    z.string().min(8).regex(/[A-Z]/, "Needs uppercase").regex(/[0-9]/, "Needs number"),
-  website:     z.string().url("Enter a valid URL").optional().or(z.literal("")),
 });
 type Form = z.infer<typeof schema>;
 
@@ -32,16 +32,16 @@ export default function EmployerRegisterPage() {
 
   const onSubmit = async (data: Form) => {
     try {
-      const res  = await fetch("/api/auth/register", {
+      const res  = await fetch("/api/employer/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, role: "employer" }),
+        body: JSON.stringify(data),
         credentials: "include",
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Registration failed");
-      toast.success("Company account created!");
-      router.push(`/employer/${data.username}/dashboard`);
+      toast.success("Account created!");
+      router.push("/employer/companies");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed");
     }
@@ -64,10 +64,9 @@ export default function EmployerRegisterPage() {
 
         <div className="plasma-card p-6">
           <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-3">
-            <Input label="Company Name"      placeholder="Acme Corp"           {...register("companyName")} error={errors.companyName?.message} />
-            <Input label="Handle / Username" placeholder="acmecorp"            {...register("username")}    error={errors.username?.message}    autoComplete="username" />
+            <Input label="Your Name"        placeholder="Jane Doe"            {...register("name")} error={errors.name?.message} autoComplete="name" />
+            <Input label="Designation (optional)" placeholder="HR Manager"     {...register("designation")} error={errors.designation?.message} />
             <Input label="Work Email"        placeholder="hr@acmecorp.com"     type="email" {...register("email")} error={errors.email?.message} autoComplete="email" />
-            <Input label="Website (optional)" placeholder="https://acmecorp.com" {...register("website")} error={errors.website?.message} />
 
             <div>
               <Input
@@ -99,6 +98,10 @@ export default function EmployerRegisterPage() {
               Create Account <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </form>
+          <div className="flex items-center gap-3 my-4 text-xs text-[var(--text-3)]">
+            <span className="h-px flex-1 bg-[var(--border)]" />or<span className="h-px flex-1 bg-[var(--border)]" />
+          </div>
+          <LinkedInButton as="employer" text="Sign up with LinkedIn" />
 
           <p className="text-xs text-[var(--text-3)] text-center mt-4">
             By registering you agree to our{" "}

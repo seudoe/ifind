@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,15 +10,20 @@ import { Eye, EyeOff, ArrowRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input }  from "@/components/ui/Input";
 import { toast }  from "sonner";
+import { LinkedInButton } from "@/components/auth/LinkedInButton";
 
 const schema = z.object({
-  identifier: z.string().min(1, "Email is required"),
+  email:      z.string().min(1, "Email is required"),
   password:   z.string().min(1, "Password is required"),
 });
 type Form = z.infer<typeof schema>;
 
 export default function EmployerLoginPage() {
   const router = useRouter();
+  useEffect(() => {
+    const err = new URLSearchParams(window.location.search).get("error");
+    if (err) toast.error(err);
+  }, []);
   const [showPw, setShowPw] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
@@ -26,16 +31,16 @@ export default function EmployerLoginPage() {
 
   const onSubmit = async (data: Form) => {
     try {
-      const res  = await fetch("/api/auth/login", {
+      const res  = await fetch("/api/employer/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, role: "employer" }),
+        body: JSON.stringify(data),
         credentials: "include",
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Login failed");
       toast.success("Welcome back!");
-      router.push(`/employer/${json.data?.username ?? "me"}/dashboard`);
+      router.push("/employer/companies");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid credentials");
     }
@@ -62,8 +67,8 @@ export default function EmployerLoginPage() {
               label="Email"
               placeholder="company@example.com"
               type="email"
-              {...register("identifier")}
-              error={errors.identifier?.message}
+              {...register("email")}
+              error={errors.email?.message}
               autoComplete="email"
             />
             <Input
@@ -86,6 +91,10 @@ export default function EmployerLoginPage() {
               Sign In <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </form>
+          <div className="flex items-center gap-3 my-4 text-xs text-[var(--text-3)]">
+            <span className="h-px flex-1 bg-[var(--border)]" />or<span className="h-px flex-1 bg-[var(--border)]" />
+          </div>
+          <LinkedInButton as="employer" />
         </div>
 
         <div className="flex items-center justify-between mt-5 text-sm text-[var(--text-3)]">
