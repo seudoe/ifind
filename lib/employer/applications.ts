@@ -67,7 +67,7 @@ export async function createApplication(
         type: "new_application",
         title: `New application for "${internship.name}"`,
         body: `${user.name} applied.`,
-        link: `/employer/company/${internship.companyId}/internships/${internship._id}/students-applied`,
+        link: `/employer/company/${internship.companyId}/internships/${internship._id}/applicants`,
         companyId: internship.companyId,
     });
     return doc;

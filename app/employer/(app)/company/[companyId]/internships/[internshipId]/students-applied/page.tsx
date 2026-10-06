@@ -1,6 +1,7 @@
-import { ApplicantsTable } from "@/components/employer/ApplicantsTable";
+import { redirect } from "next/navigation";
 
-export default async function StudentsAppliedPage({ params }: { params: Promise<{ companyId: string; internshipId: string }> }) {
+/** Old name of the Applicants tab; kept so existing notification links still work. */
+export default async function StudentsAppliedRedirect({ params }: { params: Promise<{ companyId: string; internshipId: string }> }) {
     const { companyId, internshipId } = await params;
-    return <ApplicantsTable companyId={companyId} internshipId={internshipId} />;
+    redirect(`/employer/company/${companyId}/internships/${internshipId}/applicants`);
 }

@@ -155,7 +155,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
             const j = await res.json();
             if (j.success) {
                 toast.success("Published. A moderator will review it before students see it.");
-                router.push(`/employer/company/${companyId}/internships/${saved._id}/overview`);
+                router.push(`/employer/company/${companyId}/internships/${saved._id}/internship-details`);
                 router.refresh();
                 return;
             }
