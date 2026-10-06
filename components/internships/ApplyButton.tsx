@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -23,6 +24,8 @@ const inputCls =
 
 /** One apply button for card, pop-up and mobile view: "Apply on {Source}" for scraped listings, "Apply" for iFind posts. */
 export function ApplyButton({ internship, isApplied, onApplied, size = "sm", className }: Props) {
+  const router = useRouter();
+  const username = useParams()?.username as string | undefined;
   const [applying, setApplying] = useState(false);
   const [open, setOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
@@ -62,7 +65,11 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
 
   const click = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isApplied) return;
+    if (isApplied) {
+      // Applied: the button opens the application's status page (student area only)
+      if (username) router.push(`/user/${username}/applied-internships/${id}`);
+      return;
+    }
     if (needsForm) return setOpen(true);
     // Open the source site synchronously to bypass popup blockers
     if (!onPlatform && internship.applyLink) window.open(internship.applyLink, "_blank");
@@ -79,7 +86,7 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
         className={className}
         onClick={click}
         loading={applying && !open}
-        disabled={isApplied}
+        title={isApplied ? "View application status" : undefined}
       >
         {isApplied ? "Applied ✓" : onPlatform ? "Apply" : `Apply on ${sourceLabel(internship.source)}`}
       </Button>
