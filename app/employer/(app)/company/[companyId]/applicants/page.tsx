@@ -1,11 +1,11 @@
-export default function ApplicantsPage() {
+import { ApplicantsTable } from "@/components/employer/ApplicantsTable";
+
+export default async function ApplicantsPage({ params }: { params: Promise<{ companyId: string }> }) {
+    const { companyId } = await params;
     return (
-        <div className="max-w-2xl">
+        <div>
             <h1 className="text-lg font-bold text-[var(--text)] mb-5">Applicants</h1>
-            <div className="plasma-card p-10 text-center">
-                <p className="font-medium text-[var(--text)]">No applicants yet</p>
-                <p className="text-sm text-[var(--text-3)] mt-1">Applicants across all your internships will show up here.</p>
-            </div>
+            <ApplicantsTable companyId={companyId} />
         </div>
     );
 }

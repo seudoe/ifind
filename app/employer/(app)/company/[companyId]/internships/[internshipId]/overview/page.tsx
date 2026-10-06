@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
+import { Card, COLORS, GroupedBars, HBars } from "@/components/moderator/charts";
+import { APP_STATUS_LABEL } from "@/components/employer/Pills";
 import { Badge } from "@/components/ui/Badge";
 import { formatDuration, formatStipend } from "@/lib/utils";
+import Application from "@/models/Application";
 import PlatformInternship from "@/models/PlatformInternship";
+import { APPLICATION_STATUSES } from "@/types/employer";
 
 const fmt = (d?: Date | null) => (d ? d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "-");
 
@@ -18,6 +22,20 @@ export default async function InternshipOverviewPage({ params }: { params: Promi
     const i = await PlatformInternship.findOne({ _id: internshipId, companyId }).lean();
     if (!i) notFound();
     const m = i.moderation;
+
+    // Funnel by status + applications per day (last 14 days)
+    const since = new Date(Date.now() - 13 * 86_400_000);
+    since.setUTCHours(0, 0, 0, 0);
+    const [byStatus, byDay] = await Promise.all([
+        Application.aggregate<{ _id: string; n: number }>([{ $match: { internshipId: i._id } }, { $group: { _id: "$status", n: { $sum: 1 } } }]),
+        Application.aggregate<{ _id: string; n: number }>([
+            { $match: { internshipId: i._id, appliedAt: { $gte: since } } },
+            { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$appliedAt" } }, n: { $sum: 1 } } },
+        ]),
+    ]);
+    const funnel = APPLICATION_STATUSES.map((st) => ({ label: APP_STATUS_LABEL[st], value: byStatus.find((r) => r._id === st)?.n ?? 0 }));
+    const days = Array.from({ length: 14 }, (_, k) => new Date(since.getTime() + k * 86_400_000).toISOString().slice(0, 10));
+    const totalApps = funnel.reduce((a, r) => a + r.value, 0);
 
     const rows: [string, string][] = [
         ["Work mode", `${i.workMode}${i.city ? `, ${i.city}` : ""}`],
@@ -37,6 +55,21 @@ export default async function InternshipOverviewPage({ params }: { params: Promi
                     <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">Moderation</p>
                     <p className="text-sm text-[var(--text)]">{MOD_TEXT[m.status]}</p>
                     {m.rejectionReason && <p className="text-sm text-[var(--danger)]">Reason: {m.rejectionReason}</p>}
+                </div>
+            )}
+
+            {i.status !== "draft" && (
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Card title={`Pipeline (${totalApps} applicant${totalApps === 1 ? "" : "s"})`}>
+                        <HBars rows={funnel} color={COLORS.blue} />
+                    </Card>
+                    <Card title="Applications, last 14 days">
+                        <GroupedBars
+                            labels={days.map((d) => d.slice(5))}
+                            series={[{ name: "Applications", color: COLORS.blue, values: days.map((d) => byDay.find((r) => r._id === d)?.n ?? 0) }]}
+                            height={110}
+                        />
+                    </Card>
                 </div>
             )}
 
