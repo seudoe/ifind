@@ -60,3 +60,6 @@ export function findLink(pathname: string): { group: NavGroup; link: NavLink } |
   }
   return undefined;
 }
+
+/** Window event: the notifications page tells the shell to refresh the unread badge. */
+export const NOTIFICATIONS_CHANGED = "student-notifications-changed";
