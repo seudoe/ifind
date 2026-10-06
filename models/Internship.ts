@@ -63,7 +63,8 @@ export interface IModeration {
         | "email_parsing"
         | "rss"
         | "community_bot"
-        | "manual";
+        | "manual"
+        | "employer";
     reviewedBy?: string | null;
     reviewedAt?: Date | null;
     rejectionReason?: string | null;
@@ -204,6 +205,7 @@ const ModerationSchema = new Schema<IModeration>(
                 "rss",
                 "community_bot",
                 "manual",
+                "employer",
             ],
             default: "manual",
         },
@@ -215,7 +217,7 @@ const ModerationSchema = new Schema<IModeration>(
     { _id: false },
 );
 
-const listingFields = {
+export const listingFields = {
         name: { type: String, required: true, trim: true },
         company: { type: String, required: true, trim: true },
         applyLink: { type: String, required: true, trim: true },

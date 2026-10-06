@@ -49,7 +49,7 @@ export interface Moderation {
   status: "auto_approved" | "pending_review" | "auto_rejected" | "manually_approved" | "manually_rejected";
   score: number | null;
   flags: string[];
-  source: "web_scraping" | "api" | "user_contributed" | "email_parsing" | "rss" | "community_bot" | "manual";
+  source: "web_scraping" | "api" | "user_contributed" | "email_parsing" | "rss" | "community_bot" | "manual" | "employer";
   reviewedBy?: string | null;
   reviewedAt?: string | null;
   rejectionReason?: string | null;
