@@ -395,7 +395,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
               {appliedList.map(({ internshipId, appliedAt, status }) => {
                 const cleanId = String(internshipId);
                 return (
-                  <div key={cleanId} className="plasma-card flex items-center gap-3 p-3">
+                  <Link key={cleanId} href={`/user/${user.username}/applied-internships/${cleanId}`} className="plasma-card flex items-center gap-3 p-3 hover:shadow-[var(--shadow-md)] transition-shadow">
                     <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--surface-2)] flex items-center justify-center text-xs font-bold text-[var(--text-2)] shrink-0">?</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[var(--text)] truncate">{applicationNames.get(cleanId) ?? "Internship"}</p>
@@ -406,7 +406,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                     <Badge className={getStatusColor(status)}>
                       {status.charAt(0).toUpperCase() + status.slice(1)}
                     </Badge>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

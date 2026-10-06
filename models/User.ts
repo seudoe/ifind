@@ -29,7 +29,7 @@ export interface IResume {
 export interface IAppliedInternship {
     internshipId: mongoose.Types.ObjectId;
     appliedAt: Date;
-    status: "applied" | "shortlisted" | "rejected" | "selected";
+    status: "applied" | "shortlisted" | "rejected" | "selected" | "withdrawn";
 }
 
 export interface IRecommendationScore {
@@ -126,7 +126,7 @@ const AppliedInternshipSchema = new Schema(
         appliedAt: { type: Date, default: Date.now },
         status: {
             type: String,
-            enum: ["applied", "shortlisted", "rejected", "selected"],
+            enum: ["applied", "shortlisted", "rejected", "selected", "withdrawn"],
             default: "applied",
         },
     },

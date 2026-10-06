@@ -3,7 +3,7 @@ import type { Resume } from "./resume";
 export interface AppliedInternship {
     internshipId: string;
     appliedAt: string;
-    status: "applied" | "shortlisted" | "rejected" | "selected";
+    status: "applied" | "shortlisted" | "rejected" | "selected" | "withdrawn";
 }
 
 export interface RecommendationScore {
@@ -70,7 +70,7 @@ import type { Resume } from "./resume";
 export interface AppliedInternship {
   internshipId: string;
   appliedAt: string;
-  status: "applied" | "shortlisted" | "rejected" | "selected";
+  status: "applied" | "shortlisted" | "rejected" | "selected" | "withdrawn";
 }
 
 export interface RecommendationScore {
