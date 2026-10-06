@@ -15,7 +15,7 @@ type Id = string | mongoose.Types.ObjectId;
 /**
  * Share of the internship's skills the student has (|intersection| / |internship skills|), 0-1.
  * ponytail: platform internships have no vectors yet, so this is skill overlap only. Once they are
- * vectorized, use lib/recommendation/scoring.ts computeSimilarityScore when both sides have vectors.
+ * vectorized, use the vectoriser's recommender.py scoring (0.4 TF-IDF + 0.6 BERT cosine) when both sides have vectors.
  */
 export function computeMatchScore(studentSkills: string[], internshipSkills: string[]): number {
     const want = new Set(internshipSkills.map((s) => s.trim().toLowerCase()).filter(Boolean));

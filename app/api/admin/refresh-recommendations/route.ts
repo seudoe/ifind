@@ -1,63 +1,28 @@
 /**
  * Admin API: Refresh Recommendations
- * 
- * Trigger background refresh of recommendations for active users.
+ *
+ * Sends approved-but-unvectorized internships to the vectoriser, then asks it to run every student (or only
+ * `userIds`) through the whole HNSW graph. The recommendation pass runs in the vectoriser; this returns once queued.
+ * Body (optional): { userIds?: string[] }
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getRefreshManager } from "@/lib/recommendation/background-refresh";
+import { refreshRecommendations } from "@/lib/internship-vectorizer";
 
 export const runtime = "nodejs";
-export const maxDuration = 300; // 5 minutes
+export const maxDuration = 300; // vectorizing pending internships can take a while on a cold vectoriser
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const { userIds } = body;
-
-    const refreshManager = getRefreshManager();
-
-    if (refreshManager.isRefreshRunning()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Refresh already in progress",
-        },
-        { status: 409 }
-      );
-    }
-
-    console.log("[admin/refresh-recommendations] Starting background refresh");
-
-    let result;
-    if (userIds && Array.isArray(userIds) && userIds.length > 0) {
-      // Refresh specific users
-      result = await refreshManager.refreshSpecificUsers(userIds);
-    } else {
-      // Refresh all active users
-      result = await refreshManager.refreshActiveUsers();
-    }
-
+    const { userIds } = await request.json().catch(() => ({}));
+    const result = await refreshRecommendations(Array.isArray(userIds) ? userIds.map(String) : undefined);
     return NextResponse.json({
-      success: result.success,
-      message: result.success
-        ? `Refreshed recommendations for ${result.successfulRefreshes} users`
-        : "Refresh failed",
-      processedUsers: result.processedUsers,
-      successfulRefreshes: result.successfulRefreshes,
-      failedRefreshes: result.failedRefreshes,
-      skippedUsers: result.skippedUsers,
-      durationMs: result.durationMs,
-      errors: result.errors,
-    });
+      success: result.recommendationsQueued,
+      message: result.recommendationsQueued ? "Recommendation refresh queued in the vectoriser" : "Vectoriser unreachable",
+      ...result,
+    }, { status: result.recommendationsQueued ? 200 : 502 });
   } catch (error) {
     console.error("[admin/refresh-recommendations] Error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to refresh recommendations",
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Failed to refresh recommendations" }, { status: 500 });
   }
 }
