@@ -20,7 +20,11 @@
 - Stage 8: verified each trigger (member added, moderation approve/reject, new application, auto-close) yields exactly one notification per relevant member, incl. 15 concurrent reads of an expired internship; mark one/all read scoped to the recipient.
 
 ## Next
-- Stage 9: hardening done (see below). Waiting for the user's manual QA results before Stage 10.
+- Stage 9: hardening done (see below). User will run the manual QA checklist later; findings to be fixed as they come.
+- Stage 10: docs/EMPLOYER.md written (data model, routes, roles, state machines, moderation, env vars, student-side seams). Added lib/employer/visibility.ts (visibleToStudentsFilter), the shared student-visibility helper required by the spec.
+
+## Next
+- Fix anything the manual QA turns up. Optional: run Model.syncIndexes() (needs user OK). Student-side phase: see docs/EMPLOYER.md section 11.
 
 ## Stage 9 - authz audit
 Every `/api/employer/**` route except `auth/*` calls `requireCompanyRole(companyId, minRole)` or `requireEmployer()` (lib/employer/access.ts). Child ids (internship, application) are always queried together with the company id, so another company's id is "not found". `proxy.ts` also 401s any non-auth employer API call without a valid cookie.
