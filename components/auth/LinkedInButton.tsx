@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export function LinkedInButton({ text = "Continue with LinkedIn", as }: { text?: string; as?: "employer" }) {
+export function LinkedInButton({ text = "Continue with LinkedIn", as }: { text?: string; as?: "employer" | "employer-link" }) {
   const handleLinkedInAuth = () => {
     window.location.href = as ? `/api/auth/linkedin?as=${as}` : "/api/auth/linkedin";
   };
