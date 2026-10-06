@@ -20,4 +20,107 @@
 - Stage 8: verified each trigger (member added, moderation approve/reject, new application, auto-close) yields exactly one notification per relevant member, incl. 15 concurrent reads of an expired internship; mark one/all read scoped to the recipient.
 
 ## Next
-- Stage 9: hardening and QA.
+- Stage 9: hardening done (see below). Waiting for the user's manual QA results before Stage 10.
+
+## Stage 9 - authz audit
+Every `/api/employer/**` route except `auth/*` calls `requireCompanyRole(companyId, minRole)` or `requireEmployer()` (lib/employer/access.ts). Child ids (internship, application) are always queried together with the company id, so another company's id is "not found". `proxy.ts` also 401s any non-auth employer API call without a valid cookie.
+
+Run against the dev server (script not committed). Outsider = employer of another company. "other-co ids" = outsider calls their OWN company id with company X's internship/application ids. bulk-status returns 200 by design (per-item result); verified it reports "not found" and changes nothing. Result: **0 failures**.
+
+| route | min role | anon | outsider | other-co ids | lower role |
+|---|---|---|---|---|---|
+| GET …/{C} | recruiter | 401 | 404 | - | - |
+| PATCH …/{C} | admin | 401 | 404 | - | 403 |
+| DELETE …/{C} | owner | 401 | 404 | - | 403 |
+| GET …/{C}/members | recruiter | 401 | 404 | - | - |
+| POST …/{C}/members | admin | 401 | 404 | - | 403 |
+| PATCH …/{C}/members | admin | 401 | 404 | - | 403 |
+| DELETE …/{C}/members | admin | 401 | 404 | - | 403 |
+| GET …/{C}/internships | recruiter | 401 | 404 | - | - |
+| POST …/{C}/internships | recruiter | 401 | 404 | - | - |
+| GET …/{C}/internships/{I} | recruiter | 401 | 404 | 404 | - |
+| PATCH …/{C}/internships/{I} | recruiter | 401 | 404 | 404 | - |
+| DELETE …/{C}/internships/{D} | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/internships/{I}/pause | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/internships/{I}/close | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/internships/{I}/archive | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/internships/{I}/publish | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/internships/{I}/duplicate | recruiter | 401 | 404 | 404 | - |
+| GET …/{C}/internships/{I}/applications | recruiter | 401 | 404 | 404 | - |
+| GET …/{C}/applications | recruiter | 401 | 404 | - | - |
+| GET …/{C}/applications | recruiter | 401 | 404 | 404 | - |
+| GET …/{C}/applications/{A} | recruiter | 401 | 404 | 404 | - |
+| PATCH …/{C}/applications/{A} | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/applications/{A}/notes | recruiter | 401 | 404 | 404 | - |
+| POST …/{C}/applications/bulk-status | recruiter | 401 | 404 | 200 | - |
+| GET …/companies | any employer | 401 | - | - | - |
+| POST …/companies | any employer | 401 | - | - | - |
+| GET …/profile | any employer | 401 | - | - | - |
+| PATCH …/profile | any employer | 401 | - | - | - |
+| DELETE …/account | any employer | 401 | - | - | - |
+| POST …/account/password | any employer | 401 | - | - | - |
+| DELETE …/account/linkedin | any employer | 401 | - | - | - |
+| GET …/notifications | any employer | 401 | - | - | - |
+| PATCH …/notifications | any employer | 401 | - | - | - |
+| POST …/uploads | any employer | 401 | - | - | - |
+
+
+## state behaviours
+- archived: PATCH ->: 409
+- archived: publish ->: 409
+- archived: applicants GET ->: 200
+- archived: page ->: 200
+- HTML in title stored as ->: "alert(1)Safe Title"
+- HTML in note stored as ->: "hello"
+- 300KB body ->: 413
+- javascript: website ->: 400 website: Must be an http(s) URL
+- 201-char tagline ->: 400
+- 11 screening questions ->: 400
+- 129-char password register ->: 400
+- banned recruiter: API ->: 401
+- banned recruiter: notifications ->: 401
+- banned recruiter: page ->: 307 /employer/login
+- banned recruiter: login ->: 403
+- company with only draft/closed: DELETE ->: 200
+- deleted company: member API ->: 404
+- deleted company: page ->: 404
+- deleted company: absent from list ->: true
+- owner (no companies left) DELETE account ->: 409 Transfer ownership or delete these companies first: ZZ AZ
+- deleted employer: API after ->: 200
+- deleted employer: login ->: 200
+
+
+Notes:
+- The last two lines of the state block are expected: the account delete was refused (owner of company ZZ AZ), so login still worked. Account deletion itself was verified in Stage 3.
+- Recruiter DELETE on members is allowed only for leaving (self); removing others needs admin+.
+
+## Stage 9 - input hardening
+- Plain text only: lib/employer/sanitize.ts strips HTML tags and control chars from company, internship, profile, note, status-note and register input (stripHtml/plainText). React escapes on render too.
+- URLs must be http(s) (zod); company logo/cover must be ImageKit URLs.
+- Limits: zod string/array/number limits (lib/employer/validation.ts), 10 screening questions, 100 notes per applicant, 200 bulk ids, 10 companies per employer, password <= 128 chars, email <= 254, JSON body <= 256KB on guarded employer APIs (proxy.ts, 413), uploads <= 2MB.
+- Search/sort/status query params are whitelisted or regex-escaped; ids validated with isValidObjectId; unknown body keys are dropped by zod (no mass-assignment of members/verification/slug).
+- Known gaps (not done): no login rate limiting; no email verification for password signups; auth routes are not size-capped by the proxy (bodies are tiny, hosting limits apply).
+
+## Stage 9 - indexes
+Models declare indexes (Company, PlatformInternship, Application, Notification x3, Employer). Mongoose does not create them unless autoIndex runs; `Model.syncIndexes()` is a MANUAL step and needs the user's OK. Not run.
+
+## Stage 9 - tsc / lint
+`npx tsc --noEmit`: clean. ESLint: 0 errors in the employer/notification/moderator-panel files I touched, except pre-existing ones in components/moderator/ModerationRejectModal.tsx (set-state-in-effect) and ModeratorRow.tsx (no-explicit-any), which I did not change. One pre-existing warning in app/employer/register/page.tsx (react-hook-form watch()). The wider repo has ~170 pre-existing lint errors outside this work.
+
+## Manual QA checklist (run on localhost, then report results)
+1. Employer email signup -> lands on /employer/companies (empty state). Logout, login again.
+2. LinkedIn employer login + student LinkedIn login (already confirmed once).
+3. Register company: step through 5 steps, upload a logo, Register. Card appears with Unverified badge + Owner.
+4. Register a second company; switch via the company switcher.
+5. Sidebar: global sidebar collapses to icons inside a company, expands on hover; company sidebar stays fixed while scrolling; mobile (<768px) drawers open/close.
+6. Team: add a second employer account by email as recruiter. Log in as them: Team/Settings tabs hidden, /settings URL 404.
+7. Post New Internship: heading + error stay fixed; publish an incomplete form -> error shows at top; fill and publish; status Published + "In review".
+8. Autosave: type a title, wait, open the Internships list -> the draft is there.
+9. Moderator panel: Employer-posted switch -> approve; employer sees Approved + notification bell.
+10. Edit a published internship title -> goes back to In review; edit city only -> stays approved.
+11. Pause / resume / close / archive / duplicate / delete draft from the internship Settings tab.
+12. Seed applicants: npx tsx scripts/seed-applications.ts <internshipId> 8. Open Students applied: filter, search, sort, drawer, move through the pipeline, illegal moves not offered, rate, add note, bulk shortlist.
+13. Company Applicants page: internship filter works. Overview tab: funnel + 14-day chart.
+14. Deadline: set a past deadline (DB) and reload -> internship auto-closes, one notification per member.
+15. Profile + Settings: edit profile, change password, set password on a LinkedIn-only account, link/unlink LinkedIn, delete account (blocked while sole owner).
+16. Clean up: npx tsx scripts/seed-applications.ts --clean <internshipId>.
