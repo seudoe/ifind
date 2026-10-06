@@ -15,6 +15,7 @@
 - Stage 4: company APIs (create/get/patch/delete, members add/role/remove with role matrix + >=1 owner), /api/employer/uploads (ImageKit; one shared route instead of per-company logo route), CompanyForm (multi-step create, single-page edit), overview/settings/team pages, notify() + slug helpers. Verified via curl: 2 companies, recruiter 403/404, owner rules.
 - Stage 5: internship APIs (list+aggregate counts, create/patch/delete, [action]=publish|pause|close|archive|duplicate), publish validation + moderation (no SCAM_DETECTOR_URL => pending_review; unverified never auto-approved), material edit resets moderation, lazy auto-close + notification, InternshipForm (autosave drafts, screening builder), internships table, overview/details/settings tabs. students-applied and company applicants are empty-state stubs until Stage 7. Env: optional SCAM_DETECTOR_URL.
 - Stage 6: moderator queue for employer posts: source switch in InternshipsPanel, ?source=employer on GET /api/moderator/internships (drafts excluded), body.source="employer" on PATCH /[id] (manually_approved/rejected, NO vectorizer, notifies all company members). Verified via curl.
+- Stage 7: lib/employer/applications.ts (createApplication = the apply seam, listApplicants, changeStatus w/ transition map, skill-overlap matchScore), applications APIs (company-wide + per-internship list, detail, PATCH status/rating, notes, bulk-status), ApplicantsTable + ApplicantDrawer, overview funnel + 14-day chart, scripts/seed-applications.ts (--clean to undo). Verified via curl incl. cross-company ids.
 
 ## Next
-- Stage 7: applicants (ATS).
+- Stage 8: notifications polish + verification.
