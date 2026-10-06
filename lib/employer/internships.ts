@@ -1,6 +1,7 @@
 import mongoose, { type HydratedDocument } from "mongoose";
 import { NextResponse } from "next/server";
 import { notify } from "@/lib/employer/notify";
+import { stripHtml } from "@/lib/employer/sanitize";
 import type { InternshipInput } from "@/lib/employer/validation";
 import Application from "@/models/Application";
 import type { ICompany } from "@/models/Company";
@@ -61,7 +62,8 @@ const materialSnapshot = (doc: InternshipDoc) => JSON.stringify(MATERIAL.map((k)
  * Full replace of the employer-editable fields (the form always sends everything).
  * Returns true when a material field changed.
  */
-export function applyInput(doc: InternshipDoc, i: InternshipInput, company: ICompany): boolean {
+export function applyInput(doc: InternshipDoc, input: InternshipInput, company: ICompany): boolean {
+    const i = stripHtml(input);
     const before = materialSnapshot(doc);
 
     doc.company = company.name;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
+import { stripHtml } from "@/lib/employer/sanitize";
 import { checkImageUrls } from "@/lib/employer/upload";
 import { companySchema, zodMessage } from "@/lib/employer/validation";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -25,11 +26,12 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         if (!parsed.success) {
             return NextResponse.json({ success: false, error: zodMessage(parsed.error) }, { status: 400 });
         }
-        const imgErr = checkImageUrls(parsed.data);
+        const data = stripHtml(parsed.data);
+        const imgErr = checkImageUrls(data);
         if (imgErr) return NextResponse.json({ success: false, error: imgErr }, { status: 400 });
 
         const { company } = access;
-        company.set(parsed.data);
+        company.set(data);
         await company.save();
 
         // Keep the denormalised company name on its internships in sync

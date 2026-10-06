@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const currentPassword = typeof body.currentPassword === "string" ? body.currentPassword : "";
         const newPassword = typeof body.newPassword === "string" ? body.newPassword : "";
+        if (newPassword.length > 128 || currentPassword.length > 128) {
+            return NextResponse.json({ success: false, error: "Password is too long" }, { status: 400 });
+        }
         if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
             return NextResponse.json({ success: false, error: "Password must be at least 8 characters and include an uppercase letter and number" }, { status: 400 });
         }

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
 import { changeStatus } from "@/lib/employer/applications";
+import { plainText } from "@/lib/employer/sanitize";
 import { applicationStatusSchema, zodMessage } from "@/lib/employer/validation";
 import Application from "@/models/Application";
 import Employer from "@/models/Employer";
@@ -64,7 +65,7 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         if (status === undefined && rating === undefined) return fail("Nothing to update", 400);
 
         if (status !== undefined) {
-            const r = await changeStatus(app, access.company._id, status, access.employer._id, note);
+            const r = await changeStatus(app, access.company._id, status, access.employer._id, note && plainText(note));
             if (!r.ok) return fail(r.error, r.status);
         }
         if (rating !== undefined) await Application.updateOne({ _id: app._id, companyId: access.company._id }, { $set: { rating } });

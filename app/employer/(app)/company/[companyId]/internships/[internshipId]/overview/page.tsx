@@ -17,6 +17,13 @@ const MOD_TEXT: Record<string, string> = {
     manually_rejected: "Rejected by a moderator. Edit the key details and it will be reviewed again.",
 };
 
+/** Start of the 14-day window (UTC midnight, 13 days ago). Outside the component: Date.now() is impure during render. */
+function windowStart() {
+    const d = new Date(Date.now() - 13 * 86_400_000);
+    d.setUTCHours(0, 0, 0, 0);
+    return d;
+}
+
 export default async function InternshipOverviewPage({ params }: { params: Promise<{ companyId: string; internshipId: string }> }) {
     const { companyId, internshipId } = await params;
     const i = await PlatformInternship.findOne({ _id: internshipId, companyId }).lean();
@@ -24,8 +31,7 @@ export default async function InternshipOverviewPage({ params }: { params: Promi
     const m = i.moderation;
 
     // Funnel by status + applications per day (last 14 days)
-    const since = new Date(Date.now() - 13 * 86_400_000);
-    since.setUTCHours(0, 0, 0, 0);
+    const since = windowStart();
     const [byStatus, byDay] = await Promise.all([
         Application.aggregate<{ _id: string; n: number }>([{ $match: { internshipId: i._id } }, { $group: { _id: "$status", n: { $sum: 1 } } }]),
         Application.aggregate<{ _id: string; n: number }>([
