@@ -8,7 +8,6 @@ import {
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 import type { ParsedResumeData, User, Skill } from "@/types";
@@ -56,7 +55,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <DashboardShell activeTab="profile" user={user}>
+    <>
       <div className="space-y-5">
         <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} />
         <ProfileHeader 
@@ -225,7 +224,7 @@ export default function ProfilePage() {
         onClose={() => setIsEditOpen(false)} 
         onSaveSuccess={mutate}
       />
-    </DashboardShell>
+    </>
   );
 }
 

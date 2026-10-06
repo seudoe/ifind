@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ResumeChatTab } from "@/components/dashboard/ResumeChatTab";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
@@ -16,8 +15,8 @@ export default function ChatPage() {
   }
 
   return (
-    <DashboardShell activeTab="chat" user={data.user}>
+    <>
       <ResumeChatTab />
-    </DashboardShell>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { CareerAssistantTab } from "@/components/dashboard/CareerAssistantTab";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
@@ -16,8 +15,8 @@ export default function CareerPage() {
   }
 
   return (
-    <DashboardShell activeTab="career" user={data.user}>
+    <>
       <CareerAssistantTab />
-    </DashboardShell>
+    </>
   );
 }

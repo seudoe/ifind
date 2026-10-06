@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Search, FileText, Bookmark, User,
   Settings, Briefcase, LogOut, AlertTriangle, BadgeCheck, Link2Off,
@@ -69,18 +69,18 @@ function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: Studen
 }
 
 interface Props {
-  activeTab: string;
   children: React.ReactNode;
-  user?: StudentUser;
+  user: StudentUser;
   maxWidthClass?: string;
-  headerAction?: React.ReactNode;
 }
 
-export function DashboardShell({ activeTab, children, user, maxWidthClass = "max-w-6xl", headerAction }: Props) {
+export function StudentShell({ children, user, maxWidthClass = "max-w-6xl" }: Props) {
   const params   = useParams();
   const router   = useRouter();
-  const username = (params?.username as string) ?? MOCK.username;
-  const currentUser = user ?? MOCK;
+  const pathname = usePathname();
+  const username = params?.username as string;
+  const currentUser = user;
+  const activeTab = pathname.split("/")[3] ?? "overview";
 
   const href = (tab: string) =>
     tab === "profile"
@@ -103,7 +103,7 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
     settings: "Settings",
   };
 
-  const linkedinDetails = "linkedinDetails" in currentUser ? currentUser.linkedinDetails : undefined;
+  const linkedinDetails = currentUser.linkedinDetails;
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
@@ -147,13 +147,6 @@ export function DashboardShell({ activeTab, children, user, maxWidthClass = "max
                 );
               })}
             </nav>
-
-            {/* Mobile header action */}
-            {headerAction && (
-              <div className="ml-auto flex items-center shrink-0 lg:hidden">
-                {headerAction}
-              </div>
-            )}
 
             {/* User + logout */}
             <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
