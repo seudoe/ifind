@@ -76,9 +76,11 @@ interface Props {
     companyId: string;
     /** Existing internship (edit); omit for a new one. */
     initial?: PlatformInternship;
+    /** Page heading; rendered in the fixed header so it stays visible with any error under it. */
+    title?: string;
 }
 
-export function InternshipForm({ companyId, initial }: Props) {
+export function InternshipForm({ companyId, initial, title }: Props) {
     const router = useRouter();
     const base = `/api/employer/companies/${companyId}/internships`;
     const [data, setData] = useState<FormState>(initial ? fromDTO(initial) : EMPTY);
@@ -174,7 +176,13 @@ export function InternshipForm({ companyId, initial }: Props) {
 
     return (
         <div className="max-w-3xl space-y-5">
-            {error && <div className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">{error}</div>}
+            {/* Fixed header: heading + error stay in view while the form scrolls (top-12 clears the mobile bar) */}
+            {(title || error) && (
+                <div className="sticky top-12 md:top-0 z-20 -mx-1 space-y-2 bg-[var(--bg)] px-1 pb-2 pt-1">
+                    {title && <h1 className="text-lg font-bold text-[var(--text)]">{title}</h1>}
+                    {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">{error}</div>}
+                </div>
+            )}
             {readOnly && <div className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-2)]">This internship is {status} and read-only. Duplicate it from Settings to post it again.</div>}
 
             <fieldset disabled={readOnly || publishing} className="space-y-5 min-w-0">
