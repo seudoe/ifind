@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
-import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO } from "@/lib/employer/internships";
+import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO, vectorizeIfApproved } from "@/lib/employer/internships";
 import { internshipPublishSchema, zodMessage } from "@/lib/employer/validation";
 import PlatformInternship from "@/models/PlatformInternship";
 
@@ -59,6 +59,7 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
             doc.status = "published";
             doc.closedAt = null;
             await doc.save();
+            vectorizeIfApproved(doc);
             return NextResponse.json({ success: true, data: toInternshipDTO(doc) });
         }
 

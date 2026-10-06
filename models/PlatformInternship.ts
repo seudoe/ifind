@@ -15,7 +15,12 @@ export interface IScreeningQuestion {
 }
 
 export interface IPlatformInternship
-    extends Omit<IInternship, "applyLink" | "datePublished" | "stipend" | "duration" | "tfidf_vector" | "bert_vector"> {
+    extends Omit<IInternship, "applyLink" | "datePublished" | "stipend" | "duration" | "source" | "tfidf_vector" | "bert_vector"> {
+    source: "ifind";
+    /** Written in place by the vectorizer once approved; never returned to clients. */
+    tfidf_vector?: number[] | null;
+    bert_vector?: number[] | null;
+    vectorizedAt?: Date | null;
     // Optional while a draft; the publish step requires them
     stipend?: IInternship["stipend"];
     duration?: IInternship["duration"];
@@ -61,6 +66,10 @@ const PlatformInternshipSchema = new Schema<IPlatformInternship>(
         stipend: { ...listingFields.stipend, required: false },
         duration: { ...listingFields.duration, required: false },
         summary: { type: String, default: "" },
+        source: { type: String, enum: ["ifind"], default: "ifind" },
+        tfidf_vector: { type: Schema.Types.Mixed, default: null, select: false },
+        bert_vector: { type: Schema.Types.Mixed, default: null, select: false },
+        vectorizedAt: { type: Date, default: null },
         companyId: { type: Schema.Types.ObjectId, ref: "Company", required: true, index: true },
         postedBy: { type: Schema.Types.ObjectId, ref: "Employer", required: true },
         status: { type: String, enum: INTERNSHIP_STATUSES, default: "draft" },
