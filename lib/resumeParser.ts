@@ -10,7 +10,7 @@
 
 import type { ParsedResumeData } from "@/types/resume";
 
-const HF_SPACE_URL = "https://seudoe-resume-extract.hf.space";
+import { resumeExtractorUrl } from "@/lib/services";
 
 // Time (in ms) to wait for HuggingFace Space before moving to OpenAI fallback
 const MAX_WAIT_FOR_HF_MS = process.env.MAX_WAIT_FOR_HF
@@ -116,11 +116,14 @@ async function parseWithHuggingFace(
     });
     formData.append("file", blob, "resume.pdf");
 
+    const base = resumeExtractorUrl();
+    if (!base) throw new Error("RESUME_EXTRACTOR_URL is not set");
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), MAX_WAIT_FOR_HF_MS);
 
     try {
-        const res = await fetch(`${HF_SPACE_URL}/extract`, {
+        const res = await fetch(`${base}/extract`, {
             method: "POST",
             body: formData,
             signal: controller.signal,

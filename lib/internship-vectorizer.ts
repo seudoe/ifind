@@ -15,12 +15,16 @@
 
 import { connectDB } from "./db";
 import mongoose from "mongoose";
-
-const HF_BASE = (process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space").replace(/\/$/, "");
+import { vectoriserUrl } from "./services";
 
 async function post<T>(path: string, body: unknown, timeoutMs = 120_000): Promise<T | null> {
+  const base = vectoriserUrl();
+  if (!base) {
+    console.error(`[internship-vectorizer] VECTORISER_URL is not set, skipping ${path}`);
+    return null;
+  }
   try {
-    const res = await fetch(`${HF_BASE}${path}`, {
+    const res = await fetch(`${base}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -95,9 +99,8 @@ export async function rebuildInternshipIndex(): Promise<{
   failed: number;
 }> {
   try {
-    const res = await fetch(`${HF_BASE}/rebuild-graph`, { method: "POST" });
-    if (!res.ok) return { success: false, indexed: 0, failed: 0 };
-    const data = await res.json();
+    const data = await post<{ indexed?: number }>("/rebuild-graph", {});
+    if (!data) return { success: false, indexed: 0, failed: 0 };
     return { success: true, indexed: data.indexed ?? 0, failed: 0 };
   } catch (err) {
     console.error("[internship-vectorizer] Error rebuilding index:", err);

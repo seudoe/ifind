@@ -1,7 +1,7 @@
 import { connectDB } from "./db";
 import mongoose from "mongoose";
+import { vectoriserUrl } from "./services";
 
-const HF_BASE = (process.env.VECTORIZER_URL || "https://seudoe-vectorisationResume.hf.space").replace(/\/$/, "");
 const BOOST_WEIGHT = 0.15;
 
 async function setStatus(userId: string, status: "completed" | "failed") {
@@ -23,8 +23,14 @@ async function setStatus(userId: string, status: "completed" | "failed") {
  * single student traverses the full graph; internship approvals re-run students inside the vectoriser itself.
  */
 export async function vectorizeAndRecommendUser(userId: string, parsedData: unknown): Promise<boolean> {
+  const base = vectoriserUrl();
+  if (!base) {
+    console.error("[vectorizer] VECTORISER_URL is not set, cannot vectorize the resume");
+    await setStatus(userId, "failed");
+    return false;
+  }
   try {
-    const res = await fetch(`${HF_BASE}/encode-resume`, {
+    const res = await fetch(`${base}/encode-resume`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ resume: parsedData, boost_weight: BOOST_WEIGHT, user_id: userId, recommend: true }),
