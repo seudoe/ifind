@@ -171,18 +171,21 @@ export function InternshipForm({ companyId, initial, title }: Props) {
         }
     };
 
+    // With a page title the form fills the viewport: heading + error on top and the action bar at the bottom stay put, only the fields scroll
+    const fixed = !!title;
     const q = data.questions;
     const setQ = (i: number, patch: Partial<Question>) => set("questions", q.map((x, n) => (n === i ? { ...x, ...patch } : x)));
 
     return (
-        <div className="max-w-3xl space-y-5">
-            {/* Fixed header: heading + error stay in view while the form scrolls (top-12 clears the mobile bar) */}
+        <div className={fixed ? "flex flex-col gap-3 h-[calc(100dvh-5rem)] md:h-[calc(100dvh-4rem)] max-w-3xl" : "max-w-3xl space-y-5"}>
+            {/* Heading + error stay visible (top-12 clears the mobile bar when merely sticky) */}
             {(title || error) && (
-                <div className="sticky top-12 md:top-0 z-20 -mx-1 space-y-2 bg-[var(--bg)] px-1 pb-2 pt-1">
+                <div className={fixed ? "shrink-0 space-y-2" : "sticky top-12 md:top-0 z-20 -mx-1 space-y-2 bg-[var(--bg)] px-1 pb-2 pt-1"}>
                     {title && <h1 className="text-lg font-bold text-[var(--text)]">{title}</h1>}
                     {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">{error}</div>}
                 </div>
             )}
+            <div className={fixed ? "flex-1 min-h-0 overflow-y-auto space-y-5 pr-2" : "space-y-5"}>
             {readOnly && <div className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-2)]">This internship is {status} and read-only. Duplicate it from Settings to post it again.</div>}
 
             <fieldset disabled={readOnly || publishing} className="space-y-5 min-w-0">
@@ -304,9 +307,10 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                     </div>
                 </section>
             </fieldset>
+            </div>
 
             {!readOnly && (
-                <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--bg)] px-1 py-3">
+                <div className={(fixed ? "shrink-0" : "sticky bottom-0 -mx-1 px-1") + " flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--bg)] py-3"}>
                     <span className="text-xs text-[var(--text-3)]" aria-live="polite">
                         {saveState === "saving" ? "Saving…" : saveState === "saved" ? "All changes saved" : saveState === "error" ? "Not saved" : isDraft ? "Draft: autosaves as you type" : ""}
                     </span>
