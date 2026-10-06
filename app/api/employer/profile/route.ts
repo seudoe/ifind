@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
+import { stripHtml } from "@/lib/employer/sanitize";
 import { zodMessage } from "@/lib/employer/validation";
 
 export const runtime = "nodejs";
@@ -33,7 +34,7 @@ export async function PATCH(request: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ success: false, error: zodMessage(parsed.error) }, { status: 400 });
         }
-        for (const [k, v] of Object.entries(parsed.data)) {
+        for (const [k, v] of Object.entries(stripHtml(parsed.data))) {
             if (v === undefined) continue;
             (employer as unknown as Record<string, unknown>)[k] = v === "" ? null : v;
         }

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
+import { plainText } from "@/lib/employer/sanitize";
 import { noteSchema, zodMessage } from "@/lib/employer/validation";
 import Application from "@/models/Application";
 
@@ -20,7 +21,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const parsed = noteSchema.safeParse(await request.json());
         if (!parsed.success) return fail(zodMessage(parsed.error), 400);
 
-        const note = { _id: new mongoose.Types.ObjectId(), authorId: access.employer._id, text: parsed.data.text, createdAt: new Date() };
+        const text = plainText(parsed.data.text);
+        if (!text) return fail("Note can't be empty", 400);
+        const note = { _id: new mongoose.Types.ObjectId(), authorId: access.employer._id, text, createdAt: new Date() };
         const res = await Application.updateOne(
             { _id: applicationId, companyId: access.company._id, [`notes.${MAX_NOTES - 1}`]: { $exists: false } },
             { $push: { notes: note } },

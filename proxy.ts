@@ -83,6 +83,10 @@ export function proxy(request: NextRequest) {
 
     // ── Employer API (auth routes are public) ──
     if (pathname.startsWith("/api/employer/") && !pathname.startsWith("/api/employer/auth/")) {
+        const size = Number(request.headers.get("content-length") ?? 0);
+        if (pathname !== "/api/employer/uploads" && size > 256 * 1024) {
+            return NextResponse.json({ success: false, error: "Request too large" }, { status: 413 });
+        }
         const token = request.cookies.get("ifind_emp_token")?.value;
         if (!token || !verifyEmpToken(token)) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });

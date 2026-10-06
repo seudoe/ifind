@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
         await employer.save();
       } else {
         employer = await Employer.create({
-          name,
+          name: name === "Student" ? "Employer" : name,
           email,
           linkedinId: profile.sub,
           linkedinDetails: profile,

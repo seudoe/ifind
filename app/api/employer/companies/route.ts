@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
+import { stripHtml } from "@/lib/employer/sanitize";
 import { uniqueCompanySlug } from "@/lib/employer/slug";
 import { companySchema, zodMessage } from "@/lib/employer/validation";
 import { checkImageUrls } from "@/lib/employer/upload";
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ success: false, error: zodMessage(parsed.error) }, { status: 400 });
         }
-        const input = parsed.data;
+        const input = stripHtml(parsed.data);
         const imgErr = checkImageUrls(input);
         if (imgErr) return NextResponse.json({ success: false, error: imgErr }, { status: 400 });
 
