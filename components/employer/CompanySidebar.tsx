@@ -114,7 +114,7 @@ export function CompanySidebar({ companyId, name, logo, verification, role, comp
     return (
         <>
             {/* Desktop */}
-            <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] py-5">
+            <aside className="hidden md:flex sticky top-0 h-screen self-start overflow-y-auto w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] py-5">
                 {body}
             </aside>
 
