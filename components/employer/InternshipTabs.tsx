@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { ModerationPill, StatusPill } from "@/components/employer/Pills";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
@@ -9,9 +10,9 @@ import type { InternshipStatus } from "@/types/employer";
 import type { Moderation } from "@/types/internship";
 
 const TABS = [
-    { label: "Overview", segment: "overview" },
+    { label: "Applicants", segment: "applicants" },
     { label: "Internship details", segment: "internship-details" },
-    { label: "Students applied", segment: "students-applied" },
+    { label: "Overview", segment: "overview" },
     { label: "Settings", segment: "settings" },
 ];
 
@@ -27,16 +28,20 @@ export function InternshipTabs({ basePath, name, status, moderationStatus, appli
     const pathname = usePathname();
     return (
         <div className="mb-6">
-            <Link href={basePath.replace(/\/[^/]+$/, "")} className="text-xs text-[var(--text-3)] hover:text-[var(--text)]">
-                ← All internships
-            </Link>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+                {/* Replaces the All / Draft / Published... tabs of the list with the sub-tabs below */}
+                <Link
+                    href={basePath.replace(/\/[^/]+$/, "")}
+                    className="mr-1 inline-flex items-center gap-1 rounded-[var(--radius-sm)] border border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                >
+                    <ChevronLeft className="h-3.5 w-3.5" /> Back
+                </Link>
                 <h1 className="text-lg font-bold text-[var(--text)] mr-1">{name}</h1>
                 <StatusPill status={status} />
                 {status !== "draft" && <ModerationPill status={moderationStatus} />}
                 <Badge variant="outline">{applicantCount} applicant{applicantCount === 1 ? "" : "s"}</Badge>
             </div>
-            <nav className="mt-4 flex gap-1 overflow-x-auto border-b border-[var(--border)]">
+            <nav className="mt-3 flex gap-1 overflow-x-auto border-b border-[var(--border)]">
                 {TABS.map((t) => {
                     const href = `${basePath}/${t.segment}`;
                     const active = pathname === href;

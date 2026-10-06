@@ -34,7 +34,8 @@ export function InternshipsTable({ companyId }: { companyId: string }) {
 
     const total = Object.values(counts).reduce((a, b) => a + b, 0);
     const tabs = [["all", "All", total], ...INTERNSHIP_STATUSES.map((s) => [s, s[0].toUpperCase() + s.slice(1), counts[s] ?? 0])] as [string, string, number][];
-    const href = (i: PlatformInternship) => `/employer/company/${companyId}/internships/${i._id}/${i.status === "draft" ? "internship-details" : "overview"}`;
+    // The internship index picks the most useful tab (draft: details, has applicants: applicants, else overview)
+    const href = (i: PlatformInternship) => `/employer/company/${companyId}/internships/${i._id}`;
 
     return (
         <div className="max-w-5xl space-y-5">
