@@ -2,15 +2,19 @@
 
 import { useState } from "react";
 import {
-  MapPin, Clock, IndianRupee, Calendar, Users,
-  ExternalLink, CheckCircle, Wifi, Building2,
+  MapPin, Clock, Calendar, Users,
+  CheckCircle, Wifi, Building2, Banknote,
   ArrowLeft, Bookmark, BookmarkCheck, Sparkles, X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ApplyButton } from "@/components/internships/ApplyButton";
+import { CompanyLogo } from "@/components/internships/CompanyLogo";
+import { StipendBadge } from "@/components/internships/StipendBadge";
+import { sourceLabel } from "@/lib/constants";
 import { Modal } from "@/components/ui/Modal";
 import type { Internship } from "@/types";
-import { formatStipend, formatDuration, formatDate, cn, getInternshipId } from "@/lib/utils";
+import { formatDuration, formatDate, cn, getInternshipId } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Props {
@@ -31,34 +35,8 @@ export function InternshipDetailModal({
   onApplySuccess,
   onSaveToggle,
 }: Props & { open: boolean }) {
-  const [applying, setApplying] = useState(false);
   const [saved, setSaved] = useState(isSaved);
   const internshipId = getInternshipId(internship);
-
-  const handleApply = async () => {
-    if (isApplied) return;
-    
-    // Open link synchronously to bypass browser popup blockers
-    if (internship.applyLink) {
-      window.open(internship.applyLink, "_blank");
-    }
-
-    setApplying(true);
-    try {
-      const res = await fetch(`/api/internships/${internshipId}/apply`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      toast.success("Application recorded!");
-      onApplySuccess();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to apply");
-    } finally {
-      setApplying(false);
-    }
-  };
 
   const handleSave = async () => {
     const next = !saved;
@@ -178,28 +156,12 @@ export function InternshipDetailModal({
             )}
           </button>
 
-          <Button
-            size="sm"
-            variant={isApplied ? "secondary" : "primary"}
+          <ApplyButton
+            internship={internship}
+            isApplied={isApplied}
+            onApplied={onApplySuccess}
             className="flex-1 font-semibold"
-            onClick={handleApply}
-            loading={applying}
-            disabled={isApplied}
-          >
-            {isApplied ? "Applied ✓" : "Apply Now"}
-          </Button>
-
-          <a
-            href={internship.applyLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0"
-          >
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <ExternalLink className="h-4 w-4" />
-              Original Link
-            </Button>
-          </a>
+          />
         </div>
       </div>
     </>
@@ -214,34 +176,8 @@ export function MobileInternshipDetail({
   onApplySuccess,
   onSaveToggle,
 }: Props) {
-  const [applying, setApplying] = useState(false);
   const [saved, setSaved] = useState(isSaved);
   const internshipId = getInternshipId(internship);
-
-  const handleApply = async () => {
-    if (isApplied) return;
-
-    // Open link synchronously to bypass browser popup blockers
-    if (internship.applyLink) {
-      window.open(internship.applyLink, "_blank");
-    }
-
-    setApplying(true);
-    try {
-      const res = await fetch(`/api/internships/${internshipId}/apply`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      toast.success("Application recorded!");
-      onApplySuccess();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to apply");
-    } finally {
-      setApplying(false);
-    }
-  };
 
   const handleSave = async () => {
     const next = !saved;
@@ -293,24 +229,13 @@ export function MobileInternshipDetail({
         <Button variant="secondary" size="md" onClick={onClose} className="flex-1">
           Back
         </Button>
-        <Button
+        <ApplyButton
+          internship={internship}
+          isApplied={isApplied}
+          onApplied={onApplySuccess}
           size="md"
-          variant={isApplied ? "secondary" : "primary"}
           className="flex-[2] font-semibold"
-          onClick={handleApply}
-          loading={applying}
-          disabled={isApplied}
-        >
-          {isApplied ? "Applied ✓" : "Apply Now"}
-        </Button>
-        <a
-          href={internship.applyLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-3)] hover:border-[var(--primary)] transition-colors"
-        >
-          <ExternalLink className="h-4 w-4" />
-        </a>
+        />
       </div>
     </div>
   );
@@ -330,7 +255,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
       {/* Header Info */}
       <div className="flex items-start gap-4">
         <div className="h-14 w-14 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-xl font-bold text-[var(--text-2)] shrink-0">
-          {internship.company[0]}
+          <CompanyLogo internship={internship} />
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-[var(--text)] leading-snug">{internship.name}</h2>
@@ -351,11 +276,9 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
                 <Wifi className="h-3 w-3" /> Remote
               </Badge>
             )}
-            {internship.stipend?.type === "paid" && (
-              <Badge variant="default" className="gap-1 text-[10px]">
-                <IndianRupee className="h-3 w-3" /> Paid
-              </Badge>
-            )}
+            <Badge variant={internship.source === "ifind" ? "default" : "secondary"} className="text-[10px]">
+              {internship.source === "ifind" ? "Posted on iFind" : `via ${sourceLabel(internship.source)}`}
+            </Badge>
           </div>
         </div>
       </div>
@@ -363,9 +286,9 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
       {/* Meta Quick Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
-          icon={<IndianRupee className="h-4 w-4 text-green-500" />}
+          icon={<Banknote className="h-4 w-4 text-green-500" />}
           label="Stipend"
-          value={formatStipend(internship.stipend)}
+          value={<StipendBadge stipend={internship.stipend} />}
         />
         <StatCard
           icon={<Clock className="h-4 w-4 text-blue-500" />}
@@ -499,7 +422,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
         <div className="border-t border-[var(--border)] pt-4 mt-2.5 flex flex-wrap items-center justify-between gap-3 text-[11px] text-[var(--text-3)]">
           {internship.source && (
             <span>
-              <strong>Source:</strong> {internship.source}
+              <strong>Source:</strong> {sourceLabel(internship.source)}
             </span>
           )}
           {internship.tags && internship.tags.length > 0 && (
@@ -524,7 +447,7 @@ function StatCard({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] p-3 text-center sm:text-left">

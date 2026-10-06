@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import {
-  MapPin, Clock, IndianRupee, Bookmark, BookmarkCheck,
-  ExternalLink, Wifi, Sparkles,
+  MapPin, Clock, Bookmark, BookmarkCheck,
+  Wifi, Sparkles,
 } from "lucide-react";
 import { Badge }   from "@/components/ui/Badge";
-import { Button }  from "@/components/ui/Button";
-import { cn, formatStipend, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
+import { ApplyButton } from "@/components/internships/ApplyButton";
+import { CompanyLogo } from "@/components/internships/CompanyLogo";
+import { StipendBadge } from "@/components/internships/StipendBadge";
+import { sourceLabel } from "@/lib/constants";
+import { cn, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
 import { toast }   from "sonner";
 import type { Internship } from "@/types";
 
@@ -33,7 +36,6 @@ export function InternshipCard({
   onApply,
 }: Props) {
   const [saved,    setSaved]    = useState(isSaved);
-  const [applying, setApplying] = useState(false);
   const internshipId = getInternshipId(internship);
 
   const location = internship.isRemote
@@ -62,29 +64,6 @@ export function InternshipCard({
     }
   };
 
-  const handleApply = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isApplied) return;
-
-    // Open link synchronously to bypass browser popup blockers
-    if (internship.applyLink) {
-      window.open(internship.applyLink, "_blank");
-    }
-
-    setApplying(true);
-    try {
-      const res  = await fetch(`/api/internships/${internshipId}/apply`, { method: "POST", credentials: "include" });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      toast.success("Application recorded!");
-      onApply?.(internshipId);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to apply");
-    } finally {
-      setApplying(false);
-    }
-  };
-
   if (view === "list") {
     return (
       <div
@@ -93,7 +72,7 @@ export function InternshipCard({
       >
         {/* Logo */}
         <div className="h-11 w-11 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-base font-bold text-[var(--text-2)] shrink-0 group-hover:border-[var(--primary)] transition-colors">
-          {internship.company[0]}
+          <CompanyLogo internship={internship} />
         </div>
 
         {/* Info */}
@@ -103,7 +82,7 @@ export function InternshipCard({
               <h3 className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
                 {internship.name}
               </h3>
-              <p className="text-xs text-[var(--text-3)]">{internship.company}</p>
+              <p className="text-xs text-[var(--text-3)]">{internship.company} · via {sourceLabel(internship.source)}</p>
             </div>
             {isRecommended && (
               <Badge variant="default" className="shrink-0 gap-1 text-[10px]">
@@ -116,7 +95,7 @@ export function InternshipCard({
               {internship.isRemote ? <Wifi className="h-3 w-3 text-green-500" /> : <MapPin className="h-3 w-3" />}
               {location}
             </span>
-            <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3" />{formatStipend(internship.stipend)}</span>
+            <StipendBadge stipend={internship.stipend} />
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatDuration(internship.duration)}</span>
           </div>
         </div>
@@ -145,9 +124,7 @@ export function InternshipCard({
           >
             {saved ? <BookmarkCheck className="h-4 w-4 text-[var(--primary)]" /> : <Bookmark className="h-4 w-4" />}
           </button>
-          <Button size="sm" variant={isApplied ? "secondary" : "primary"} onClick={handleApply} loading={applying} disabled={isApplied}>
-            {isApplied ? "Applied" : "Apply"}
-          </Button>
+          <ApplyButton internship={internship} isApplied={isApplied} onApplied={(id) => onApply?.(id)} />
         </div>
       </div>
     );
@@ -164,13 +141,13 @@ export function InternshipCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2.5">
             <div className="h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-sm font-bold text-[var(--text-2)] shrink-0 group-hover:border-[var(--primary)] transition-colors">
-              {internship.company[0]}
+              <CompanyLogo internship={internship} />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-2 leading-snug">
                 {internship.name}
               </h3>
-              <p className="text-xs text-[var(--text-3)] mt-0.5">{internship.company}</p>
+              <p className="text-xs text-[var(--text-3)] mt-0.5">{internship.company} · via {sourceLabel(internship.source)}</p>
             </div>
           </div>
           <button
@@ -200,10 +177,7 @@ export function InternshipCard({
             {internship.isRemote ? <Wifi className="h-3 w-3 text-green-500 shrink-0" /> : <MapPin className="h-3 w-3 shrink-0" />}
             <span className="truncate">{location}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <IndianRupee className="h-3 w-3 shrink-0" />
-            <span>{formatStipend(internship.stipend)}</span>
-          </div>
+          <StipendBadge stipend={internship.stipend} />
           <div className="flex items-center gap-1.5">
             <Clock className="h-3 w-3 shrink-0" />
             <span>{formatDuration(internship.duration)}</span>
@@ -228,26 +202,8 @@ export function InternshipCard({
       </div>
 
       {/* Actions */}
-      <div className="px-4 pb-4 flex gap-2 border-t border-[var(--border)] pt-3">
-        <Button
-          size="sm"
-          variant={isApplied ? "secondary" : "primary"}
-          className="flex-1"
-          onClick={handleApply}
-          loading={applying}
-          disabled={isApplied}
-        >
-          {isApplied ? "Applied ✓" : "Apply Now"}
-        </Button>
-        <a
-          href={internship.applyLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="p-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-3)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+      <div className="px-4 pb-4 border-t border-[var(--border)] pt-3">
+        <ApplyButton internship={internship} isApplied={isApplied} onApplied={(id) => onApply?.(id)} className="w-full" />
       </div>
     </div>
   );
