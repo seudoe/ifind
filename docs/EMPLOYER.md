@@ -16,7 +16,7 @@ All models: `models/*.ts`. Enum values are defined once in `types/employer.ts` a
 | `applications` | `Application` | One per student per internship (unique `internshipId + studentId`). Frozen `resumeSnapshot`, `statusHistory`, internal `notes` and `rating` (employer-only). |
 | `notifications.employer` / `.student` / `.moderator` | `notificationModel(type)` in `models/Notification.ts` | One collection per audience. Only the employer one is written today. |
 
-`PlatformInternship` sets on every save: `isRemote = workMode === "remote"`, `source = "ifind"`, `moderation.source = "employer"`, `company` (denormalised name), and `fingerprint` using the same formula as `internScraper/pipeline.py:generate_fingerprint` (`platformFingerprint()`). `applyLink` is `null` (applications happen on iFind). Drafts may omit `stipend`, `duration` and `summary`; the publish step requires them.
+`PlatformInternship` sets on every save: `isRemote = workMode === "remote"`, `source = "ifind"`, `moderation.source = "employer"`, `company` (denormalised name), and `fingerprint` using the same formula as `internScraper/pipeline.py:generate_fingerprint` (`platformFingerprint()`). `applyLink` is `null` (applications happen on iFind). `source` is always `"ifind"`; scraped listings use their scraper id (`INTERNSHIP_SOURCES` in `types/internship.ts`). After approval the vectorizer writes `tfidf_vector` / `bert_vector` / `vectorizedAt` onto the document (fields are `select: false`, never sent to clients). Drafts may omit `stipend`, `duration` and `summary`; the publish step requires them.
 
 ## 2. Auth
 
@@ -53,13 +53,16 @@ Drafts can be deleted; anything else can only be closed or archived. Closed and 
 
 ## 5. Moderation of employer posts
 
-1. Publish from `draft` validates completeness (`internshipPublishSchema`), sets `datePublished`, then `runModeration()`:
-   - With `SCAM_DETECTOR_URL` set: `POST {url}/score`; `block -> auto_rejected`, `review -> pending_review`, `clear -> auto_approved` only if the company is `verified`, otherwise `pending_review`.
-   - Without it, or on any detector failure: `pending_review`.
-2. Resuming from `paused` keeps the existing moderation result.
-3. Editing a published/paused internship: if `name`, `stipend`, `summary`, `skills` or `applyLink` changed, moderation resets to `pending_review`; other edits do not.
-4. Moderators: `InternshipsPanel` has a Scraped / Employer-posted switch. `GET /api/moderator/internships?source=employer` lists non-draft posts; `PATCH /api/moderator/internships/[id]` with `source: "employer"` approves (`manually_approved`) or rejects (`manually_rejected`, reason required). It does not call the vectorizer. All company members are notified.
-5. Employers see only the outcome and rejection reason, never the scam score or flags.
+Employer posts go through the same pipeline as scraped ones (diagram: `internScraper/pipeline-diagram.md`).
+
+1. Publish from `draft` validates completeness (`internshipPublishSchema`), sets `datePublished`, then `runModeration()` (`lib/employer/internships.ts`) calls `POST {INTERNSCRAPER_URL}/process` with `source: "ifind"`. internScraper validates, scam-scores and returns a verdict; it stores nothing. ifind saves the verdict on its own document:
+   - `block -> auto_rejected`, `review -> pending_review`, `clear -> auto_approved` only if the company is `verified`, otherwise `pending_review` (flag `unverified_company`).
+   - With `INTERNSCRAPER_URL` unset, or on any failure/timeout (30 s), the post goes to `pending_review` (fail closed).
+2. Once approved, by the pipeline or a moderator, `vectorizeIfApproved()` calls the vectorizer (`POST {VECTORIZER_URL}/vectorize-platform`) which writes the vectors onto the same document. Fire-and-forget; the graph is not touched yet.
+3. Resuming from `paused` keeps the existing moderation result.
+4. Editing a published/paused internship: if `name`, `stipend`, `summary`, `skills` or `applyLink` changed, vectors are cleared and the listing goes back through the pipeline (it may auto-approve again); other edits do nothing.
+5. Moderators: `InternshipsPanel` has a Scraped / Employer-posted switch. `GET /api/moderator/internships?source=employer` lists non-draft posts; `PATCH /api/moderator/internships/[id]` with `source: "employer"` approves (`manually_approved`, then vectorized) or rejects (`manually_rejected`, reason required). All company members are notified.
+6. Employers see only the outcome and rejection reason, never the scam score or flags.
 
 ## 6. Pages
 
@@ -107,7 +110,9 @@ Cross-company access is always 404 (company id is part of every child query). Th
 | `MONGODB_URI` | yes | Existing. |
 | `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` (or `LinkedIn_OAUTH_API`), optional `LINKEDIN_REDIRECT_URI` | for LinkedIn | Existing; the same redirect URI serves students and employers. |
 | `IMAGEKIT_PRIVATE_KEY`, `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` | for logos | Existing. Company logo/cover URLs must start with the endpoint. |
-| `SCAM_DETECTOR_URL` | optional | Base URL of `internScraper/scam_detector/api.py`. Unset -> every employer post goes to `pending_review`. |
+| `INTERNSCRAPER_URL` | optional | Base URL of internScraper (e.g. the Render service). Unset -> every employer post goes to `pending_review`. internScraper itself needs `FIRST_PARTY_DOMAINS` set to iFind's domain(s) for employer posts to be able to auto-approve. |
+| `INTERNSCRAPER_API_KEY` | optional | Sent as `x-api-key`; must match internScraper's `INTERNSCRAPER_API_KEY` if that is set. |
+| `VECTORIZER_URL` | optional | Base URL of the vectorizer (tf-idfs+berts). Default is the existing HF Space. Used for moderator approvals and employer posts. |
 
 ## 9. Scripts
 
@@ -115,7 +120,8 @@ Cross-company access is always 404 (company id is part of every child query). Th
 
 ## 10. Touched outside the employer area
 
-- `models/Internship.ts`: `listingFields` exported; `"employer"` added to the moderation `source` enum (also in `types/internship.ts`). Scraper unaffected.
+- `models/Internship.ts` / `types/internship.ts`: `listingFields` exported; `"employer"` added to the moderation `source` enum; `source` is now required and an enum (`INTERNSHIP_SOURCES` plus the legacy `web_scraping` until `internScraper/backfill_source.py --apply` is run).
+- `lib/internship-vectorizer.ts`: `vectorizePlatformInternships()`.
 - `app/api/auth/linkedin/*`: employer intents, and the state check is now enforced (this also closes an existing CSRF gap for students).
 - `proxy.ts`: employer guards and matcher entries.
 - Moderator: `InternshipsPanel`, `ModerationQueueCard`, `types/moderator.ts`, `app/api/moderator/internships/route.ts` and `[id]/route.ts` (employer source only).

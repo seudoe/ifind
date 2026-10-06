@@ -20,6 +20,7 @@
 - Stage 8: verified each trigger (member added, moderation approve/reject, new application, auto-close) yields exactly one notification per relevant member, incl. 15 concurrent reads of an expired internship; mark one/all read scoped to the recipient.
 - Stage 9: hardening done (see below). User will run the manual QA checklist later; findings to be fixed as they come.
 - Stage 10: docs/EMPLOYER.md written (data model, routes, roles, state machines, moderation, env vars, student-side seams). Added lib/employer/visibility.ts (visibleToStudentsFilter), the shared student-visibility helper required by the spec.
+- Pipeline integration: employer posts now go through internScraper `POST /process` (stateless verdict), approved posts are vectorized in place in `internships.this-platform` via the vectorizer's new `POST /vectorize-platform`; `source` is an enum everywhere (scraper id or `ifind`). Replaces the optional SCAM_DETECTOR_URL. See internScraper/pipeline-diagram.md.
 
 ## Next
 - Fix anything the manual QA turns up (checklist at the bottom of this file). Optional: run Model.syncIndexes() (needs user OK). Student-side phase: see docs/EMPLOYER.md section 11.

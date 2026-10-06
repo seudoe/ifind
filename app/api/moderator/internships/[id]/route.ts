@@ -4,6 +4,7 @@ import { getModSession } from "@/lib/moderatorAuth";
 import Internship, { StagedInternship } from "@/models/Internship";
 import { publishApprovedInternships } from "@/lib/internship-vectorizer";
 import { notify } from "@/lib/employer/notify";
+import { vectorizeIfApproved } from "@/lib/employer/internships";
 import Company from "@/models/Company";
 import PlatformInternship from "@/models/PlatformInternship";
 
@@ -69,6 +70,7 @@ export async function PATCH(
             doc.moderation.reviewedAt = new Date();
             doc.moderation.rejectionReason = approved ? null : rejectionReason.trim();
             await doc.save();
+            if (approved) vectorizeIfApproved(doc); // vectors are written onto the document in internships.this-platform
 
             const company = await Company.findById(doc.companyId).select("members").lean();
             await notify({

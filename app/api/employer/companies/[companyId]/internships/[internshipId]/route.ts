@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
-import { applyInput, loadInternship, resetModeration, syncAutoClose, toInternshipDTO } from "@/lib/employer/internships";
+import { applyInput, loadInternship, runModeration, syncAutoClose, toInternshipDTO, vectorizeIfApproved } from "@/lib/employer/internships";
 import { internshipDraftSchema, zodMessage } from "@/lib/employer/validation";
 import Application from "@/models/Application";
 
@@ -46,8 +46,10 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
 
         const materialChange = applyInput(doc, parsed.data, access.company);
         const sentBack = materialChange && doc.status !== "draft";
-        if (sentBack) resetModeration(doc);
+        // Key details changed on a live listing: back through the pipeline (may auto-approve again)
+        if (sentBack) await runModeration(doc, access.company.verification?.status === "verified");
         await doc.save();
+        if (sentBack) vectorizeIfApproved(doc);
         return NextResponse.json({ success: true, data: toInternshipDTO(doc), sentBackToModeration: sentBack });
     } catch (error) {
         console.error("[employer/internship PATCH]", error);

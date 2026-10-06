@@ -63,6 +63,31 @@ export async function publishApprovedInternships(ids?: string[]): Promise<string
 }
 
 /**
+ * Vectorize approved employer-posted internships (source "ifind"). The vectorizer writes the vectors onto the
+ * document in 'internships.this-platform' in place: no staging, no move, and no graph insert (see
+ * vectorizer_hnsw_pipeline.run_platform_vectorizer_pipeline). Best effort: returns the ids that were vectorized.
+ */
+export async function vectorizePlatformInternships(ids: string[]): Promise<string[]> {
+  if (!ids.length) return [];
+  try {
+    const res = await fetch(`${HF_BASE}/vectorize-platform`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+      signal: AbortSignal.timeout(120_000), // first call after a cold start loads the models
+    });
+    if (!res.ok) {
+      console.error(`[internship-vectorizer] /vectorize-platform failed ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return [];
+    }
+    return (await res.json()).stats?.vectorized_ids ?? [];
+  } catch (err) {
+    console.error("[internship-vectorizer] /vectorize-platform unreachable:", err);
+    return [];
+  }
+}
+
+/**
  * Rebuild the HNSW graph from every active internship's stored vector.
  */
 export async function rebuildInternshipIndex(): Promise<{

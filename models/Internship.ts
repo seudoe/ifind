@@ -1,4 +1,5 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
+import { INTERNSHIP_SOURCES, type StoredInternshipSource } from "@/types/internship";
 
 interface IStipend {
     type: "paid" | "unpaid" | "performance-based";
@@ -92,7 +93,7 @@ export interface IInternship extends Document {
     responsibilities?: string[] | null;
     perks?: string[] | null;
     tags?: string[] | null;
-    source?: string | null;
+    source: StoredInternshipSource;
     isActive: boolean;
     fingerprint?: string | null;
     linkVerification?: ILinkVerification;
@@ -241,7 +242,8 @@ export const listingFields = {
         responsibilities: { type: [String], default: null },
         perks: { type: [String], default: null },
         tags: { type: [String], default: null },
-        source: { type: String, default: null, trim: true },
+        // Which scraper produced it, or "ifind". "web_scraping" is the legacy value until backfill_source.py --apply is run.
+        source: { type: String, enum: [...INTERNSHIP_SOURCES, "web_scraping"], required: true, trim: true },
         isActive: { type: Boolean, default: true },
         fingerprint: { type: String, default: null, trim: true },
         linkVerification: { type: LinkVerificationSchema, default: undefined },

@@ -1,3 +1,9 @@
+/** Where an internship came from: a scraper, or "ifind" (posted by an employer on our platform). */
+export const INTERNSHIP_SOURCES = ["github", "internshala", "indeed", "naukri", "unstop", "freshersworld", "letsintern", "ifind"] as const;
+export type InternshipSource = (typeof INTERNSHIP_SOURCES)[number];
+/** Stored values: the sources above plus the pre-migration "web_scraping" (see internScraper/backfill_source.py). */
+export type StoredInternshipSource = InternshipSource | "web_scraping";
+
 export interface Stipend {
   type: "paid" | "unpaid" | "performance-based";
   amount?: number | null;
@@ -78,7 +84,7 @@ export interface Internship {
   responsibilities?: string[] | null;
   perks?: string[] | null;
   tags?: string[] | null;
-  source?: string | null;
+  source: StoredInternshipSource;
   isActive: boolean;
   fingerprint?: string | null;
   linkVerification?: LinkVerification;
