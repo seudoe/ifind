@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
-import Notification from "@/models/Notification";
+import { EmployerNotification as Notification } from "@/models/Notification";
 import type { AppNotification } from "@/types/employer";
 
 export const runtime = "nodejs";
