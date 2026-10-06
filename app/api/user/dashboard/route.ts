@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { toStudentInternship, visibleToStudentsFilter } from "@/lib/employer/visibility";
 
 export const runtime = "nodejs";
 
@@ -34,11 +35,23 @@ export async function GET() {
     const appliedIds = toIds(Array.isArray(user.appliedInternships) ? user.appliedInternships.map((item: { internshipId?: unknown }) => item.internshipId) : []);
     const linkedIds = [...savedIds, ...recommendedIds, ...appliedIds];
 
-    const projection = { bert_vector: 0, tfidf_vector: 0 };
-    const [browse, linked] = await Promise.all([
-      db.collection("internships").find({ isActive: true }, { projection }).sort({ datePublished: -1 }).limit(60).toArray(),
-      linkedIds.length ? db.collection("internships").find({ _id: { $in: linkedIds } }, { projection }).toArray() : [],
+    const projection = { bert_vector: 0, tfidf_vector: 0, moderation: 0 };
+    const visible = visibleToStudentsFilter() as Record<string, unknown>;
+    const [scraped, platform, linkedScraped, linkedPlatform] = await Promise.all([
+      db.collection("internships").find({ isActive: true }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).sort({ datePublished: -1 }).limit(300).toArray(),
+      db.collection("internships.this-platform").find(visible, { projection }).sort({ datePublished: -1 }).limit(200).toArray(),
+      linkedIds.length ? db.collection("internships").find({ _id: { $in: linkedIds } }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).toArray() : [],
+      linkedIds.length ? db.collection("internships.this-platform").find({ _id: { $in: linkedIds }, "moderation.status": { $in: ["auto_approved", "manually_approved"] } }, { projection }).toArray() : [],
     ]);
+    const companyIds = [...new Set([...platform, ...linkedPlatform].map((i) => String(i.companyId)))].map((id) => new mongoose.Types.ObjectId(id));
+    const logos = new Map(
+      (companyIds.length ? await db.collection("companies").find({ _id: { $in: companyIds } }, { projection: { logo: 1 } }).toArray() : [])
+        .map((c) => [String(c._id), c.logo as string | null]),
+    );
+    const shape = (i: Record<string, unknown>) => toStudentInternship(i, logos.get(String(i.companyId)));
+    const time = (i: Record<string, unknown>) => new Date(String(i.datePublished ?? 0)).getTime() || 0;
+    const browse = [...platform.map(shape), ...scraped].sort((x, y) => time(y) - time(x));
+    const linked = [...linkedScraped, ...linkedPlatform.map(shape)];
     const byId = new Map(linked.map((internship) => [String(internship._id), internship]));
     const byOrder = (ids: mongoose.Types.ObjectId[]) => ids.map((id) => byId.get(String(id))).filter(Boolean);
 

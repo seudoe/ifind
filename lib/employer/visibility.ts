@@ -14,3 +14,10 @@ export function visibleToStudentsFilter(now: Date = new Date()): QueryFilter<IPl
         $or: [{ deadlineDate: null }, { deadlineDate: { $gt: now } }],
     };
 }
+
+/** Student-facing shape of a platform post: same fields as a scraped `Internship` plus the apply-flow fields. No vectors or moderation data. */
+export function toStudentInternship<T extends Record<string, unknown>>(doc: T, logo?: string | null): Record<string, unknown> & { _id: unknown } {
+    const { tfidf_vector, bert_vector, moderation, postedBy, linkVerification, ...rest } = doc;
+    void tfidf_vector; void bert_vector; void moderation; void postedBy; void linkVerification;
+    return { _id: doc._id, ...rest, applyLink: "", source: "ifind", companyLogo: logo ?? null };
+}

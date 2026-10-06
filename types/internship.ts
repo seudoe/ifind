@@ -85,6 +85,12 @@ export interface Internship {
   perks?: string[] | null;
   tags?: string[] | null;
   source: StoredInternshipSource;
+  /** Only on source "ifind" posts (student feed): lets the apply flow run without another fetch. */
+  companyId?: string;
+  companyLogo?: string | null;
+  requireResume?: boolean;
+  requireCoverLetter?: boolean;
+  screeningQuestions?: { _id: string; question: string; type: "text" | "yes_no" | "single_choice" | "multi_choice" | "number"; options: string[]; required: boolean }[];
   isActive: boolean;
   fingerprint?: string | null;
   linkVerification?: LinkVerification;
