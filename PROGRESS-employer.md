@@ -16,6 +16,8 @@
 - Stage 5: internship APIs (list+aggregate counts, create/patch/delete, [action]=publish|pause|close|archive|duplicate), publish validation + moderation (no SCAM_DETECTOR_URL => pending_review; unverified never auto-approved), material edit resets moderation, lazy auto-close + notification, InternshipForm (autosave drafts, screening builder), internships table, overview/details/settings tabs. students-applied and company applicants are empty-state stubs until Stage 7. Env: optional SCAM_DETECTOR_URL.
 - Stage 6: moderator queue for employer posts: source switch in InternshipsPanel, ?source=employer on GET /api/moderator/internships (drafts excluded), body.source="employer" on PATCH /[id] (manually_approved/rejected, NO vectorizer, notifies all company members). Verified via curl.
 - Stage 7: lib/employer/applications.ts (createApplication = the apply seam, listApplicants, changeStatus w/ transition map, skill-overlap matchScore), applications APIs (company-wide + per-internship list, detail, PATCH status/rating, notes, bulk-status), ApplicantsTable + ApplicantDrawer, overview funnel + 14-day chart, scripts/seed-applications.ts (--clean to undo). Verified via curl incl. cross-company ids.
+- Notifications now live in 3 collections (notifications.student|employer|moderator); models/Notification.ts exports notificationModel(type); notify() routes by recipientType. Old `notifications` collection migrated (1 doc) and dropped.
+- Stage 8: verified each trigger (member added, moderation approve/reject, new application, auto-close) yields exactly one notification per relevant member, incl. 15 concurrent reads of an expired internship; mark one/all read scoped to the recipient.
 
 ## Next
-- Stage 8: notifications polish + verification.
+- Stage 9: hardening and QA.
