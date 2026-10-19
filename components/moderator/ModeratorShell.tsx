@@ -9,6 +9,7 @@ import {
     UserCheck,
     Activity,
     Gauge,
+    Trophy,
     LogOut,
     AlertTriangle,
 } from "lucide-react";
@@ -21,6 +22,11 @@ const NAV = [
         tab: "internships" as const,
         label: "Internships",
         icon: ListChecks,
+    },
+    {
+        tab: "events" as const,
+        label: "Events",
+        icon: Trophy,
     },
     {
         tab: "scrapes" as const,
@@ -45,7 +51,7 @@ const NAV = [
 ];
 
 interface ModeratorShellProps {
-    activeTab: "internships" | "scrapes" | "usage" | "users" | "moderators";
+    activeTab: "internships" | "events" | "scrapes" | "usage" | "users" | "moderators";
     children: React.ReactNode;
     moderator: ModeratorSession;
 }
@@ -69,6 +75,7 @@ export function ModeratorShell({
 
     const TAB_TITLES: Record<string, string> = {
         internships: "Internship Queue",
+        events: "Hackathons & Contests",
         scrapes: "Scrapes",
         usage: "AI Usage",
         users: "User Management",
