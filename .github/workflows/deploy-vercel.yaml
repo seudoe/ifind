@@ -1,0 +1,89 @@
+name: Deploy iFind to Vercel accounts
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One rollout at a time; a newer push waits instead of racing the current one.
+concurrency:
+  group: deploy-vercel
+  cancel-in-progress: false
+
+env:
+  VERCEL_CLI_VERSION: 64.5.0
+
+jobs:
+  # Canary: account seudoe deploys first. ifind, maharaj, usen, sam-wlh-ds only start if it succeeds.
+  deploy-canary:
+    name: Deploy account seudoe (canary)
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_SEUDOE }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_SEUDOE }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SEUDOE }}
+      PROJECT_IDENTITY: seudoe
+      ENV_LOCAL: ${{ secrets.ENV_LOCAL }}
+    steps:
+      - name: Checkout iFind source
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@${{ env.VERCEL_CLI_VERSION }}
+
+      - name: Sync env vars
+        run: bash scripts/sync-vercel-env.sh
+
+      - name: Deploy to production
+        run: vercel deploy --prod --yes
+
+  deploy-rest:
+    name: Deploy account ${{ matrix.target }}
+    needs: deploy-canary
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        # changed to particular names
+          - target: ifind
+            token_secret: VERCEL_TOKEN_IFIND
+            org_secret: VERCEL_ORG_ID_IFIND
+            project_secret: VERCEL_PROJECT_ID_IFIND
+          - target: maharaj
+            token_secret: VERCEL_TOKEN_MAHARAJ
+            org_secret: VERCEL_ORG_ID_MAHARAJ
+            project_secret: VERCEL_PROJECT_ID_MAHARAJ
+          - target: usen
+            token_secret: VERCEL_TOKEN_USEN
+            org_secret: VERCEL_ORG_ID_USEN
+            project_secret: VERCEL_PROJECT_ID_USEN
+          - target: sam-wlh-ds
+            token_secret: VERCEL_TOKEN_SAM
+            org_secret: VERCEL_ORG_ID_SAM
+            project_secret: VERCEL_PROJECT_ID_SAM
+
+    env:
+      VERCEL_TOKEN: ${{ secrets[matrix.token_secret] }}
+      VERCEL_ORG_ID: ${{ secrets[matrix.org_secret] }}
+      VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
+      PROJECT_IDENTITY: ${{ matrix.target }}
+      ENV_LOCAL: ${{ secrets.ENV_LOCAL }}
+
+    steps:
+      - name: Checkout iFind source
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@${{ env.VERCEL_CLI_VERSION }}
+
+      - name: Sync env vars
+        run: bash scripts/sync-vercel-env.sh
+
+      - name: Deploy to production
+        run: vercel deploy --prod --yes
