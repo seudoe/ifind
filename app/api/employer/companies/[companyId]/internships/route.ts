@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCompanyRole((await params).companyId, "recruiter");
         if (isResponse(access)) return access;
-        const blocked = postingBlocked(access.company);
+        const blocked = await postingBlocked(access.company);
         if (blocked) return blocked;
 
         const parsed = internshipDraftSchema.safeParse(await request.json());

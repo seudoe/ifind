@@ -26,7 +26,7 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
         const access = await requireCompanyRole(companyId, "recruiter");
         if (isResponse(access)) return access;
         if (action === "duplicate" || action === "publish") {
-            const blocked = postingBlocked(access.company);
+            const blocked = await postingBlocked(access.company);
             if (blocked) return blocked;
         }
         const doc = await loadInternship(companyId, internshipId);
