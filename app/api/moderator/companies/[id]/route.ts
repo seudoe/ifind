@@ -104,6 +104,7 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
                             : { status, reason, by: session.moderatorId, at: now },
                 },
             },
+            { strict: false },
         );
 
         let affected = 0;

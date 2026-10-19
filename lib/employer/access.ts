@@ -33,14 +33,26 @@ export async function getCompanyAccess(companyId: string, minRole: MemberRole = 
     return { employer, company, role: member.role };
 }
 
+export interface CompanyRestriction {
+    status: "none" | "restricted" | "banned";
+    reason?: string | null;
+}
+
+/** Read straight from the collection so a stale cached model can never hide a restriction. */
+export async function getRestriction(companyId: unknown): Promise<CompanyRestriction> {
+    const raw = await Company.collection.findOne({ _id: companyId as mongoose.Types.ObjectId }, { projection: { restriction: 1 } });
+    return (raw?.restriction as CompanyRestriction | undefined) ?? { status: "none" };
+}
+
+export function restrictionMessage(r: CompanyRestriction): string {
+    return `This company has been ${r.status === "banned" ? "banned" : "restricted"} by iFind${r.reason ? ` for the following reason: ${r.reason}` : ""}. It can't post new internships${r.status === "banned" ? " and its existing internships have been removed" : " until the restriction is lifted"}.`;
+}
+
 /** Null when the company may post; otherwise the 403 to return. Restricted and banned companies can't create or publish. */
-export function postingBlocked(company: ICompany): NextResponse | null {
-    const r = company.restriction;
-    if (!r || r.status === "none") return null;
-    return NextResponse.json(
-        { success: false, error: `This company is ${r.status === "banned" ? "banned" : "restricted"} and can't post internships.${r.reason ? ` Reason: ${r.reason}` : ""}` },
-        { status: 403 },
-    );
+export async function postingBlocked(company: ICompany): Promise<NextResponse | null> {
+    const r = await getRestriction(company._id);
+    if (r.status === "none") return null;
+    return NextResponse.json({ success: false, error: restrictionMessage(r) }, { status: 403 });
 }
 
 const fail = (error: string, status: number) => NextResponse.json({ success: false, error }, { status });
