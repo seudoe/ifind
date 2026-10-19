@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isResponse, requireCompanyRole } from "@/lib/employer/access";
+import { isResponse, postingBlocked, requireCompanyRole } from "@/lib/employer/access";
 import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO } from "@/lib/employer/internships";
 import { internshipPublishSchema, zodMessage } from "@/lib/employer/validation";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -25,6 +25,10 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
         const { companyId, internshipId, action } = await params;
         const access = await requireCompanyRole(companyId, "recruiter");
         if (isResponse(access)) return access;
+        if (action === "duplicate" || action === "publish") {
+            const blocked = postingBlocked(access.company);
+            if (blocked) return blocked;
+        }
         const doc = await loadInternship(companyId, internshipId);
         if (isResponse(doc)) return doc;
 

@@ -5,6 +5,8 @@ export const COMPANY_TYPES = ["startup", "private", "public", "mnc", "ngo", "gov
 export const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "501-1000", "1001-5000", "5000+"] as const;
 export const MEMBER_ROLES = ["owner", "admin", "recruiter"] as const;
 export const VERIFICATION_STATUSES = ["unverified", "pending", "verified", "rejected"] as const;
+/** none: normal. restricted: no new internships until lifted. banned: restricted + every existing internship is pulled. */
+export const COMPANY_RESTRICTIONS = ["none", "restricted", "banned"] as const;
 export const INTERNSHIP_STATUSES = ["draft", "published", "paused", "closed", "archived"] as const;
 export const WORK_MODES = ["onsite", "remote", "hybrid"] as const;
 export const QUESTION_TYPES = ["text", "yes_no", "single_choice", "multi_choice", "number"] as const;
@@ -21,6 +23,7 @@ export type CompanyType = (typeof COMPANY_TYPES)[number];
 export type CompanySize = (typeof COMPANY_SIZES)[number];
 export type MemberRole = (typeof MEMBER_ROLES)[number];
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
+export type CompanyRestriction = (typeof COMPANY_RESTRICTIONS)[number];
 export type InternshipStatus = (typeof INTERNSHIP_STATUSES)[number];
 export type WorkMode = (typeof WORK_MODES)[number];
 export type QuestionType = (typeof QUESTION_TYPES)[number];

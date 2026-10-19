@@ -11,6 +11,7 @@ export function visibleToStudentsFilter(now: Date = new Date()): QueryFilter<IPl
         status: "published",
         "moderation.status": { $in: ["auto_approved", "manually_approved"] },
         isActive: true,
+        bannedByCompany: { $ne: true },
         $or: [{ deadlineDate: null }, { deadlineDate: { $gt: now } }],
     };
 }

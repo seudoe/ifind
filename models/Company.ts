@@ -1,7 +1,7 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
 import {
-    COMPANY_SIZES, COMPANY_TYPES, MEMBER_ROLES, VERIFICATION_STATUSES,
-    type CompanySize, type CompanyType, type MemberRole, type VerificationStatus,
+    COMPANY_RESTRICTIONS, COMPANY_SIZES, COMPANY_TYPES, MEMBER_ROLES, VERIFICATION_STATUSES,
+    type CompanyRestriction, type CompanySize, type CompanyType, type MemberRole, type VerificationStatus,
 } from "@/types/employer";
 
 export interface ICompanyMember {
@@ -43,6 +43,13 @@ export interface ICompany extends Document {
         reviewedBy?: mongoose.Types.ObjectId | null;
         reviewedAt?: Date | null;
         rejectionReason?: string | null;
+    };
+    /** Moderator action. Shared shape with the other modules: companies.restriction.status in none|restricted|banned. */
+    restriction: {
+        status: CompanyRestriction;
+        reason?: string | null;
+        by?: mongoose.Types.ObjectId | null;
+        at?: Date | null;
     };
     isActive: boolean;
     deleteDetails: { deleted: boolean; deletedAt: Date | null };
@@ -124,6 +131,18 @@ const CompanySchema = new Schema<ICompany>(
                 { _id: false },
             ),
             default: () => ({ status: "unverified" }),
+        },
+        restriction: {
+            type: new Schema(
+                {
+                    status: { type: String, enum: COMPANY_RESTRICTIONS, default: "none" },
+                    reason: { type: String, default: null },
+                    by: { type: Schema.Types.ObjectId, ref: "Moderator", default: null },
+                    at: { type: Date, default: null },
+                },
+                { _id: false },
+            ),
+            default: () => ({ status: "none" }),
         },
         isActive: { type: Boolean, default: true },
         deleteDetails: {

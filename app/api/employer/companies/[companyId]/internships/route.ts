@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
-import { isResponse, requireCompanyRole } from "@/lib/employer/access";
+import { isResponse, postingBlocked, requireCompanyRole } from "@/lib/employer/access";
 import { applyInput, syncAutoClose, toInternshipDTO } from "@/lib/employer/internships";
 import { internshipDraftSchema, zodMessage } from "@/lib/employer/validation";
 import Application from "@/models/Application";
@@ -51,6 +51,8 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCompanyRole((await params).companyId, "recruiter");
         if (isResponse(access)) return access;
+        const blocked = postingBlocked(access.company);
+        if (blocked) return blocked;
 
         const parsed = internshipDraftSchema.safeParse(await request.json());
         if (!parsed.success) return NextResponse.json({ success: false, error: zodMessage(parsed.error) }, { status: 400 });
