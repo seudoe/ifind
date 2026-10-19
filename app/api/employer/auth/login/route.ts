@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { connectDB } from "@/lib/db";
 import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
 import Employer from "@/models/Employer";
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
         const cookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }));
         const response = NextResponse.json({ success: true, data: { employerId: employer.id } });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
+        after(() => sendServerEvent(request, "login", { user_type: "employer" }));
         return response;
     } catch (error) {
         console.error("[employer/auth/login]", error);

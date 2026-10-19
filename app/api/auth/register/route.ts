@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, message: "Account created", data: { username: user.username } }, { status: 201 });
     response.cookies.set(cookie.name, cookie.value, cookie.options);
     log.ok("auth/register", "account created", { username: user.username, city: city ?? undefined });
+    after(() => sendServerEvent(request, "sign_up", { user_type: "student" }));
     return response;
   } catch (error) {
     if (typeof error === "object" && error && "code" in error && error.code === 11000) {

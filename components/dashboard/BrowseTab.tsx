@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { InternshipCard } from "@/components/internships/InternshipCard";
 import { FilterPanel } from "@/components/internships/FilterPanel";
@@ -9,6 +9,7 @@ import { useFilters } from "@/hooks/useFilters";
 import { Button } from "@/components/ui/Button";
 import { cn, getInternshipId } from "@/lib/utils";
 import { addressTerms } from "@/lib/address";
+import { track } from "@/lib/analytics/track";
 import type { Internship, User } from "@/types";
 
 interface BrowseTabProps {
@@ -172,6 +173,18 @@ export function BrowseTab({
   useEffect(() => {
     setPage(1);
   }, [query, filters]);
+
+  // Report a search once the query has settled; only the result count is sent, never the text
+  const resultCount = useRef(results.length);
+  useEffect(() => {
+    resultCount.current = results.length;
+  }, [results]);
+  const term = query.trim();
+  useEffect(() => {
+    if (!term) return;
+    const timer = setTimeout(() => track("search", { result_count: resultCount.current }), 800);
+    return () => clearTimeout(timer);
+  }, [term]);
 
   const totalPages = Math.ceil(results.length / pageSize) || 1;
   const startIndex = (page - 1) * pageSize;

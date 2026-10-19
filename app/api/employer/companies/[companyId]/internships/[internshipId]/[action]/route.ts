@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { isResponse, requireCompanyRole } from "@/lib/employer/access";
 import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO } from "@/lib/employer/internships";
 import { internshipPublishSchema, zodMessage } from "@/lib/employer/validation";
@@ -20,7 +21,7 @@ function stripNulls(v: unknown): unknown {
 }
 
 /** POST .../[action]: publish | pause | close | archive | duplicate */
-export async function POST(_req: NextRequest, { params }: Ctx) {
+export async function POST(req: NextRequest, { params }: Ctx) {
     try {
         const { companyId, internshipId, action } = await params;
         const access = await requireCompanyRole(companyId, "recruiter");
@@ -62,6 +63,8 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
                 await runModeration(doc, access.company.verification?.status === "verified");
             } // resuming from pause keeps the existing moderation result
             await doc.save();
+            // A first publish counts as "posted"; resuming a paused listing does not.
+            if (wasDraft) after(() => sendServerEvent(req, "internship_posted", { user_type: "employer" }));
             return NextResponse.json({ success: true, data: toInternshipDTO(doc) });
         }
 
