@@ -283,10 +283,10 @@ function ProfileHeader({ user, education, missing, onEditClick }: { user: User; 
           <span className="flex items-center gap-1.5 sm:col-span-2 lg:col-span-3"><Mail className="h-3.5 w-3.5 text-[var(--text-3)]" />{email}</span>
         </div>
       </div>
-      <div className="rounded-[var(--radius-sm)] bg-[var(--primary-bg)] p-4">
+      <div className="rounded-[var(--radius-sm)] bg-[var(--primary-bg)] p-4 sm:col-span-2 lg:col-span-1">
         <p className="text-xs font-semibold text-[var(--text)]">Complete your profile</p>
         <div className="mt-3 space-y-2">
-          {missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between text-xs text-[var(--text-2)]"><span>{item}</span><span className="text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}
+          {missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between gap-2 text-xs text-[var(--text-2)]"><span>{item}</span><span className="shrink-0 whitespace-nowrap text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}
         </div>
         <button type="button" className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white">Review missing details</button>
       </div>
