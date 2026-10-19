@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { EMP_COOKIE_NAME, empAuthCookie, signEmpToken, verifyEmpToken } from "@/lib/employerAuth";
@@ -104,6 +105,9 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
+    // True when this request created the account (sign_up), false when it only signed in (login).
+    let isNew = false;
+
     if (isLink) {
       // Logged-in employer linking LinkedIn from settings
       const token = request.cookies.get(EMP_COOKIE_NAME)?.value;
@@ -142,6 +146,7 @@ export async function GET(request: NextRequest) {
         employer.lastLoginAt = new Date();
         await employer.save();
       } else {
+        isNew = true;
         employer = await Employer.create({
           name: name === "Student" ? "Employer" : name,
           email,
@@ -157,6 +162,7 @@ export async function GET(request: NextRequest) {
       empResponse.cookies.set(empCookie.name, empCookie.value, empCookie.options);
       empResponse.cookies.delete("linkedin_oauth_state");
       empResponse.cookies.delete("linkedin_oauth_intent");
+      after(() => sendServerEvent(request, isNew ? "sign_up" : "login", { user_type: "employer" }));
       return empResponse;
     }
 
@@ -233,6 +239,7 @@ export async function GET(request: NextRequest) {
         counter++;
       }
 
+      isNew = true;
       user = await User.create({
         lastLoginAt: new Date(),
         loginCount: 1,
@@ -294,6 +301,7 @@ export async function GET(request: NextRequest) {
     response.cookies.delete("linkedin_oauth_state");
     response.cookies.delete("linkedin_oauth_intent");
 
+    after(() => sendServerEvent(request, isNew ? "sign_up" : "login", { user_type: "student" }));
     return response;
   } catch (error) {
     console.error("[auth/linkedin/callback] Exception during LinkedIn login:", error);
