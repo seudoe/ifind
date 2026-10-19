@@ -9,6 +9,7 @@ import {
     UserCheck,
     Activity,
     Gauge,
+    BarChart3,
     Trophy,
     LogOut,
     AlertTriangle,
@@ -39,6 +40,11 @@ const NAV = [
         icon: Gauge,
     },
     {
+        tab: "analytics" as const,
+        label: "Analytics",
+        icon: BarChart3,
+    },
+    {
         tab: "users" as const,
         label: "Users",
         icon: Users,
@@ -51,7 +57,7 @@ const NAV = [
 ];
 
 interface ModeratorShellProps {
-    activeTab: "internships" | "events" | "scrapes" | "usage" | "users" | "moderators";
+    activeTab: "internships" | "events" | "scrapes" | "usage" | "analytics" | "users" | "moderators";
     children: React.ReactNode;
     moderator: ModeratorSession;
 }
@@ -78,6 +84,7 @@ export function ModeratorShell({
         events: "Hackathons & Contests",
         scrapes: "Scrapes",
         usage: "AI Usage",
+        analytics: "Analytics",
         users: "User Management",
         moderators: "Moderator Accounts",
     };
