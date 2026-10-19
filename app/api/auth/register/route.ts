@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import { log } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
         );
       }
       const field = existing.email === email ? "email" : "username";
+      log.warn("auth/register", "registration rejected: duplicate", { field });
       return NextResponse.json({ success: false, error: `This ${field} is already taken` }, { status: 409 });
     }
 
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
     const cookie = authCookie(signToken(session));
     const response = NextResponse.json({ success: true, message: "Account created", data: { username: user.username } }, { status: 201 });
     response.cookies.set(cookie.name, cookie.value, cookie.options);
+    log.ok("auth/register", "account created", { username: user.username, city: city ?? undefined });
     return response;
   } catch (error) {
     if (typeof error === "object" && error && "code" in error && error.code === 11000) {

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import { log } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
         await connectDB();
         const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] }).select("+password");
         if (!user) {
+            log.warn("auth/login", "sign-in rejected: unknown account", { identifier });
             return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
         }
 
@@ -30,10 +32,12 @@ export async function POST(request: NextRequest) {
         }
 
         if (!user.password || !(await bcrypt.compare(password, user.password))) {
+            log.warn("auth/login", "sign-in rejected: wrong password", { username: user.username });
             return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
         }
 
         if (user.isBanned === true) {
+            log.warn("auth/login", "sign-in rejected: account suspended", { username: user.username });
             return NextResponse.json({ success: false, error: "Your account has been suspended" }, { status: 403 });
         }
 
@@ -99,6 +103,7 @@ export async function POST(request: NextRequest) {
             data: { username: user.username },
         });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
+        log.ok("auth/login", "user signed in", { username: user.username, role: "student", notice: loginNotice ? "account restored/reset" : undefined });
         return response;
     } catch (error) {
         console.error("[auth/login]", error);
