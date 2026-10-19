@@ -37,6 +37,22 @@ export interface UserSummary {
     flags?: Array<{ code: string; label: string; detail: string }>;
 }
 
+export interface EmployerSummary {
+    _id: string;
+    name: string;
+    email: string;
+    profilePicture?: string | null;
+    phone?: string | null;
+    designation?: string | null;
+    isEmailVerified: boolean;
+    createdAt: string;
+    lastLoginAt?: string | null;
+    isBanned: boolean;
+    bannedReason?: string | null;
+    bannedAt?: string | null;
+    companyCount: number;
+}
+
 export interface ModeratorSummary {
     _id: string;
     name: string;

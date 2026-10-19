@@ -10,13 +10,14 @@ import {
     Activity,
     Gauge,
     Trophy,
+    Briefcase,
     LogOut,
     AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ModeratorSession } from "@/types/moderator";
 
-type Tab = "internships" | "events" | "scrapes" | "usage" | "users" | "moderators";
+type Tab = "internships" | "events" | "scrapes" | "usage" | "users" | "employers" | "moderators";
 
 // ── Nav definition (grouped) ──────────────────────────────────────────────
 const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeof Users }[] }[] = [
@@ -38,6 +39,7 @@ const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeo
         label: "People",
         links: [
             { tab: "users", label: "Users", icon: Users },
+            { tab: "employers", label: "Employers", icon: Briefcase },
             { tab: "moderators", label: "Moderators", icon: UserCheck },
         ],
     },
@@ -73,6 +75,7 @@ export function ModeratorShell({
         scrapes: "Scrapes",
         usage: "AI Usage",
         users: "User Management",
+        employers: "Employer Management",
         moderators: "Moderator Accounts",
     };
 
