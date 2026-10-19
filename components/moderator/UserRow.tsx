@@ -59,9 +59,9 @@ export function UserRow({ user, onBan, onUnban, onDetails }: UserRowProps) {
                         size="sm"
                     />
                     <div className="min-w-0">
-                        <p className="text-sm font-medium text-[var(--text)] truncate">
+                        <button type="button" onClick={onDetails} className="block max-w-full text-left text-sm font-medium text-[var(--text)] truncate hover:text-[var(--primary)] hover:underline">
                             {user.name}
-                        </p>
+                        </button>
                         <p className="text-xs text-[var(--text-3)] truncate">
                             {user.email}
                         </p>

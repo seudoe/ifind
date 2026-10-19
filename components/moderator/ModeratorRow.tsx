@@ -11,6 +11,7 @@ interface ModeratorRowProps {
     currentModeratorPriority: number;
     onVerify: () => Promise<void>;
     onBanToggle: () => Promise<void>;
+    onDetails: () => void;
 }
 
 function formatDate(iso: string): string {
@@ -27,6 +28,7 @@ export function ModeratorRow({
     currentModeratorPriority,
     onVerify,
     onBanToggle,
+    onDetails,
 }: ModeratorRowProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isBanning, setIsBanning] = useState(false);
@@ -62,9 +64,9 @@ export function ModeratorRow({
             {/* Name + Email */}
             <td className="py-3 px-4">
                 <div className="min-w-0">
-                    <p className="text-sm font-medium text-[var(--text)] truncate">
+                    <button type="button" onClick={onDetails} className="block max-w-full text-left text-sm font-medium text-[var(--text)] truncate hover:text-[var(--primary)] hover:underline">
                         {moderator.name}
-                    </p>
+                    </button>
                     <p className="text-xs text-[var(--text-3)] truncate">
                         {moderator.email}
                     </p>

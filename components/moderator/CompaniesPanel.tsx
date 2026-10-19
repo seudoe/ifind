@@ -245,7 +245,7 @@ export function CompaniesPanel() {
                                         <div className="flex items-center gap-3">
                                             <Avatar src={c.logo} name={c.name} size="sm" />
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-[var(--text)] truncate">{c.name}</p>
+                                                <button type="button" onClick={() => setSelected(c)} className="block max-w-full text-left text-sm font-medium text-[var(--text)] truncate hover:text-[var(--primary)] hover:underline">{c.name}</button>
                                                 <p className="text-xs text-[var(--text-3)] truncate">{c.contactEmail}</p>
                                             </div>
                                         </div>
