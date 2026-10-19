@@ -76,6 +76,10 @@ export interface IUser extends Document {
     bannedAt?: Date | null;
     aiExtractionUsedThisMonth?: number;
     aiExtractionMonthYear?: string | null;
+    dailyCreditLimit?: number | null;
+    lastLoginAt?: Date | null;
+    loginCount?: number;
+    failedLoginAttempts?: Date[];
     vectorizationStatus: "idle" | "processing" | "completed" | "failed";
     createdAt: Date;
     updatedAt: Date;
@@ -204,6 +208,10 @@ const UserSchema = new Schema<IUser>(
         bannedAt: { type: Date, default: null },
         aiExtractionUsedThisMonth: { type: Number, default: 0 },
         aiExtractionMonthYear: { type: String, default: null }, // format: "YYYY-MM"
+        dailyCreditLimit: { type: Number, default: null }, // moderator override of the daily credit pool; null = site default
+        lastLoginAt: { type: Date, default: null },
+        loginCount: { type: Number, default: 0 },
+        failedLoginAttempts: { type: [Date], default: [] }, // most recent 20, for the ban signals
         vectorizationStatus: { type: String, enum: ["idle", "processing", "completed", "failed"], default: "idle" },
     },
     { timestamps: true }

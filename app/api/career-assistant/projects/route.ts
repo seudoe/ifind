@@ -4,12 +4,13 @@ import { getSession } from '@/lib/auth';
 import User from '@/models/User';
 import { extractResumeText, extractSkills } from '@/lib/resume/resumeTextExtractor';
 import { generateJSON } from '@/lib/groq/groqService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/career-assistant/projects
  * Generate project suggestions based on skills gaps
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -92,3 +93,5 @@ Focus on:
     );
   }
 }
+
+export const POST = withBilling('projects', handlePost);

@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk';
+import { recordLlmCall } from '../usage/context';
 
 // Lazy client: constructing it at import time throws when GROQ_API_KEY is unset,
 // which breaks `next build` even for routes that never run.
@@ -31,9 +32,11 @@ export async function generateChatCompletion(
     stream?: boolean;
   } = {}
 ): Promise<Groq.Chat.Completions.ChatCompletion> {
+  const model = options.model || DEFAULT_MODEL;
+  const startedAt = Date.now();
   try {
     const completion = await getGroq().chat.completions.create({
-      model: options.model || DEFAULT_MODEL,
+      model,
       messages,
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
@@ -41,8 +44,17 @@ export async function generateChatCompletion(
       stream: false, // Force stream to false for type safety
     });
 
+    recordLlmCall({
+      provider: 'groq',
+      model,
+      tokensIn: completion.usage?.prompt_tokens,
+      tokensOut: completion.usage?.completion_tokens,
+      latencyMs: Date.now() - startedAt,
+      ok: true,
+    });
     return completion as Groq.Chat.Completions.ChatCompletion;
   } catch (error: any) {
+    recordLlmCall({ provider: 'groq', model, latencyMs: Date.now() - startedAt, ok: false, error });
     console.error('Groq API error:', error);
     throw new Error(`Groq API error: ${error.message}`);
   }

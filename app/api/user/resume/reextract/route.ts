@@ -8,10 +8,11 @@ import {
     getCurrentMonthYear,
     AI_EXTRACTION_MONTHLY_LIMIT,
 } from "@/lib/resumeParser";
+import { withBilling } from "@/lib/usage/withBilling";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+async function handlePost() {
     try {
         const session = await getSession();
         if (!session) {
@@ -101,3 +102,5 @@ export async function POST() {
         );
     }
 }
+
+export const POST = withBilling("resume-parse", handlePost);

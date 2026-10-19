@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import User from "@/models/User";
+import { getFlagsForUsers } from "@/lib/usage/signals";
 
 export const runtime = "nodejs";
 
@@ -53,13 +54,16 @@ export async function GET(request: NextRequest) {
             User.countDocuments(query),
             User.find(query)
                 .select(
-                    "name email username profilePicture createdAt appliedInternships isBanned bannedReason bannedBy bannedAt",
+                    "name email username profilePicture createdAt appliedInternships isBanned bannedReason bannedBy bannedAt lastLoginAt dailyCreditLimit",
                 )
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .lean(),
         ]);
+
+        // Flags for the "suspicious" badge, computed for just this page of users.
+        const flags = await getFlagsForUsers(users.map((u) => String(u._id))).catch(() => ({}) as Record<string, never[]>);
 
         // Transform: replace appliedInternships array with applicationCount
         const data = users.map((user) => {
@@ -68,6 +72,7 @@ export async function GET(request: NextRequest) {
             };
             return {
                 ...rest,
+                flags: flags[String(user._id)] ?? [],
                 applicationCount: Array.isArray(appliedInternships)
                     ? appliedInternships.length
                     : 0,
