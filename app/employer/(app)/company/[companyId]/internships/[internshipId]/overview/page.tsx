@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Card, COLORS, GroupedBars, HBars } from "@/components/moderator/charts";
 import { APP_STATUS_LABEL } from "@/components/employer/Pills";
 import { Badge } from "@/components/ui/Badge";
+import { formatAddresses } from "@/lib/address";
 import { formatDuration, formatStipend } from "@/lib/utils";
 import Application from "@/models/Application";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -44,7 +45,7 @@ export default async function InternshipOverviewPage({ params }: { params: Promi
     const totalApps = funnel.reduce((a, r) => a + r.value, 0);
 
     const rows: [string, string][] = [
-        ["Work mode", `${i.workMode}${i.city ? `, ${i.city}` : ""}`],
+        ["Work mode", `${i.workMode}${formatAddresses(i.address, ["city"]) ? `, ${formatAddresses(i.address, ["city"])}` : ""}`],
         ["Stipend", i.stipend ? formatStipend(i.stipend) : "-"],
         ["Duration", i.duration ? formatDuration(i.duration) : "-"],
         ["Openings", i.openings ? String(i.openings) : "-"],

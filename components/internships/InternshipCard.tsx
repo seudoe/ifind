@@ -10,6 +10,7 @@ import { ApplyButton } from "@/components/internships/ApplyButton";
 import { CompanyLogo } from "@/components/internships/CompanyLogo";
 import { StipendBadge } from "@/components/internships/StipendBadge";
 import { sourceLabel } from "@/lib/constants";
+import { formatAddresses } from "@/lib/address";
 import { cn, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
 import { toast }   from "sonner";
 import type { Internship } from "@/types";
@@ -40,7 +41,7 @@ export function InternshipCard({
 
   const location = internship.isRemote
     ? "Work from Home"
-    : [internship.city, internship.state].filter(Boolean).join(", ") || internship.country || "India";
+    : formatAddresses(internship.address, ["city", "state"]) || formatAddresses(internship.address, ["country"]) || "India";
 
   const deadlineSoon =
     internship.deadlineDate &&

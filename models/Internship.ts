@@ -72,15 +72,19 @@ export interface IModeration {
     scamDetails?: IScamDetails | null;
 }
 
+export interface IAddress {
+    city?: string | null;
+    state?: string | null;
+    country?: string | null;
+}
+
 export interface IInternship extends Document {
     name: string;
     company: string;
     applyLink: string;
     datePublished: Date;
     deadlineDate?: Date | null;
-    country?: string | null;
-    state?: string | null;
-    city?: string | null;
+    address: IAddress[];
     isRemote: boolean;
     stipend: IStipend;
     duration: IDuration;
@@ -218,15 +222,22 @@ const ModerationSchema = new Schema<IModeration>(
     { _id: false },
 );
 
+const AddressSchema = new Schema<IAddress>(
+    {
+        city: { type: String, default: null, trim: true },
+        state: { type: String, default: null, trim: true },
+        country: { type: String, default: null, trim: true },
+    },
+    { _id: false },
+);
+
 export const listingFields = {
         name: { type: String, required: true, trim: true },
         company: { type: String, required: true, trim: true },
         applyLink: { type: String, required: true, trim: true },
         datePublished: { type: Date, required: true },
         deadlineDate: { type: Date, default: null },
-        country: { type: String, default: null, trim: true },
-        state: { type: String, default: null, trim: true },
-        city: { type: String, default: null, trim: true },
+        address: { type: [AddressSchema], default: [] },
         isRemote: { type: Boolean, default: false },
         stipend: { type: StipendSchema, required: true },
         duration: { type: DurationSchema, required: true },

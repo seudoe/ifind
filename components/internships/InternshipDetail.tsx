@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ApplyButton } from "@/components/internships/ApplyButton";
 import { CompanyLogo } from "@/components/internships/CompanyLogo";
+import { formatAddresses } from "@/lib/address";
 import { StipendBadge } from "@/components/internships/StipendBadge";
 import { sourceLabel } from "@/lib/constants";
 import { Modal } from "@/components/ui/Modal";
@@ -244,7 +245,7 @@ export function MobileInternshipDetail({
 function InternshipDetailContent({ internship }: { internship: Internship }) {
   const location = internship.isRemote
     ? "Work from Home"
-    : [internship.city, internship.state, internship.country].filter(Boolean).join(", ") || "India";
+    : formatAddresses(internship.address) || "India";
 
   const deadlineSoon =
     internship.deadlineDate &&
