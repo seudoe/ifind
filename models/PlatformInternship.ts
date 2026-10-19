@@ -40,6 +40,8 @@ export interface IPlatformInternship
     requireCoverLetter: boolean;
     maxApplications?: number | null;
     closedAt?: Date | null;
+    /** Set while the company is banned (isActive is forced false); lifting the ban restores only these. */
+    bannedByCompany: boolean;
 }
 
 const ScreeningQuestionSchema = new Schema<IScreeningQuestion>({
@@ -88,6 +90,7 @@ const PlatformInternshipSchema = new Schema<IPlatformInternship>(
         requireCoverLetter: { type: Boolean, default: false },
         maxApplications: { type: Number, default: null },
         closedAt: { type: Date, default: null },
+        bannedByCompany: { type: Boolean, default: false },
     },
     { timestamps: true },
 );

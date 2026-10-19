@@ -33,6 +33,16 @@ export async function getCompanyAccess(companyId: string, minRole: MemberRole = 
     return { employer, company, role: member.role };
 }
 
+/** Null when the company may post; otherwise the 403 to return. Restricted and banned companies can't create or publish. */
+export function postingBlocked(company: ICompany): NextResponse | null {
+    const r = company.restriction;
+    if (!r || r.status === "none") return null;
+    return NextResponse.json(
+        { success: false, error: `This company is ${r.status === "banned" ? "banned" : "restricted"} and can't post internships.${r.reason ? ` Reason: ${r.reason}` : ""}` },
+        { status: 403 },
+    );
+}
+
 const fail = (error: string, status: number) => NextResponse.json({ success: false, error }, { status });
 
 /**
