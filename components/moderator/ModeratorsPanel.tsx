@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, Users } from "lucide-react";
 import { ModeratorRow } from "./ModeratorRow";
+import { ModeratorDetailModal } from "./ModeratorDetailModal";
 import type { ModeratorSummary } from "@/types/moderator";
 
 interface ModeratorsPanelProps {
@@ -12,6 +13,7 @@ interface ModeratorsPanelProps {
 
 export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
     const [moderators, setModerators] = useState<ModeratorSummary[]>([]);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     // Fetch all moderators on mount
@@ -191,12 +193,18 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
                                     currentModeratorPriority={currentModeratorPriority}
                                     onVerify={() => handleVerify(moderator._id)}
                                     onBanToggle={() => handleBanToggle(moderator._id)}
+                                    onDetails={() => setSelectedId(moderator._id)}
                                 />
                             ))}
                         </tbody>
                     </table>
                 </div>
             )}
+            <ModeratorDetailModal
+                moderator={moderators.find((m) => m._id === selectedId) ?? null}
+                all={moderators}
+                onClose={() => setSelectedId(null)}
+            />
         </div>
     );
 }
