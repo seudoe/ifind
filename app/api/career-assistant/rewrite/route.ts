@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { generateText } from '@/lib/groq/groqService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/career-assistant/rewrite
  * Rewrite resume content with different tones
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -81,3 +82,5 @@ Provide the rewritten version that is more impactful, professional, and achievem
     );
   }
 }
+
+export const POST = withBilling('rewrite', handlePost);

@@ -166,6 +166,9 @@ export async function GET(request: NextRequest) {
     });
 
     if (user) {
+      if (user.isBanned === true) {
+        return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("Your account has been suspended")}`);
+      }
       // Update existing user with linkedinId, linkedinDetails, or profile picture
       user.linkedinId = profile.sub;
       user.linkedinDetails = profile;
@@ -214,6 +217,8 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      user.lastLoginAt = new Date();
+      user.loginCount = (user.loginCount ?? 0) + 1;
       await user.save();
     } else {
       // Create new student user
@@ -229,6 +234,8 @@ export async function GET(request: NextRequest) {
       }
 
       user = await User.create({
+        lastLoginAt: new Date(),
+        loginCount: 1,
         name,
         username,
         email,

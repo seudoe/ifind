@@ -6,6 +6,7 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import { recordLlmCall } from '../usage/context';
 
 // Initialize Gemini AI client
 let genAI: GoogleGenerativeAI | null = null;
@@ -34,6 +35,30 @@ function initializeGemini(): GenerativeModel {
     }
 
     return model!;
+}
+
+/**
+ * One Gemini call with its token usage recorded for the usage log.
+ */
+async function trackedGenerate(aiModel: GenerativeModel, prompt: string) {
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const startedAt = Date.now();
+    try {
+        const result = await aiModel.generateContent(prompt);
+        const usage = result.response.usageMetadata;
+        recordLlmCall({
+            provider: 'gemini',
+            model: modelName,
+            tokensIn: usage?.promptTokenCount,
+            tokensOut: usage?.candidatesTokenCount,
+            latencyMs: Date.now() - startedAt,
+            ok: true,
+        });
+        return result;
+    } catch (error) {
+        recordLlmCall({ provider: 'gemini', model: modelName, latencyMs: Date.now() - startedAt, ok: false, error });
+        throw error;
+    }
 }
 
 /**
@@ -108,7 +133,7 @@ export async function generateContent(
             console.log(`[GeminiService] Request attempt ${attempt + 1}/${maxRetries + 1}`);
 
             // Generate content
-            const result = await aiModel.generateContent(prompt);
+            const result = await trackedGenerate(aiModel, prompt);
             const response = await result.response;
             const text = response.text();
 
@@ -129,7 +154,7 @@ export async function generateContent(
                         console.log(`[GeminiService] Retrying with explicit JSON instructions...`);
                         const retryPrompt = `${prompt}\n\nREMINDER: Your response MUST be ONLY valid JSON. No markdown, no explanations, no code blocks. Just pure JSON starting with { and ending with }.`;
 
-                        const retryResult = await aiModel.generateContent(retryPrompt);
+                        const retryResult = await trackedGenerate(aiModel, retryPrompt);
                         const retryResponse = await retryResult.response;
                         const retryText = retryResponse.text();
 

@@ -32,6 +32,9 @@ export interface UserSummary {
     bannedReason?: string | null;
     bannedBy?: string | null;
     bannedAt?: string | null;
+    lastLoginAt?: string | null;
+    dailyCreditLimit?: number | null;
+    flags?: Array<{ code: string; label: string; detail: string }>;
 }
 
 export interface ModeratorSummary {

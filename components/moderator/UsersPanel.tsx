@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Loader2, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { UserRow } from "./UserRow";
+import { UserDetailModal } from "./UserDetailModal";
 import type { UserSummary } from "@/types/moderator";
 
 const LIMIT = 20;
@@ -16,6 +17,8 @@ export function UsersPanel() {
     const [isLoading, setIsLoading] = useState(false);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [selected, setSelected] = useState<UserSummary | null>(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
@@ -58,7 +61,7 @@ export function UsersPanel() {
         };
 
         fetchUsers();
-    }, [page, debouncedSearch]);
+    }, [page, debouncedSearch, reloadKey]);
 
     const handleBan = async (userId: string, reason: string) => {
         // Optimistic update
@@ -219,6 +222,7 @@ export function UsersPanel() {
                                         handleBan(user._id, reason)
                                     }
                                     onUnban={() => handleUnban(user._id)}
+                                    onDetails={() => setSelected(user)}
                                 />
                             ))}
                         </tbody>
@@ -252,6 +256,11 @@ export function UsersPanel() {
                     </Button>
                 </div>
             )}
+            <UserDetailModal
+                user={selected}
+                onClose={() => setSelected(null)}
+                onChanged={() => setReloadKey((k) => k + 1)}
+            />
         </div>
     );
 }

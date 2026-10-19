@@ -1,5 +1,5 @@
 import {
-  Bell, Bookmark, FileText, Home, MessageSquare, Search, Send, Settings, Sparkles, User, Wrench,
+  Bell, Bookmark, FileText, Home, MessageSquare, Search, Send, Settings, Sparkles, Trophy, User, Wrench,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +30,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Browse", path: "browse", icon: Search, title: "Browse Internships" },
       { label: "Applied", path: "applied-internships", icon: Send, title: "Applied Internships" },
       { label: "Saved", path: "saved", icon: Bookmark },
+      { label: "Events", path: "events", icon: Trophy, title: "Hackathons & Contests" },
     ],
   },
   {

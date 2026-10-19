@@ -13,11 +13,12 @@ import User from '@/models/User';
 import Analysis from '@/models/Analysis';
 import { analyzeResume, extractSkills } from '@/lib/resume/resumeAnalyzer';
 import aiService from '@/lib/ai/aiService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST - Trigger resume analysis
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
     try {
         // Verify authentication
         const session = await getSession();
@@ -273,3 +274,5 @@ function extractResumeText(parsedData: any): string {
 
     return parts.filter(Boolean).join('\n\n');
 }
+
+export const POST = withBilling('resume-analyze', handlePost);
