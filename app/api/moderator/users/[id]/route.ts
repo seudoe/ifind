@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import User from "@/models/User";
+import BanEvent from "@/models/BanEvent";
+import { forgetBanCache } from "@/lib/banCheck";
+import { getUserSignals } from "@/lib/usage/signals";
 
 export const runtime = "nodejs";
 
@@ -24,12 +27,30 @@ export async function PATCH(
         const action = typeof body.action === "string" ? body.action : "";
         const reason = typeof body.reason === "string" ? body.reason : "";
 
+        if (action === "set-limit") {
+            // Per-user override of the daily credit pool; null puts the user back on the site default.
+            const raw = body.limit;
+            const limit = raw === null ? null : Number(raw);
+            if (limit !== null && (!Number.isFinite(limit) || limit < 0 || limit > 100000)) {
+                return NextResponse.json(
+                    { success: false, error: "limit must be a number from 0 to 100000, or null for the default." },
+                    { status: 400 },
+                );
+            }
+            await connectDB();
+            const result = await User.updateOne({ _id: id }, { $set: { dailyCreditLimit: limit === null ? null : Math.floor(limit) } });
+            if (!result.matchedCount) {
+                return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+            }
+            return NextResponse.json({ success: true }, { status: 200 });
+        }
+
         // 400 for unrecognized action
         if (action !== "ban" && action !== "unban") {
             return NextResponse.json(
                 {
                     success: false,
-                    error: `Unrecognized action "${action}". Must be "ban" or "unban".`,
+                    error: `Unrecognized action "${action}". Must be "ban", "unban" or "set-limit".`,
                 },
                 { status: 400 },
             );
@@ -86,6 +107,23 @@ export async function PATCH(
                     },
                 },
             );
+        }
+
+        forgetBanCache(id);
+
+        // History: who did it, why, and what the user's numbers looked like at that moment.
+        try {
+            await BanEvent.create({
+                userId: id,
+                action,
+                reason: action === "ban" ? reason.trim() : reason.trim() || null,
+                moderatorId,
+                moderatorName: session.name,
+                signals: await getUserSignals(id),
+                at: now,
+            });
+        } catch (historyError) {
+            console.error("[moderator/users/[id] PATCH] could not write ban history", historyError);
         }
 
         return NextResponse.json({ success: true }, { status: 200 });

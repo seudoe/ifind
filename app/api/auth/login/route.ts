@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
 
         if (!user.password || !(await bcrypt.compare(password, user.password))) {
             log.warn("auth/login", "sign-in rejected: wrong password", { username: user.username });
+            // Keep the 20 most recent failures; the moderator panel counts the ones from the last 24 hours.
+            await User.updateOne({ _id: user._id }, { $push: { failedLoginAttempts: { $each: [new Date()], $slice: -20 } } });
             return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
         }
 
@@ -93,6 +95,8 @@ export async function POST(request: NextRequest) {
                 loginNotice = "Welcome back! Your account deletion was cancelled and your profile has been restored.";
             }
         }
+
+        await User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() }, $inc: { loginCount: 1 } });
 
         const session = { userId: user.id, email: user.email, username: user.username, role: "student" as const };
         const cookie = authCookie(signToken(session));

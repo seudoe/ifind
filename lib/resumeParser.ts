@@ -11,6 +11,7 @@
 import type { ParsedResumeData } from "@/types/resume";
 
 import { resumeExtractorUrl } from "@/lib/services";
+import { recordLlmCall } from "@/lib/usage/context";
 
 // Time (in ms) to wait for HuggingFace Space before moving to OpenAI fallback
 const MAX_WAIT_FOR_HF_MS = process.env.MAX_WAIT_FOR_HF
@@ -151,6 +152,7 @@ async function parseWithOpenAI(pdfBuffer: Buffer): Promise<ParsedResumeData> {
 
     const base64Pdf = pdfBuffer.toString("base64");
 
+    const startedAt = Date.now();
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -180,6 +182,7 @@ async function parseWithOpenAI(pdfBuffer: Buffer): Promise<ParsedResumeData> {
     });
 
     if (!res.ok) {
+        recordLlmCall({ provider: "openai", model: "gpt-4o", latencyMs: Date.now() - startedAt, ok: false, error: `HTTP ${res.status}` });
         const text = await res.text().catch(() => res.statusText);
         throw new Error(
             `OpenAI API error ${res.status}: ${text.slice(0, 200)}`,
@@ -187,6 +190,14 @@ async function parseWithOpenAI(pdfBuffer: Buffer): Promise<ParsedResumeData> {
     }
 
     const json = await res.json();
+    recordLlmCall({
+        provider: "openai",
+        model: "gpt-4o",
+        tokensIn: json.usage?.prompt_tokens,
+        tokensOut: json.usage?.completion_tokens,
+        latencyMs: Date.now() - startedAt,
+        ok: true,
+    });
     const content = json.choices?.[0]?.message?.content;
     if (!content) throw new Error("No content response from OpenAI");
 
@@ -201,6 +212,7 @@ async function parseWithGemini(pdfBuffer: Buffer): Promise<ParsedResumeData> {
 
     const base64Pdf = pdfBuffer.toString("base64");
 
+    const startedAt = Date.now();
     const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
@@ -229,6 +241,7 @@ async function parseWithGemini(pdfBuffer: Buffer): Promise<ParsedResumeData> {
     );
 
     if (!res.ok) {
+        recordLlmCall({ provider: "gemini", model: "gemini-2.5-flash", latencyMs: Date.now() - startedAt, ok: false, error: `HTTP ${res.status}` });
         const err = await res
             .json()
             .catch(() => ({ error: { message: res.statusText } }));
@@ -237,6 +250,14 @@ async function parseWithGemini(pdfBuffer: Buffer): Promise<ParsedResumeData> {
     }
 
     const json = await res.json();
+    recordLlmCall({
+        provider: "gemini",
+        model: "gemini-2.5-flash",
+        tokensIn: json.usageMetadata?.promptTokenCount,
+        tokensOut: json.usageMetadata?.candidatesTokenCount,
+        latencyMs: Date.now() - startedAt,
+        ok: true,
+    });
     const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error("Gemini returned no content");
 

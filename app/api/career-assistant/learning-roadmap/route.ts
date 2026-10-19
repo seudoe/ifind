@@ -4,12 +4,13 @@ import { getSession } from '@/lib/auth';
 import User from '@/models/User';
 import { extractResumeText, extractSkills } from '@/lib/resume/resumeTextExtractor';
 import { generateJSON } from '@/lib/groq/groqService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/career-assistant/learning-roadmap
  * Generate personalized learning roadmap
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -110,3 +111,5 @@ Focus on practical, hands-on learning.`;
     );
   }
 }
+
+export const POST = withBilling('learning-roadmap', handlePost);
