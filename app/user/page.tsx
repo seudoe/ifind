@@ -12,7 +12,7 @@ import { Building2 }           from "lucide-react";
 
 export default function StudentLandingPage() {
   return (
-    <div className="flex flex-col min-h-screen !bg-black [&_*]:!bg-black [&_*]:!bg-none">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
         <HeroSection />

@@ -16,42 +16,36 @@ import {
 import { cn } from "@/lib/utils";
 import type { ModeratorSession } from "@/types/moderator";
 
-// ── Nav definition ────────────────────────────────────────────────────────
-const NAV = [
+type Tab = "internships" | "events" | "scrapes" | "usage" | "users" | "moderators";
+
+// ── Nav definition (grouped) ──────────────────────────────────────────────
+const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeof Users }[] }[] = [
     {
-        tab: "internships" as const,
-        label: "Internships",
-        icon: ListChecks,
+        label: "Content",
+        links: [
+            { tab: "internships", label: "Internships", icon: ListChecks },
+            { tab: "events", label: "Events", icon: Trophy },
+        ],
     },
     {
-        tab: "events" as const,
-        label: "Events",
-        icon: Trophy,
+        label: "Operations",
+        links: [
+            { tab: "scrapes", label: "Scrapes", icon: Activity },
+            { tab: "usage", label: "Usage", icon: Gauge },
+        ],
     },
     {
-        tab: "scrapes" as const,
-        label: "Scrapes",
-        icon: Activity,
-    },
-    {
-        tab: "usage" as const,
-        label: "Usage",
-        icon: Gauge,
-    },
-    {
-        tab: "users" as const,
-        label: "Users",
-        icon: Users,
-    },
-    {
-        tab: "moderators" as const,
-        label: "Moderators",
-        icon: UserCheck,
+        label: "People",
+        links: [
+            { tab: "users", label: "Users", icon: Users },
+            { tab: "moderators", label: "Moderators", icon: UserCheck },
+        ],
     },
 ];
+const NAV = NAV_GROUPS.flatMap((g) => g.links);
 
 interface ModeratorShellProps {
-    activeTab: "internships" | "events" | "scrapes" | "usage" | "users" | "moderators";
+    activeTab: Tab;
     children: React.ReactNode;
     moderator: ModeratorSession;
 }
@@ -82,126 +76,126 @@ export function ModeratorShell({
         moderators: "Moderator Accounts",
     };
 
-    return (
-        <div className="min-h-screen bg-[var(--bg)] flex flex-col">
-            {/* ── Top Navbar ───────────────────────────────────────────────────── */}
-            <header className="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center h-14 gap-4">
-                        {/* Logo */}
-                        <div className="flex items-center gap-2 shrink-0 mr-2">
-                            <div className="h-7 w-7 rounded-[var(--radius-sm)] bg-amber-600 flex items-center justify-center">
-                                <Shield className="h-3.5 w-3.5 text-white" />
-                            </div>
-                            <span className="text-base font-bold text-[var(--text)]">
-                                i<span className="text-amber-600">Mod</span>
-                            </span>
-                        </div>
+    const Logo = (
+        <div className="flex items-center gap-2 shrink-0">
+            <div className="h-8 w-8 rounded-[var(--radius-sm)] bg-amber-600 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-base font-bold text-[var(--text)]">
+                i<span className="text-amber-600">Mod</span>
+            </span>
+        </div>
+    );
 
-                        {/* Desktop tab nav */}
-                        <nav className="hidden md:flex items-center gap-0.5 flex-1">
-                            {NAV.map(({ tab, label, icon: Icon }) => {
-                                const active = activeTab === tab;
-                                const href = `/moderator/${username}/${tab}`;
-                                return (
+    return (
+        <div className="min-h-screen bg-[var(--bg)]">
+            {/* ── Sidebar (large screens) ──────────────────────────────────────── */}
+            <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-60 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
+                <div className="px-4 h-14 flex items-center shrink-0">{Logo}</div>
+
+                <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
+                    {NAV_GROUPS.map((group) => (
+                        <div key={group.label}>
+                            <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-3)]">
+                                {group.label}
+                            </p>
+                            <div className="space-y-0.5">
+                                {group.links.map(({ tab, label, icon: Icon }) => (
                                     <Link
                                         key={tab}
-                                        href={href}
+                                        href={`/moderator/${username}/${tab}`}
                                         className={cn(
-                                            "flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-all duration-[var(--transition)] relative",
-                                            active
+                                            "flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-colors",
+                                            activeTab === tab
                                                 ? "bg-[var(--primary-bg)] text-[var(--primary)]"
                                                 : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
                                         )}
                                     >
-                                        <Icon className="h-3.5 w-3.5" />
+                                        <Icon className="h-4 w-4" />
                                         {label}
-                                        {active && (
-                                            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4/5 rounded-full bg-[var(--primary)]" />
-                                        )}
                                     </Link>
-                                );
-                            })}
-                        </nav>
-
-                        {/* Moderator name + logout */}
-                        <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
-                            <div className="flex items-center gap-2">
-                                <Shield className="h-4 w-4 text-amber-600 shrink-0" />
-                                <span className="text-sm font-medium text-[var(--text)] max-w-[160px] truncate">
-                                    {moderator.name}
-                                </span>
+                                ))}
                             </div>
-                            <button
-                                onClick={handleLogout}
-                                title="Logout"
-                                className="p-1.5 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
-                            >
-                                <LogOut className="h-4 w-4" />
-                            </button>
                         </div>
+                    ))}
+                </nav>
 
-                        {/* Mobile: name + logout */}
-                        <div className="flex md:hidden items-center gap-2 ml-auto shrink-0">
-                            <span className="text-sm font-medium text-[var(--text)] max-w-[100px] truncate">
-                                {moderator.name}
-                            </span>
-                            <button
-                                onClick={handleLogout}
-                                title="Logout"
-                                className="p-1.5 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
-                            >
-                                <LogOut className="h-4 w-4" />
-                            </button>
-                        </div>
+                <div className="shrink-0 border-t border-[var(--border)] p-3 flex items-center gap-1">
+                    <div className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5">
+                        <Shield className="h-4 w-4 text-amber-600 shrink-0" />
+                        <span className="text-sm font-medium text-[var(--text)] truncate">
+                            {moderator.name}
+                        </span>
                     </div>
+                    <button
+                        onClick={handleLogout}
+                        title="Logout"
+                        className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
+                    >
+                        <LogOut className="h-4 w-4" />
+                    </button>
+                </div>
+            </aside>
+
+            {/* ── Top bar (small screens) ──────────────────────────────────────── */}
+            <header className="lg:hidden sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
+                {Logo}
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-[var(--text)] max-w-[100px] truncate">
+                        {moderator.name}
+                    </span>
+                    <button
+                        onClick={handleLogout}
+                        title="Logout"
+                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors"
+                    >
+                        <LogOut className="h-4 w-4" />
+                    </button>
                 </div>
             </header>
 
-            {/* ── Unverified warning banner ─────────────────────────────────────── */}
-            {moderator.isVerified === false && (
-                <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-600">
-                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-2 text-sm">
-                        <AlertTriangle className="h-4 w-4 shrink-0" />
-                        <span>
-                            Your account is <strong>unverified</strong>. You can
-                            view content but cannot perform any moderation
-                            actions until an existing moderator verifies your
-                            account.
-                        </span>
+            <div className="lg:pl-60">
+                {/* ── Unverified warning banner ───────────────────────────────── */}
+                {moderator.isVerified === false && (
+                    <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-600">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-2 text-sm">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span>
+                                Your account is <strong>unverified</strong>. You can
+                                view content but cannot perform any moderation
+                                actions until an existing moderator verifies your
+                                account.
+                            </span>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* ── Page content ─────────────────────────────────────────────────── */}
-            <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
-                <h1 className="text-base font-semibold text-[var(--text)] mb-5">
-                    {TAB_TITLES[activeTab] ?? "Moderator Panel"}
-                </h1>
-                {children}
-            </main>
+                {/* ── Page content ────────────────────────────────────────────── */}
+                <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+                    <h1 className="text-xl font-semibold text-[var(--text)] mb-6">
+                        {TAB_TITLES[activeTab] ?? "Moderator Panel"}
+                    </h1>
+                    {children}
+                </main>
+            </div>
 
-            {/* ── Mobile bottom nav ─────────────────────────────────────────────── */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] flex">
-                {NAV.map(({ tab, label, icon: Icon }) => {
-                    const active = activeTab === tab;
-                    const href = `/moderator/${username}/${tab}`;
-                    return (
-                        <Link
-                            key={tab}
-                            href={href}
-                            className={cn(
-                                "flex-1 flex flex-col items-center py-2 text-[10px] font-medium transition-colors gap-0.5",
-                                active
-                                    ? "text-[var(--primary)]"
-                                    : "text-[var(--text-3)]",
-                            )}
-                        >
-                            <Icon className="h-4 w-4" />
-                            {label}
-                        </Link>
-                    );
-                })}
+            {/* ── Mobile bottom nav ────────────────────────────────────────────── */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] flex">
+                {NAV.map(({ tab, label, icon: Icon }) => (
+                    <Link
+                        key={tab}
+                        href={`/moderator/${username}/${tab}`}
+                        className={cn(
+                            "flex-1 flex flex-col items-center py-2 text-[10px] font-medium transition-colors gap-0.5",
+                            activeTab === tab
+                                ? "text-[var(--primary)]"
+                                : "text-[var(--text-3)]",
+                        )}
+                    >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                    </Link>
+                ))}
             </nav>
         </div>
     );
