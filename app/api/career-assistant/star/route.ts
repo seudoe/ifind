@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { generateJSON } from '@/lib/groq/groqService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/career-assistant/star
  * Transform vague experiences into STAR format
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -77,3 +78,5 @@ Provide a JSON response with:
     );
   }
 }
+
+export const POST = withBilling('star', handlePost);

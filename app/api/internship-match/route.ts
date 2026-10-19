@@ -3,12 +3,13 @@ import { connectDB } from '@/lib/db';
 import JobMatch from '@/models/JobMatch';
 import { getSession } from '@/lib/auth';
 import { generateJobMatch, saveJobMatch } from '@/lib/jobMatch/jobMatchService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/internship-match
  * Generate a new internship match analysis
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -101,3 +102,5 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export const POST = withBilling('job-match', handlePost);

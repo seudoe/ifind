@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import { MessageSquare, Send, Plus, Trash2, Archive, Edit2, Check, X, Sparkles } from "lucide-react";
 
 interface ChatSession {
@@ -166,6 +167,7 @@ export function ResumeChatTab() {
       alert('Failed to send message');
     } finally {
       setSending(false);
+      refreshCredits();
       inputRef.current?.focus();
     }
   };
@@ -242,6 +244,7 @@ export function ResumeChatTab() {
               <Plus className="h-4 w-4" />
               New Chat
             </button>
+            <CreditsBadge className="mt-3" />
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">

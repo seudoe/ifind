@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:gemini": "tsx tests/test-gemini-integration.ts",
+    "test:usage": "tsx --test tests/usage.test.ts",
     "env-manager": "node env-manager.js"
   },
   "dependencies": {

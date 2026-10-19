@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import { Briefcase, Plus, Sparkles, TrendingUp, Target, AlertCircle } from "lucide-react";
 
 interface JobDescription {
@@ -149,6 +150,7 @@ export function JobMatchTab() {
       setError(err.message);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -461,6 +463,7 @@ export function JobMatchTab() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Internship Match</h2>
           <p className="text-gray-600 mt-1">Compare your resume with internship descriptions</p>
+          <CreditsBadge className="mt-2" />
         </div>
         <button
           onClick={() => setStep('create')}

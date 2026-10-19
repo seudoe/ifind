@@ -4,12 +4,13 @@ import { getSession } from '@/lib/auth';
 import User from '@/models/User';
 import { extractResumeText, extractSkills } from '@/lib/resume/resumeTextExtractor';
 import { generateJSON } from '@/lib/groq/groqService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/career-assistant/career-roadmap
  * Generate 5-year career progression roadmap
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -120,3 +121,5 @@ Address potential challenges and how to overcome them.`;
     );
   }
 }
+
+export const POST = withBilling('career-roadmap', handlePost);

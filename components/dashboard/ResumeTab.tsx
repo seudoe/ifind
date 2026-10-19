@@ -46,6 +46,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import type { User, ParsedResumeData } from "@/types";
 
 interface ResumeTabProps {
@@ -311,6 +312,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             );
         } finally {
             setReextracting(false);
+            refreshCredits();
         }
     };
 
@@ -346,6 +348,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             toast.error(err instanceof Error ? err.message : "Analysis failed");
         } finally {
             setAnalyzing(false);
+            refreshCredits();
         }
     };
 
@@ -415,6 +418,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-semibold text-gray-900">Resume Analyzer</h2>
+                <CreditsBadge className="mt-2" />
                 <p className="text-base text-gray-500 mt-1">
                     Upload your resume, extract data with AI, and get comprehensive analysis with ATS scoring.
                 </p>

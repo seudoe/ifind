@@ -7,12 +7,13 @@ import { getSession } from '@/lib/auth';
 import { generateChatCompletion } from '@/lib/groq/groqService';
 import { prepareChatContext, detectResumeSection, extractSection } from '@/lib/chat/embeddingService';
 import { extractResumeText } from '@/lib/resume/resumeTextExtractor';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * POST /api/chat/messages
  * Send a message and get AI response with RAG
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const authSession = await getSession();
     if (!authSession) {
@@ -214,3 +215,5 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export const POST = withBilling('chat', handlePost);

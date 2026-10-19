@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from 'sonner';
+import { CreditsBadge, refreshCredits } from './CreditsBadge';
 import { useState } from "react";
 import { Sparkles, Edit, Star, MessageCircle, Rocket, BookOpen, TrendingUp, ChevronRight, Copy, Check } from "lucide-react";
 
@@ -116,11 +118,14 @@ export function CareerAssistantTab() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+      } else {
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -142,11 +147,14 @@ export function CareerAssistantTab() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+      } else {
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -168,11 +176,14 @@ export function CareerAssistantTab() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+      } else {
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -194,11 +205,14 @@ export function CareerAssistantTab() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+      } else {
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -221,11 +235,14 @@ export function CareerAssistantTab() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+      } else {
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -248,11 +265,14 @@ export function CareerAssistantTab() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+      } else {
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      refreshCredits();
     }
   };
 
@@ -267,6 +287,7 @@ export function CareerAssistantTab() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Career Assistant</h2>
+          <CreditsBadge />
           <p className="text-gray-600 mt-1">AI-powered tools to advance your career</p>
         </div>
 
@@ -320,6 +341,7 @@ export function CareerAssistantTab() {
             <p className="text-sm text-gray-600">{currentTool.description}</p>
           </div>
         </div>
+        <CreditsBadge />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

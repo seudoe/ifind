@@ -30,7 +30,11 @@ export function verifyToken(token: string): AuthSession | null {
 export async function getSession(): Promise<AuthSession | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
-  return token ? verifyToken(token) : null;
+  const session = token ? verifyToken(token) : null;
+  if (!session) return null;
+  // A banned student keeps a valid 30-day token, so the ban is checked on every request (cached for a minute).
+  const { isUserBanned } = await import("@/lib/banCheck");
+  return (await isUserBanned(session.userId)) ? null : session;
 }
 
 export function authCookie(token: string) {

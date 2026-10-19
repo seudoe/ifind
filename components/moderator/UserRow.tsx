@@ -11,6 +11,7 @@ interface UserRowProps {
     user: UserSummary;
     onBan: (reason: string) => Promise<void>;
     onUnban: () => Promise<void>;
+    onDetails: () => void;
 }
 
 function formatDate(iso: string): string {
@@ -21,7 +22,7 @@ function formatDate(iso: string): string {
     });
 }
 
-export function UserRow({ user, onBan, onUnban }: UserRowProps) {
+export function UserRow({ user, onBan, onUnban, onDetails }: UserRowProps) {
     const [banExpanded, setBanExpanded] = useState(false);
     const [reason, setReason] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,10 +97,24 @@ export function UserRow({ user, onBan, onUnban }: UserRowProps) {
                 ) : (
                     <Badge variant="success">Active</Badge>
                 )}
+                {!!user.flags?.length && (
+                    <Badge
+                        variant="warning"
+                        className="ml-1.5 cursor-help"
+                    >
+                        <span title={user.flags.map((f) => `${f.label}: ${f.detail}`).join("; ")}>
+                            Suspicious ({user.flags.length})
+                        </span>
+                    </Badge>
+                )}
             </td>
 
             {/* Actions */}
             <td className="py-3 px-4">
+                <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={onDetails}>
+                    Details
+                </Button>
                 {user.isBanned ? (
                     <Button
                         variant="secondary"
@@ -159,6 +174,7 @@ export function UserRow({ user, onBan, onUnban }: UserRowProps) {
                         Ban
                     </Button>
                 )}
+                </div>
             </td>
         </tr>
     );

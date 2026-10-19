@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import JobDescription from '@/models/JobDescription';
 import { getSession } from '@/lib/auth';
 import { generateJSON } from '@/lib/groq/groqService';
+import { withBilling } from '@/lib/usage/withBilling';
 
 /**
  * GET /api/job-descriptions
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
  * POST /api/job-descriptions
  * Create a new job description
  */
-export async function POST(req: NextRequest) {
+async function handlePost(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
@@ -134,3 +135,5 @@ ${description}`;
     );
   }
 }
+
+export const POST = withBilling('job-description', handlePost);
