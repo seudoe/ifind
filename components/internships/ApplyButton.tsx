@@ -72,7 +72,11 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
     }
     if (needsForm) return setOpen(true);
     // Open the source site synchronously to bypass popup blockers
-    if (!onPlatform && internship.applyLink) window.open(internship.applyLink, "_blank");
+    if (!onPlatform && internship.applyLink) {
+      // mailto: (Telegram email-apply posts) opens the mail client instead of a new tab
+      if (internship.applyLink.startsWith("mailto:")) window.location.href = internship.applyLink;
+      else window.open(internship.applyLink, "_blank");
+    }
     void submit();
   };
 
@@ -88,7 +92,7 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
         loading={applying && !open}
         title={isApplied ? "View application status" : undefined}
       >
-        {isApplied ? "Applied ✓" : onPlatform ? "Apply" : `Apply on ${sourceLabel(internship.source)}`}
+        {isApplied ? "Applied ✓" : onPlatform ? "Apply" : internship.applyLink?.startsWith("mailto:") ? "Apply by email" : `Apply on ${sourceLabel(internship.source)}`}
       </Button>
 
       {needsForm && (

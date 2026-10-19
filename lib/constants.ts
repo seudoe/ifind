@@ -7,6 +7,7 @@ export const SOURCE_LABELS: Record<InternshipSource, string> = {
   unstop: "Unstop",
   naukri: "Naukri",
   letsintern: "LetsIntern",
+  telegram: "Telegram",
   freshersworld: "Freshersworld",
   indeed: "Indeed",
   github: "GitHub",

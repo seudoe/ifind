@@ -101,7 +101,7 @@ PlatformInternshipSchema.pre("validate", function () {
     this.isRemote = this.workMode === "remote";
     this.source = "ifind";
     this.moderation.source = "employer";
-    if (this.name && this.company) this.fingerprint = platformFingerprint(this.company, this.name, this.city);
+    if (this.name && this.company) this.fingerprint = platformFingerprint(this.company, this.name, this.address?.[0]?.city);
 });
 
 if (process.env.NODE_ENV !== "production" && mongoose.models.PlatformInternship) {

@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/Input";
 import { TagInput } from "@/components/ui/TagInput";
 import { QUESTION_TYPES, WORK_MODES, type PlatformInternship, type QuestionType, type WorkMode } from "@/types/employer";
 
+interface AddressRow { city: string; state: string; country: string }
 interface Question { _id?: string; question: string; type: QuestionType; options: string[]; required: boolean }
 
 interface FormState {
-    name: string; workMode: WorkMode; country: string; state: string; city: string; openings: string;
+    name: string; workMode: WorkMode; address: AddressRow[]; openings: string;
     startDate: string; durationValue: string; durationUnit: "weeks" | "months"; hoursPerWeek: string;
     stipendType: "" | "paid" | "unpaid" | "performance-based"; stipendAmount: string; stipendPeriod: "monthly" | "weekly" | "lump-sum";
     skills: string[]; degree: string[]; field: string[]; expMin: string; expMax: string;
@@ -22,7 +23,7 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
-    name: "", workMode: "onsite", country: "India", state: "", city: "", openings: "", startDate: "",
+    name: "", workMode: "onsite", address: [{ city: "", state: "", country: "India" }], openings: "", startDate: "",
     durationValue: "", durationUnit: "months", hoursPerWeek: "", stipendType: "", stipendAmount: "", stipendPeriod: "monthly",
     skills: [], degree: [], field: [], expMin: "", expMax: "", summary: "", responsibilities: "", perks: [], whoCanApply: "",
     ppoAvailable: false, certificate: false, deadlineDate: "", requireResume: true, requireCoverLetter: false, maxApplications: "", questions: [],
@@ -33,7 +34,8 @@ const str = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 
 function fromDTO(d: PlatformInternship): FormState {
     return {
-        name: d.name, workMode: d.workMode, country: str(d.country), state: str(d.state), city: str(d.city), openings: str(d.openings),
+        name: d.name, workMode: d.workMode, openings: str(d.openings),
+        address: d.address?.length ? d.address.map((a) => ({ city: str(a.city), state: str(a.state), country: str(a.country) })) : EMPTY.address,
         startDate: day(d.startDate), durationValue: str(d.duration?.value), durationUnit: d.duration?.unit ?? "months", hoursPerWeek: str(d.hoursPerWeek),
         stipendType: d.stipend?.type ?? "", stipendAmount: str(d.stipend?.amount), stipendPeriod: d.stipend?.period ?? "monthly",
         skills: d.skills ?? [], degree: d.degree ?? [], field: d.field ?? [],
@@ -48,7 +50,8 @@ function fromDTO(d: PlatformInternship): FormState {
 /** The form always sends every field; the API treats it as a full replace. */
 function toPayload(s: FormState) {
     return {
-        name: s.name.trim(), workMode: s.workMode, country: s.country, state: s.state, city: s.city, openings: s.openings,
+        name: s.name.trim(), workMode: s.workMode, openings: s.openings,
+        address: s.address.filter((a) => a.city.trim() || a.state.trim()),
         startDate: s.startDate, hoursPerWeek: s.hoursPerWeek,
         duration: s.durationValue ? { value: s.durationValue, unit: s.durationUnit } : undefined,
         stipend: s.stipendType ? { type: s.stipendType, amount: s.stipendAmount, period: s.stipendPeriod } : undefined,
@@ -174,6 +177,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
     // With a page title the form fills the viewport: heading + error on top and the action bar at the bottom stay put, only the fields scroll
     const fixed = !!title;
     const q = data.questions;
+    const setAddr = (i: number, patch: Partial<AddressRow>) => set("address", data.address.map((x, n) => (n === i ? { ...x, ...patch } : x)));
     const setQ = (i: number, patch: Partial<Question>) => set("questions", q.map((x, n) => (n === i ? { ...x, ...patch } : x)));
 
     return (
@@ -197,10 +201,20 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                             {WORK_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
                         </select>
                     </Field>
-                    <div className="grid gap-4 sm:grid-cols-3">
-                        <Input label="City" value={data.city} onChange={(e) => set("city", e.target.value)} />
-                        <Input label="State" value={data.state} onChange={(e) => set("state", e.target.value)} />
-                        <Input label="Country" value={data.country} onChange={(e) => set("country", e.target.value)} />
+                    <div className="space-y-3">
+                        {data.address.map((a, n) => (
+                            <div key={n} className="grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
+                                <Input label={n === 0 ? "City" : undefined} aria-label="City" placeholder="City" value={a.city} onChange={(e) => setAddr(n, { city: e.target.value })} />
+                                <Input label={n === 0 ? "State" : undefined} aria-label="State" placeholder="State" value={a.state} onChange={(e) => setAddr(n, { state: e.target.value })} />
+                                <Input label={n === 0 ? "Country" : undefined} aria-label="Country" placeholder="Country" value={a.country} onChange={(e) => setAddr(n, { country: e.target.value })} />
+                                <Button type="button" variant="secondary" size="sm" aria-label="Remove location" disabled={data.address.length === 1} onClick={() => set("address", data.address.filter((_, i) => i !== n))}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                        <Button type="button" variant="secondary" size="sm" disabled={data.address.length >= 10} onClick={() => set("address", [...data.address, { city: "", state: "", country: data.address[0]?.country || "India" }])}>
+                            <Plus className="h-4 w-4" /> Add location
+                        </Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                         <Input label="Openings" type="number" min={1} value={data.openings} onChange={(e) => set("openings", e.target.value)} />

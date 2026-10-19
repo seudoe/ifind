@@ -84,9 +84,7 @@ const num = (min: number, max: number) =>
 export const internshipDraftSchema = z.object({
     name: text(150).min(3, "Title is required"),
     workMode: z.enum(WORK_MODES).default("onsite"),
-    country: opt(text(80)),
-    state: opt(text(80)),
-    city: opt(text(80)),
+    address: z.array(z.object({ city: opt(text(80)), state: opt(text(80)), country: opt(text(80)) })).max(10).default([]),
     openings: num(1, 10000),
     startDate: date,
     duration: z.object({ value: z.coerce.number().min(1).max(60), unit: z.enum(["weeks", "months"]) }).optional(),
@@ -132,6 +130,9 @@ export const internshipPublishSchema = internshipDraftSchema.extend({
         period: z.enum(["monthly", "weekly", "lump-sum"]).nullable().optional(),
     }),
     skills: list(30, 50).min(1, "Add at least one skill"),
+}).refine((v) => v.workMode === "remote" || v.address.some((a) => a.city), {
+    message: "Add at least one location with a city",
+    path: ["address"],
 });
 
 export const applicationStatusSchema = z.object({

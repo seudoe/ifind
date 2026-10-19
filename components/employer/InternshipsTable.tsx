@@ -88,7 +88,7 @@ export function InternshipsTable({ companyId }: { companyId: string }) {
                                 <tr key={i._id} className="border-t border-[var(--border)] hover:bg-[var(--surface-2)]">
                                     <td className="px-4 py-3">
                                         <Link href={href(i)} className="font-medium text-[var(--text)] hover:text-[var(--primary)]">{i.name}</Link>
-                                        <p className="text-xs text-[var(--text-3)] capitalize">{i.workMode}{i.city ? `, ${i.city}` : ""}</p>
+                                        <p className="text-xs text-[var(--text-3)] capitalize">{i.workMode}{i.address?.[0]?.city ? `, ${i.address.map((a) => a.city).filter(Boolean).join(" / ")}` : ""}</p>
                                     </td>
                                     <td className="px-4 py-3"><StatusPill status={i.status} /></td>
                                     <td className="px-4 py-3">{i.status === "draft" ? <span className="text-[var(--text-3)]">-</span> : <ModerationPill status={i.moderation.status} />}</td>

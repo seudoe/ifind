@@ -8,6 +8,7 @@ import { InternshipDetailModal, MobileInternshipDetail } from "@/components/inte
 import { useFilters } from "@/hooks/useFilters";
 import { Button } from "@/components/ui/Button";
 import { cn, getInternshipId } from "@/lib/utils";
+import { addressTerms } from "@/lib/address";
 import type { Internship, User } from "@/types";
 
 interface BrowseTabProps {
@@ -80,7 +81,7 @@ export function BrowseTab({
     const term = query.trim().toLowerCase();
     if (term) {
       list = list.filter((item) =>
-        [item.name, item.company, item.city, ...(item.skills || [])]
+        [item.name, item.company, ...addressTerms(item.address), ...(item.skills || [])]
           .filter(Boolean)
           .some((val) => String(val).toLowerCase().includes(term))
       );
@@ -115,9 +116,7 @@ export function BrowseTab({
     if (filters.locations.length > 0) {
       list = list.filter((item) => {
         const itemLocs = [
-          item.city,
-          item.state,
-          item.country,
+          ...addressTerms(item.address),
           item.isRemote ? "Work from Home" : null,
         ].filter(Boolean).map((s) => String(s).toLowerCase());
 

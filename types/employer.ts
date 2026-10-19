@@ -1,4 +1,4 @@
-import type { Duration, ExperienceRequired, Moderation, Stipend } from "./internship";
+import type { Address, Duration, ExperienceRequired, Moderation, Stipend } from "./internship";
 
 // ── Enums (single source of truth; models import these) ─────────────────────
 export const COMPANY_TYPES = ["startup", "private", "public", "mnc", "ngo", "government", "educational", "other"] as const;
@@ -150,9 +150,7 @@ export interface PlatformInternship {
     status: InternshipStatus;
     workMode: WorkMode;
     isRemote: boolean;
-    country?: string | null;
-    state?: string | null;
-    city?: string | null;
+    address: Address[];
     datePublished?: string | null;
     deadlineDate?: string | null;
     startDate?: string | null;

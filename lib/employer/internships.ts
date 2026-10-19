@@ -1,5 +1,6 @@
 import mongoose, { type HydratedDocument } from "mongoose";
 import { NextResponse } from "next/server";
+import { primaryCity } from "@/lib/address";
 import { notify } from "@/lib/employer/notify";
 import { stripHtml } from "@/lib/employer/sanitize";
 import type { InternshipInput } from "@/lib/employer/validation";
@@ -71,9 +72,7 @@ export function applyInput(doc: InternshipDoc, input: InternshipInput, company: 
     doc.company = company.name;
     doc.name = i.name;
     doc.workMode = i.workMode;
-    doc.country = i.country ?? null;
-    doc.state = i.state ?? null;
-    doc.city = i.city ?? null;
+    doc.set("address", i.address.map((a) => ({ city: a.city ?? null, state: a.state ?? null, country: a.country ?? null })));
     doc.openings = i.openings ?? null;
     doc.startDate = i.startDate ?? null;
     doc.duration = i.duration;
@@ -127,9 +126,10 @@ function toPipelineItem(doc: InternshipDoc, companyVerified: boolean) {
         // Employer listings have no external apply link; the pipeline needs a URL, so use the listing's own page
         applyLink: `${app}/internships/${doc._id}`,
         summary: doc.summary,
-        location: doc.workMode === "remote" ? "Remote" : doc.city,
-        city: doc.workMode === "remote" ? "Remote" : doc.city,
-        state: doc.state, country: doc.country,
+        location: doc.workMode === "remote" ? "Remote" : primaryCity(doc.address),
+        address: doc.workMode === "remote"
+            ? [{ city: "Remote", state: null, country: null }]
+            : doc.address.map((a) => ({ city: a.city, state: a.state, country: a.country })),
         skills: doc.skills, degree: doc.degree, field: doc.field,
         responsibilities: doc.responsibilities, perks: doc.perks, openings: doc.openings,
         stipend: doc.stipend, duration: doc.duration,
