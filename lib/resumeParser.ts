@@ -127,6 +127,10 @@ async function parseWithHuggingFace(
         const res = await fetch(`${base}/extract`, {
             method: "POST",
             body: formData,
+            // proxy-resume-extractor checks this when RESUME_PROXY_SECRET is set
+            headers: process.env.RESUME_PROXY_SECRET
+                ? { "x-proxy-secret": process.env.RESUME_PROXY_SECRET }
+                : undefined,
             signal: controller.signal,
         });
 
