@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Briefcase, Search, Users, BarChart3, ArrowRight, CheckCircle, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
+import { MarketingMotion } from "@/components/motion/MarketingMotion";
 
 const FEATURES = [
   { icon: Search,    title: "Smart Candidate Matching",   desc: "Our AI matches your internship requirements with student profiles — skills, education, and experience." },
@@ -18,6 +19,7 @@ const STEPS = [
 
 export default function EmployerLandingPage() {
   return (
+    <MarketingMotion>
     <div className="flex flex-col min-h-screen bg-[var(--bg)]">
 
       {/* Navbar */}
@@ -62,20 +64,20 @@ export default function EmployerLandingPage() {
           </div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] mb-6">
+              <div data-hero className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] mb-6">
                 <GraduationCap className="h-3.5 w-3.5" />
                 2M+ students ready to intern
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text)] leading-tight tracking-tight mb-5">
+              <h1 data-hero className="text-4xl sm:text-5xl font-bold text-[var(--text)] leading-tight tracking-tight mb-5">
                 Hire the best{" "}
                 <span className="text-[var(--primary)]">student talent</span>
                 {" "}in India
               </h1>
-              <p className="text-base sm:text-lg text-[var(--text-2)] leading-relaxed mb-8 max-w-xl">
+              <p data-hero className="text-base sm:text-lg text-[var(--text-2)] leading-relaxed mb-8 max-w-xl">
                 Post internships on iFind and reach thousands of verified, skill-matched candidates —
                 at zero cost for early-stage companies.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div data-hero className="flex flex-wrap gap-3">
                 <Link href="/employer/register">
                   <Button size="lg" className="gap-2 px-6">
                     Post an Internship <ArrowRight className="h-4 w-4" />
@@ -99,7 +101,7 @@ export default function EmployerLandingPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {FEATURES.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="plasma-card p-5">
+                <div key={title} data-reveal className="plasma-card p-5">
                   <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)] flex items-center justify-center mb-3">
                     <Icon className="h-4.5 w-4.5" />
                   </div>
@@ -119,7 +121,7 @@ export default function EmployerLandingPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {STEPS.map(({ num, title, desc }) => (
-                <div key={num} className="plasma-card p-6 text-center">
+                <div key={num} data-reveal className="plasma-card p-6 text-center">
                   <div className="text-3xl font-black text-[var(--primary)] opacity-30 mb-3">{num}</div>
                   <h3 className="text-sm font-semibold text-[var(--text)] mb-2">{title}</h3>
                   <p className="text-xs text-[var(--text-2)] leading-relaxed">{desc}</p>
@@ -154,5 +156,6 @@ export default function EmployerLandingPage() {
 
       <Footer />
     </div>
+    </MarketingMotion>
   );
 }

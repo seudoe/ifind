@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, ArrowRight, Zap } from "lucide-react";
+import { Search, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const POPULAR = ["React Developer", "Data Science", "UI/UX Design", "Marketing", "Finance", "Machine Learning"];
@@ -50,23 +50,23 @@ export function HeroSection() {
         <div className="max-w-3xl mx-auto text-center">
 
           {/* Status badge */}
-          <div className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] mb-6">
+          <div data-hero className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] mb-6">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
             50,000+ active internships right now
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold text-[var(--text)] leading-tight tracking-tight mb-4">
+          <h1 data-hero className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold text-[var(--text)] leading-tight tracking-tight mb-4">
             Find Internships That{" "}
             <span className="text-[var(--primary)]">Match Your Skills</span>
           </h1>
-          <p className="text-base sm:text-lg text-[var(--text-2)] leading-relaxed mb-8 max-w-2xl mx-auto">
+          <p data-hero className="text-base sm:text-lg text-[var(--text-2)] leading-relaxed mb-8 max-w-2xl mx-auto">
             India&apos;s smartest internship platform. Upload your resume once —
             our AI matches you with roles at top companies tailored to your actual profile.
           </p>
 
           {/* Search card */}
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow)] p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
+          <div data-hero className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
             <div className="flex items-center gap-2 flex-1 px-3">
               <Search className="h-4 w-4 text-[var(--text-3)] shrink-0" />
               <input

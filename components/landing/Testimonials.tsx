@@ -38,7 +38,7 @@ export function Testimonials() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {TESTIMONIALS.map(({ name, role, placed, text, initials, color }) => (
-            <div key={name} className="plasma-card p-5 flex flex-col gap-4">
+            <div key={name} data-reveal className="plasma-card p-5 flex flex-col gap-4">
               {/* Stars */}
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (

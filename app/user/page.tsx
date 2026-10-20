@@ -9,9 +9,11 @@ import { HowItWorks }          from "@/components/landing/HowItWorks";
 import { Testimonials }        from "@/components/landing/Testimonials";
 import Link                    from "next/link";
 import { Building2 }           from "lucide-react";
+import { MarketingMotion }     from "@/components/motion/MarketingMotion";
 
 export default function StudentLandingPage() {
   return (
+    <MarketingMotion>
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
@@ -42,5 +44,6 @@ export default function StudentLandingPage() {
       </main>
       <Footer />
     </div>
+    </MarketingMotion>
   );
 }

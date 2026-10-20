@@ -80,6 +80,7 @@ export function FeaturedInternships() {
             <Link
               key={item.id}
               href={`/dashboard?tab=internships`}
+              data-reveal
               className="plasma-card h-full p-4 flex flex-col gap-3 hover:-translate-y-0.5 transition-transform duration-[var(--transition)]"
             >
               {/* Header */}

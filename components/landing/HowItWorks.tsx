@@ -40,7 +40,7 @@ export function HowItWorks() {
           <div className="hidden md:block absolute top-12 left-1/3 right-1/3 h-px bg-[var(--border)]" />
 
           {STEPS.map(({ num, icon: Icon, title, desc, color }) => (
-            <div key={num} className="plasma-card p-6 text-center relative">
+            <div key={num} data-reveal className="plasma-card p-6 text-center relative">
               <div className="inline-flex justify-center mb-4">
                 <div className={`h-16 w-16 rounded-[var(--radius)] ${color} flex items-center justify-center relative`}>
                   <Icon className="h-7 w-7" />

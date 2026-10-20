@@ -50,6 +50,16 @@
 
 html { scroll-behavior: smooth; }
 
+/* Lenis (marketing pages): it owns smoothing, so native smooth-scroll must be off. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
 body {
   background: var(--bg);
   color: var(--text);
