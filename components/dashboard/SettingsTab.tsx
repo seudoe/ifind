@@ -3,10 +3,12 @@
 import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Lock, Bell, Trash2, Camera, AlertTriangle } from "lucide-react";
 import { Input }  from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
+import { ConfirmDangerModal } from "@/components/ui/ConfirmDangerModal";
 import type { User as StudentUser } from "@/types";
 import { toast } from "sonner";
 
@@ -53,27 +55,25 @@ export function SettingsTab({ user }: { user: StudentUser }) {
   const [savingInfo, setSavingInfo] = useState(false);
 
   // --- Account Deletion State ---
+  const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [typedUsername, setTypedUsername] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleDeleteAccount = async () => {
-    if (typedUsername.trim().toLowerCase() !== user.username.toLowerCase()) {
-      toast.error("Username does not match.");
-      return;
-    }
     setDeletingAccount(true);
     try {
+      // The API still gets the account's own username as its server-side safeguard;
+      // the user-facing confirmation is the typed DELETE phrase in the modal.
       const res = await fetch("/api/user/delete-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmUsername: typedUsername.trim() }),
+        body: JSON.stringify({ confirmUsername: user.username }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to delete account");
 
       toast.success(json.message || "Account scheduled for deletion.");
-      window.location.href = "/user/login?deleted=true";
+      router.push("/user/login?deleted=true");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Account deletion failed");
       setDeletingAccount(false);
@@ -327,61 +327,23 @@ export function SettingsTab({ user }: { user: StudentUser }) {
         </div>
       </Section>
 
-      {/* ── Delete Account Confirmation Modal ─────────────────────────────────────── */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center gap-3 text-red-600">
-              <AlertTriangle className="h-6 w-6 shrink-0" />
-              <h3 className="text-lg font-bold text-[var(--text)]">Delete Account Confirmation</h3>
-            </div>
-            
-            <p className="text-sm text-[var(--text-2)] leading-relaxed">
-              Are you sure you want to delete your account? You can retrieve your account within <strong>30 days</strong> of deletion simply by logging in normally.
-            </p>
-            <p className="text-xs text-[var(--text-3)] bg-[var(--surface-2)] p-2.5 rounded-md border border-[var(--border)]">
-              After 30 days of deletion, your profile and application data will be permanently reset.
-            </p>
-
-            <div className="space-y-1.5 pt-2">
-              <label className="text-xs font-semibold text-[var(--text)]">
-                Type your username <span className="font-mono text-[var(--primary)]">{user.username}</span> to confirm:
-              </label>
-              <Input
-                value={typedUsername}
-                onChange={(e) => setTypedUsername(e.target.value)}
-                placeholder={user.username}
-                autoFocus
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border)]">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setTypedUsername("");
-                }}
-                disabled={deletingAccount}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                type="button"
-                loading={deletingAccount}
-                disabled={typedUsername.trim().toLowerCase() !== user.username.toLowerCase() || deletingAccount}
-                onClick={handleDeleteAccount}
-              >
-                Confirm Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDangerModal
+        open={showDeleteModal}
+        title="Delete your account?"
+        confirmPhrase="DELETE"
+        confirmLabel="Delete account"
+        loading={deletingAccount}
+        onConfirm={handleDeleteAccount}
+        onClose={() => setShowDeleteModal(false)}
+      >
+        <p>
+          Your account will be scheduled for deletion. You can retrieve it within <strong>30 days</strong> by
+          logging in normally.
+        </p>
+        <p className="text-xs text-[var(--text-3)] bg-[var(--surface-2)] p-2.5 rounded-md border border-[var(--border)]">
+          After 30 days, your profile and application data will be permanently reset.
+        </p>
+      </ConfirmDangerModal>
     </div>
   );
 }
