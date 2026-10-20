@@ -50,7 +50,7 @@ export function CreditsBadge({ className = "" }: { className?: string }) {
           ? "border-red-200 bg-red-50 text-red-700"
           : low
             ? "border-amber-200 bg-amber-50 text-amber-700"
-            : "border-gray-200 bg-gray-50 text-gray-600"
+            : "border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-2)]"
       } ${className}`}
     >
       <Zap className="h-3 w-3" />

@@ -7,6 +7,16 @@ import { Sparkles, Edit, Star, MessageCircle, Rocket, BookOpen, TrendingUp, Chev
 
 type Tool = 'rewriter' | 'star' | 'interview' | 'projects' | 'learning' | 'career';
 
+// Static class maps — Tailwind can't see dynamically built names like `bg-${color}-100`.
+const TOOL_COLOR_CLASSES: Record<string, { bg: string; text: string }> = {
+  blue:   { bg: 'bg-blue-100',   text: 'text-blue-600' },
+  yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600' },
+  purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+  green:  { bg: 'bg-green-100',  text: 'text-green-600' },
+  orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
+  pink:   { bg: 'bg-pink-100',   text: 'text-pink-600' },
+};
+
 interface ToolConfig {
   id: Tool;
   name: string;
@@ -286,9 +296,9 @@ export function CareerAssistantTab() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Career Assistant</h2>
+          <h2 className="text-2xl font-bold text-[var(--text)]">Career Assistant</h2>
           <CreditsBadge />
-          <p className="text-gray-600 mt-1">AI-powered tools to advance your career</p>
+          <p className="text-[var(--text-2)] mt-1">AI-powered tools to advance your career</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -298,14 +308,14 @@ export function CareerAssistantTab() {
               <button
                 key={tool.id}
                 onClick={() => handleToolSelect(tool.id)}
-                className="p-6 bg-white rounded-lg border hover:border-blue-300 hover:shadow-md transition-all text-left group"
+                className="p-6 bg-[var(--surface)] rounded-lg border hover:border-blue-300 hover:shadow-md transition-all text-left group"
               >
-                <div className={`w-12 h-12 bg-${tool.color}-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className={`h-6 w-6 text-${tool.color}-600`} />
+                <div className={`w-12 h-12 ${TOOL_COLOR_CLASSES[tool.color].bg} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <Icon className={`h-6 w-6 ${TOOL_COLOR_CLASSES[tool.color].text}`} />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{tool.name}</h3>
-                <p className="text-sm text-gray-600">{tool.description}</p>
-                <div className="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                <h3 className="font-semibold text-[var(--text)] mb-2">{tool.name}</h3>
+                <p className="text-sm text-[var(--text-2)]">{tool.description}</p>
+                <div className="mt-4 flex items-center text-[var(--primary-dk)] text-sm font-medium">
                   Try it
                   <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -329,16 +339,16 @@ export function CareerAssistantTab() {
               setActiveTool(null);
               setResult(null);
             }}
-            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            className="px-4 py-2 text-[var(--text-2)] hover:bg-[var(--surface-3)] rounded-lg"
           >
             ← Back
           </button>
-          <div className={`w-10 h-10 bg-${currentTool.color}-100 rounded-lg flex items-center justify-center`}>
-            <Icon className={`h-5 w-5 text-${currentTool.color}-600`} />
+          <div className={`w-10 h-10 ${TOOL_COLOR_CLASSES[currentTool.color].bg} rounded-lg flex items-center justify-center`}>
+            <Icon className={`h-5 w-5 ${TOOL_COLOR_CLASSES[currentTool.color].text}`} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{currentTool.name}</h2>
-            <p className="text-sm text-gray-600">{currentTool.description}</p>
+            <h2 className="text-xl font-bold text-[var(--text)]">{currentTool.name}</h2>
+            <p className="text-sm text-[var(--text-2)]">{currentTool.description}</p>
           </div>
         </div>
         <CreditsBadge />
@@ -346,13 +356,13 @@ export function CareerAssistantTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Form */}
-        <div className="bg-white p-6 rounded-lg border">
-          <h3 className="font-semibold text-gray-900 mb-4">Input</h3>
+        <div className="bg-[var(--surface)] p-6 rounded-lg border">
+          <h3 className="font-semibold text-[var(--text)] mb-4">Input</h3>
           
           {activeTool === 'rewriter' && (
             <form onSubmit={handleRewrite} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Content to Rewrite</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Content to Rewrite</label>
                 <textarea
                   value={rewriteContent}
                   onChange={(e) => setRewriteContent(e.target.value)}
@@ -362,7 +372,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Tone</label>
                 <select
                   value={rewriteTone}
                   onChange={(e) => setRewriteTone(e.target.value)}
@@ -377,7 +387,7 @@ export function CareerAssistantTab() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <Edit className="h-5 w-5" />}
                 {loading ? 'Rewriting...' : 'Rewrite'}
@@ -388,7 +398,7 @@ export function CareerAssistantTab() {
           {activeTool === 'star' && (
             <form onSubmit={handleStar} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Experience Description</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Experience Description</label>
                 <textarea
                   value={starExperience}
                   onChange={(e) => setStarExperience(e.target.value)}
@@ -398,7 +408,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role (Optional)</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Role (Optional)</label>
                 <input
                   type="text"
                   value={starRole}
@@ -408,7 +418,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Company (Optional)</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Company (Optional)</label>
                 <input
                   type="text"
                   value={starCompany}
@@ -420,7 +430,7 @@ export function CareerAssistantTab() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <Star className="h-5 w-5" />}
                 {loading ? 'Generating...' : 'Generate STAR Story'}
@@ -431,7 +441,7 @@ export function CareerAssistantTab() {
           {activeTool === 'interview' && (
             <form onSubmit={handleInterview} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Target Role</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Target Role</label>
                 <input
                   type="text"
                   value={interviewRole}
@@ -442,7 +452,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Difficulty Level</label>
                 <select
                   value={interviewDifficulty}
                   onChange={(e) => setInterviewDifficulty(e.target.value)}
@@ -454,7 +464,7 @@ export function CareerAssistantTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Number of Questions</label>
                 <input
                   type="number"
                   value={interviewCount}
@@ -467,7 +477,7 @@ export function CareerAssistantTab() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <MessageCircle className="h-5 w-5" />}
                 {loading ? 'Generating...' : 'Generate Questions'}
@@ -478,7 +488,7 @@ export function CareerAssistantTab() {
           {activeTool === 'projects' && (
             <form onSubmit={handleProjects} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Target Role</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Target Role</label>
                 <input
                   type="text"
                   value={projectsTargetRole}
@@ -489,7 +499,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Project Level</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Project Level</label>
                 <select
                   value={projectsLevel}
                   onChange={(e) => setProjectsLevel(e.target.value)}
@@ -501,7 +511,7 @@ export function CareerAssistantTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Number of Projects</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Number of Projects</label>
                 <input
                   type="number"
                   value={projectsCount}
@@ -514,7 +524,7 @@ export function CareerAssistantTab() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <Rocket className="h-5 w-5" />}
                 {loading ? 'Generating...' : 'Get Project Ideas'}
@@ -525,7 +535,7 @@ export function CareerAssistantTab() {
           {activeTool === 'learning' && (
             <form onSubmit={handleLearning} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Target Skills (comma-separated)</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Target Skills (comma-separated)</label>
                 <input
                   type="text"
                   value={learningSkills}
@@ -536,7 +546,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Timeframe</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Timeframe</label>
                 <select
                   value={learningTimeframe}
                   onChange={(e) => setLearningTimeframe(e.target.value)}
@@ -549,7 +559,7 @@ export function CareerAssistantTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Current Level</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Current Level</label>
                 <select
                   value={learningLevel}
                   onChange={(e) => setLearningLevel(e.target.value)}
@@ -563,7 +573,7 @@ export function CareerAssistantTab() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <BookOpen className="h-5 w-5" />}
                 {loading ? 'Creating...' : 'Create Roadmap'}
@@ -574,7 +584,7 @@ export function CareerAssistantTab() {
           {activeTool === 'career' && (
             <form onSubmit={handleCareer} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Current Role</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Current Role</label>
                 <input
                   type="text"
                   value={careerCurrentRole}
@@ -585,7 +595,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Target Role</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Target Role</label>
                 <input
                   type="text"
                   value={careerTargetRole}
@@ -596,7 +606,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Industry</label>
                 <input
                   type="text"
                   value={careerIndustry}
@@ -606,7 +616,7 @@ export function CareerAssistantTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
+                <label className="block text-sm font-medium text-[var(--text-2)] mb-2">Years of Experience</label>
                 <input
                   type="number"
                   value={careerExperience}
@@ -619,7 +629,7 @@ export function CareerAssistantTab() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <TrendingUp className="h-5 w-5" />}
                 {loading ? 'Creating...' : 'Create Career Roadmap'}
@@ -629,13 +639,13 @@ export function CareerAssistantTab() {
         </div>
 
         {/* Results */}
-        <div className="bg-white p-6 rounded-lg border min-h-[400px]">
+        <div className="bg-[var(--surface)] p-6 rounded-lg border min-h-[400px]">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Results</h3>
+            <h3 className="font-semibold text-[var(--text)]">Results</h3>
             {result && (
               <button
                 onClick={() => copyToClipboard(JSON.stringify(result, null, 2))}
-                className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded flex items-center gap-2"
+                className="px-3 py-1 text-sm text-[var(--text-2)] hover:bg-[var(--surface-3)] rounded flex items-center gap-2"
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? 'Copied!' : 'Copy'}
@@ -644,7 +654,7 @@ export function CareerAssistantTab() {
           </div>
 
           {!result ? (
-            <div className="flex items-center justify-center h-[300px] text-gray-500">
+            <div className="flex items-center justify-center h-[300px] text-[var(--text-3)]">
               <div className="text-center">
                 <Icon className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p>Fill in the form and click generate to see results</p>
@@ -655,51 +665,51 @@ export function CareerAssistantTab() {
               {/* Display results based on tool type */}
               {activeTool === 'rewriter' && result.rewritten && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Original:</p>
-                  <div className="p-3 bg-gray-50 rounded text-sm mb-4">{result.original}</div>
-                  <p className="text-sm text-gray-600 mb-2">Rewritten ({result.tone}):</p>
-                  <div className="p-3 bg-blue-50 rounded text-sm whitespace-pre-wrap">{result.rewritten}</div>
+                  <p className="text-sm text-[var(--text-2)] mb-2">Original:</p>
+                  <div className="p-3 bg-[var(--surface-2)] rounded text-sm mb-4">{result.original}</div>
+                  <p className="text-sm text-[var(--text-2)] mb-2">Rewritten ({result.tone}):</p>
+                  <div className="p-3 bg-[var(--primary-bg)] rounded text-sm whitespace-pre-wrap">{result.rewritten}</div>
                 </div>
               )}
 
               {activeTool === 'star' && result.star && (
                 <div className="space-y-4">
                   <div>
-                    <p className="font-medium text-sm text-gray-700 mb-1">📍 Situation</p>
-                    <p className="text-sm text-gray-900">{result.star.situation}</p>
+                    <p className="font-medium text-sm text-[var(--text-2)] mb-1">📍 Situation</p>
+                    <p className="text-sm text-[var(--text)]">{result.star.situation}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-700 mb-1">📋 Task</p>
-                    <p className="text-sm text-gray-900">{result.star.task}</p>
+                    <p className="font-medium text-sm text-[var(--text-2)] mb-1">📋 Task</p>
+                    <p className="text-sm text-[var(--text)]">{result.star.task}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-700 mb-2">⚡ Action</p>
+                    <p className="font-medium text-sm text-[var(--text-2)] mb-2">⚡ Action</p>
                     {Array.isArray(result.star.action) ? (
-                      <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
+                      <ul className="list-disc list-inside text-sm text-[var(--text)] space-y-1">
                         {result.star.action.map((item: string, idx: number) => (
                           <li key={idx}>{item}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-gray-900">{result.star.action}</p>
+                      <p className="text-sm text-[var(--text)]">{result.star.action}</p>
                     )}
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-700 mb-2">🎯 Result</p>
+                    <p className="font-medium text-sm text-[var(--text-2)] mb-2">🎯 Result</p>
                     {Array.isArray(result.star.result) ? (
-                      <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
+                      <ul className="list-disc list-inside text-sm text-[var(--text)] space-y-1">
                         {result.star.result.map((item: string, idx: number) => (
                           <li key={idx}>{item}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-gray-900">{result.star.result}</p>
+                      <p className="text-sm text-[var(--text)]">{result.star.result}</p>
                     )}
                   </div>
                   {result.star.bulletPoint && (
                     <div className="mt-4 pt-4 border-t">
-                      <p className="font-medium text-sm text-gray-700 mb-2">📝 Resume Bullet Point</p>
-                      <div className="p-3 bg-blue-50 rounded text-sm">{result.star.bulletPoint}</div>
+                      <p className="font-medium text-sm text-[var(--text-2)] mb-2">📝 Resume Bullet Point</p>
+                      <div className="p-3 bg-[var(--primary-bg)] rounded text-sm">{result.star.bulletPoint}</div>
                     </div>
                   )}
                 </div>
@@ -710,13 +720,13 @@ export function CareerAssistantTab() {
                   {result.questions.map((q: any, idx: number) => (
                     <div key={idx} className="p-4 border rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs px-2 py-1 bg-gray-100 rounded">{q.category}</span>
+                        <span className="text-xs px-2 py-1 bg-[var(--surface-3)] rounded">{q.category}</span>
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">{q.difficulty}</span>
                       </div>
-                      <p className="font-medium text-gray-900 mb-2">{q.question}</p>
+                      <p className="font-medium text-[var(--text)] mb-2">{q.question}</p>
                       {q.hints && q.hints.length > 0 && (
-                        <details className="text-sm text-gray-600">
-                          <summary className="cursor-pointer hover:text-gray-900">Show hints</summary>
+                        <details className="text-sm text-[var(--text-2)]">
+                          <summary className="cursor-pointer hover:text-[var(--text)]">Show hints</summary>
                           <ul className="list-disc list-inside mt-2 space-y-1">
                             {q.hints.map((hint: string, hidx: number) => (
                               <li key={hidx}>{hint}</li>
@@ -734,10 +744,10 @@ export function CareerAssistantTab() {
                   {result.projects.map((project: any, idx: number) => (
                     <div key={idx} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-gray-900">{project.title}</h4>
+                        <h4 className="font-semibold text-[var(--text)]">{project.title}</h4>
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">{project.difficulty}</span>
                       </div>
-                      <p className="text-sm text-gray-700 mb-3">{project.description}</p>
+                      <p className="text-sm text-[var(--text-2)] mb-3">{project.description}</p>
                       <div className="space-y-2 text-sm">
                         <p><span className="font-medium">Duration:</span> {project.duration}</p>
                         <div>
@@ -769,21 +779,21 @@ export function CareerAssistantTab() {
               {activeTool === 'learning' && result.roadmap && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">{result.roadmap.title}</h4>
-                    <p className="text-sm text-gray-700 mb-2">{result.roadmap.overview}</p>
-                    <p className="text-sm text-gray-600">Total Duration: {result.roadmap.totalDuration}</p>
+                    <h4 className="font-semibold text-[var(--text)] mb-1">{result.roadmap.title}</h4>
+                    <p className="text-sm text-[var(--text-2)] mb-2">{result.roadmap.overview}</p>
+                    <p className="text-sm text-[var(--text-2)]">Total Duration: {result.roadmap.totalDuration}</p>
                   </div>
                   {result.roadmap.phases?.map((phase: any, idx: number) => (
                     <div key={idx} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-semibold text-gray-900">{phase.phase}</h5>
-                        <span className="text-xs text-gray-600">{phase.duration}</span>
+                        <h5 className="font-semibold text-[var(--text)]">{phase.phase}</h5>
+                        <span className="text-xs text-[var(--text-2)]">{phase.duration}</span>
                       </div>
-                      <p className="text-sm text-gray-700 mb-3">{phase.focus}</p>
+                      <p className="text-sm text-[var(--text-2)] mb-3">{phase.focus}</p>
                       {phase.milestones && (
                         <div className="text-sm">
                           <p className="font-medium mb-1">Milestones:</p>
-                          <ul className="list-disc list-inside text-gray-700">
+                          <ul className="list-disc list-inside text-[var(--text-2)]">
                             {phase.milestones.map((milestone: string, midx: number) => (
                               <li key={midx}>{milestone}</li>
                             ))}
@@ -798,24 +808,24 @@ export function CareerAssistantTab() {
               {activeTool === 'career' && result.roadmap && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">{result.roadmap.title}</h4>
-                    <p className="text-sm text-gray-700">{result.roadmap.overview}</p>
+                    <h4 className="font-semibold text-[var(--text)] mb-1">{result.roadmap.title}</h4>
+                    <p className="text-sm text-[var(--text-2)]">{result.roadmap.overview}</p>
                   </div>
                   {result.roadmap.years?.map((year: any, idx: number) => (
-                    <div key={idx} className="p-4 border-l-4 border-blue-500 bg-blue-50 rounded">
+                    <div key={idx} className="p-4 border-l-4 border-blue-500 bg-[var(--primary-bg)] rounded">
                       <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-semibold text-gray-900">{year.yearLabel}: {year.targetRole}</h5>
+                        <h5 className="font-semibold text-[var(--text)]">{year.yearLabel}: {year.targetRole}</h5>
                         {year.salaryRange && (
                           <span className="text-sm text-green-700 font-medium">
                             ${year.salaryRange.min}k - ${year.salaryRange.max}k
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 mb-3">{year.focus}</p>
+                      <p className="text-sm text-[var(--text-2)] mb-3">{year.focus}</p>
                       {year.keyMilestones && (
                         <div className="text-sm">
                           <p className="font-medium mb-1">Key Milestones:</p>
-                          <ul className="list-disc list-inside text-gray-700">
+                          <ul className="list-disc list-inside text-[var(--text-2)]">
                             {year.keyMilestones.map((milestone: string, midx: number) => (
                               <li key={midx}>{milestone}</li>
                             ))}

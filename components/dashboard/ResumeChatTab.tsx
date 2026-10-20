@@ -237,14 +237,14 @@ export function ResumeChatTab() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] bg-white rounded-lg border overflow-hidden">
+    <div className="flex h-[calc(100vh-12rem)] bg-[var(--surface)] rounded-lg border overflow-hidden">
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-64 border-r flex flex-col bg-gray-50">
+        <div className="w-64 border-r flex flex-col bg-[var(--surface-2)]">
           <div className="p-4 border-b">
             <button
               onClick={createNewSession}
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] flex items-center justify-center gap-2"
             >
               <Plus className="h-4 w-4" />
               New Chat
@@ -259,7 +259,7 @@ export function ResumeChatTab() {
                 className={`group relative p-3 rounded-lg cursor-pointer transition-colors ${
                   currentSession?._id === session._id
                     ? 'bg-blue-100 border border-blue-300'
-                    : 'hover:bg-gray-100'
+                    : 'hover:bg-[var(--surface-3)]'
                 }`}
               >
                 {editingSessionId === session._id ? (
@@ -294,10 +294,10 @@ export function ResumeChatTab() {
                       onClick={() => setCurrentSession(session)}
                       className="flex-1"
                     >
-                      <p className="font-medium text-sm text-gray-900 truncate">
+                      <p className="font-medium text-sm text-[var(--text)] truncate">
                         {session.title}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-[var(--text-3)] mt-1">
                         {session.messageCount} messages
                       </p>
                     </div>
@@ -307,7 +307,7 @@ export function ResumeChatTab() {
                           e.stopPropagation();
                           startEditing(session);
                         }}
-                        className="p-1 text-gray-600 hover:bg-gray-200 rounded"
+                        className="p-1 text-[var(--text-2)] hover:bg-[var(--border)] rounded"
                       >
                         <Edit2 className="h-3 w-3" />
                       </button>
@@ -327,7 +327,7 @@ export function ResumeChatTab() {
             ))}
 
             {sessions.length === 0 && (
-              <div className="text-center py-8 text-gray-500 text-sm">
+              <div className="text-center py-8 text-[var(--text-3)] text-sm">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 No chats yet
               </div>
@@ -343,12 +343,12 @@ export function ResumeChatTab() {
             {/* Chat Header */}
             <div className="p-4 border-b flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900">{currentSession.title}</h3>
-                <p className="text-sm text-gray-500">AI-powered resume assistant</p>
+                <h3 className="font-semibold text-[var(--text)]">{currentSession.title}</h3>
+                <p className="text-sm text-[var(--text-3)]">AI-powered resume assistant</p>
               </div>
               <button
                 onClick={() => setShowSidebar(!showSidebar)}
-                className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="px-3 py-2 text-[var(--text-2)] hover:bg-[var(--surface-3)] rounded-lg"
               >
                 {showSidebar ? 'Hide' : 'Show'} Sidebar
               </button>
@@ -358,13 +358,13 @@ export function ResumeChatTab() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loading ? (
                 <div className="flex justify-center py-12">
-                  <Sparkles className="h-8 w-8 text-gray-400 animate-spin" />
+                  <Sparkles className="h-8 w-8 text-[var(--text-3)] animate-spin" />
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-12">
-                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Start a conversation</h3>
-                  <p className="text-gray-600 mb-4">Ask me anything about your resume!</p>
+                  <MessageSquare className="h-12 w-12 text-[var(--text-3)] mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-[var(--text)] mb-2">Start a conversation</h3>
+                  <p className="text-[var(--text-2)] mb-4">Ask me anything about your resume!</p>
                   <div className="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto">
                     {[
                       'What are my key skills?',
@@ -375,7 +375,7 @@ export function ResumeChatTab() {
                       <button
                         key={suggestion}
                         onClick={() => setInputMessage(suggestion)}
-                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700"
+                        className="px-4 py-2 bg-[var(--surface-3)] hover:bg-[var(--border)] rounded-full text-sm text-[var(--text-2)]"
                       >
                         {suggestion}
                       </button>
@@ -391,20 +391,20 @@ export function ResumeChatTab() {
                     <div
                       className={`max-w-3xl rounded-lg px-4 py-3 ${
                         message.role === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-[var(--primary)] text-white'
+                          : 'bg-[var(--surface-3)] text-[var(--text)]'
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{message.content}</div>
                       
                       {message.sources && message.sources.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
-                          <p className="text-xs font-medium text-gray-600 mb-2">Sources:</p>
+                        <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                          <p className="text-xs font-medium text-[var(--text-2)] mb-2">Sources:</p>
                           <div className="space-y-2">
                             {message.sources.map((source, idx) => (
-                              <div key={idx} className="text-xs bg-white bg-opacity-50 rounded p-2">
-                                <p className="text-gray-700 line-clamp-2">{source.text}</p>
-                                <p className="text-gray-500 mt-1">
+                              <div key={idx} className="text-xs bg-[var(--surface)] bg-opacity-50 rounded p-2">
+                                <p className="text-[var(--text-2)] line-clamp-2">{source.text}</p>
+                                <p className="text-[var(--text-3)] mt-1">
                                   Relevance: {Math.round(source.relevanceScore * 100)}%
                                 </p>
                               </div>
@@ -419,10 +419,10 @@ export function ResumeChatTab() {
               
               {sending && (
                 <div className="flex justify-start">
-                  <div className="max-w-3xl rounded-lg px-4 py-3 bg-gray-100">
+                  <div className="max-w-3xl rounded-lg px-4 py-3 bg-[var(--surface-3)]">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-gray-600 animate-spin" />
-                      <span className="text-gray-600">Thinking...</span>
+                      <Sparkles className="h-4 w-4 text-[var(--text-2)] animate-spin" />
+                      <span className="text-[var(--text-2)]">Thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -452,7 +452,7 @@ export function ResumeChatTab() {
                 <button
                   type="submit"
                   disabled={!inputMessage.trim() || sending}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Send className="h-5 w-5" />
                   Send
@@ -463,12 +463,12 @@ export function ResumeChatTab() {
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">No chat selected</h3>
-              <p className="text-gray-600 mb-4">Create a new chat to get started</p>
+              <MessageSquare className="h-16 w-16 text-[var(--text-3)] mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-[var(--text)] mb-2">No chat selected</h3>
+              <p className="text-[var(--text-2)] mb-4">Create a new chat to get started</p>
               <button
                 onClick={createNewSession}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-6 py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)]"
               >
                 Create New Chat
               </button>

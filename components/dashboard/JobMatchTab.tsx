@@ -172,20 +172,20 @@ export function JobMatchTab() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Add Internship Description</h2>
-            <p className="text-gray-600 mt-1">Compare your resume with an internship posting</p>
+            <h2 className="text-2xl font-bold text-[var(--text)]">Add Internship Description</h2>
+            <p className="text-[var(--text-2)] mt-1">Compare your resume with an internship posting</p>
           </div>
           <button
             onClick={() => setStep('list')}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            className="px-4 py-2 text-[var(--text-2)] hover:bg-[var(--surface-3)] rounded-lg"
           >
             Cancel
           </button>
         </div>
 
-        <form onSubmit={handleCreateJobDescription} className="space-y-6 bg-white p-6 rounded-lg border">
+        <form onSubmit={handleCreateJobDescription} className="space-y-6 bg-[var(--surface)] p-6 rounded-lg border">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-2)] mb-2">
               Internship Title *
             </label>
             <input
@@ -199,7 +199,7 @@ export function JobMatchTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-2)] mb-2">
               Company *
             </label>
             <input
@@ -213,7 +213,7 @@ export function JobMatchTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-2)] mb-2">
               Location
             </label>
             <input
@@ -226,7 +226,7 @@ export function JobMatchTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-2)] mb-2">
               Employment Type
             </label>
             <select
@@ -243,7 +243,7 @@ export function JobMatchTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-2)] mb-2">
               Internship Description *
             </label>
             <textarea
@@ -265,7 +265,7 @@ export function JobMatchTab() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -289,8 +289,8 @@ export function JobMatchTab() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Match Results</h2>
-            <p className="text-gray-600 mt-1">
+            <h2 className="text-2xl font-bold text-[var(--text)]">Match Results</h2>
+            <p className="text-[var(--text-2)] mt-1">
               {selectedMatch.jobDescriptionId.title} at {selectedMatch.jobDescriptionId.company}
             </p>
           </div>
@@ -299,7 +299,7 @@ export function JobMatchTab() {
               setStep('list');
               setSelectedMatch(null);
             }}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            className="px-4 py-2 text-[var(--text-2)] hover:bg-[var(--surface-3)] rounded-lg"
           >
             Back to Matches
           </button>
@@ -308,12 +308,12 @@ export function JobMatchTab() {
         {/* Overall Score */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl border border-blue-200">
           <div className="text-center">
-            <p className="text-gray-600 mb-2">Overall Match Score</p>
-            <div className="text-6xl font-bold text-blue-600 mb-2">
+            <p className="text-[var(--text-2)] mb-2">Overall Match Score</p>
+            <div className="text-6xl font-bold text-[var(--primary-dk)] mb-2">
               {selectedMatch.overallScore}
-              <span className="text-3xl text-gray-500">/100</span>
+              <span className="text-3xl text-[var(--text-3)]">/100</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+            <div className="w-full bg-[var(--surface-3)] rounded-full h-3 mt-4">
               <div
                 className={`h-3 rounded-full ${getScoreBgColor(selectedMatch.overallScore)}`}
                 style={{ width: `${selectedMatch.overallScore}%` }}
@@ -324,26 +324,26 @@ export function JobMatchTab() {
 
         {/* Score Breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
-            <p className="text-sm text-gray-600 mb-1">Skills Match</p>
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
+            <p className="text-sm text-[var(--text-2)] mb-1">Skills Match</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.skillsMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.skillsMatch.score}%
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <p className="text-sm text-gray-600 mb-1">Experience</p>
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
+            <p className="text-sm text-[var(--text-2)] mb-1">Experience</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.experienceMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.experienceMatch.score}%
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <p className="text-sm text-gray-600 mb-1">Education</p>
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
+            <p className="text-sm text-[var(--text-2)] mb-1">Education</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.educationMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.educationMatch.score}%
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <p className="text-sm text-gray-600 mb-1">Keywords</p>
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
+            <p className="text-sm text-[var(--text-2)] mb-1">Keywords</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.keywordsMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.keywordsMatch.score}%
             </p>
@@ -352,18 +352,18 @@ export function JobMatchTab() {
 
         {/* AI Analysis */}
         {selectedMatch.aiAnalysis && (
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-[var(--primary-dk)]" />
               AI Analysis
             </h3>
-            <p className="text-gray-700 whitespace-pre-line">{selectedMatch.aiAnalysis}</p>
+            <p className="text-[var(--text-2)] whitespace-pre-line">{selectedMatch.aiAnalysis}</p>
           </div>
         )}
 
         {/* Skills Analysis */}
-        <div className="bg-white p-6 rounded-lg border space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Skills Analysis</h3>
+        <div className="bg-[var(--surface)] p-6 rounded-lg border space-y-4">
+          <h3 className="text-lg font-semibold text-[var(--text)]">Skills Analysis</h3>
           
           {selectedMatch.matchDetails.skillsMatch.matchingSkills.length > 0 && (
             <div>
@@ -404,8 +404,8 @@ export function JobMatchTab() {
 
         {/* Strengths */}
         {selectedMatch.strengthsForRole.length > 0 && (
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
               <Target className="h-5 w-5 text-green-600" />
               Your Strengths for This Role
             </h3>
@@ -413,7 +413,7 @@ export function JobMatchTab() {
               {selectedMatch.strengthsForRole.map((strength, idx) => (
                 <li key={idx} className="flex items-start gap-2">
                   <span className="text-green-600 mt-1">✓</span>
-                  <span className="text-gray-700">{strength}</span>
+                  <span className="text-[var(--text-2)]">{strength}</span>
                 </li>
               ))}
             </ul>
@@ -422,8 +422,8 @@ export function JobMatchTab() {
 
         {/* Gaps to Address */}
         {selectedMatch.gapsToAddress.length > 0 && (
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-orange-600" />
               Areas to Improve
             </h3>
@@ -431,7 +431,7 @@ export function JobMatchTab() {
               {selectedMatch.gapsToAddress.map((gap, idx) => (
                 <li key={idx} className="flex items-start gap-2">
                   <span className="text-orange-600 mt-1">!</span>
-                  <span className="text-gray-700">{gap}</span>
+                  <span className="text-[var(--text-2)]">{gap}</span>
                 </li>
               ))}
             </ul>
@@ -440,15 +440,15 @@ export function JobMatchTab() {
 
         {/* Recommendations */}
         {selectedMatch.recommendations.length > 0 && (
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-4">Recommendations</h3>
             <ul className="space-y-3">
               {selectedMatch.recommendations.map((rec, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-[var(--primary-dk)] rounded-full flex items-center justify-center text-sm font-medium">
                     {idx + 1}
                   </span>
-                  <span className="text-gray-700">{rec}</span>
+                  <span className="text-[var(--text-2)]">{rec}</span>
                 </li>
               ))}
             </ul>
@@ -462,13 +462,13 @@ export function JobMatchTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Internship Match</h2>
-          <p className="text-gray-600 mt-1">Compare your resume with internship descriptions</p>
+          <h2 className="text-2xl font-bold text-[var(--text)]">Internship Match</h2>
+          <p className="text-[var(--text-2)] mt-1">Compare your resume with internship descriptions</p>
           <CreditsBadge className="mt-2" />
         </div>
         <button
           onClick={() => setStep('create')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)] flex items-center gap-2"
         >
           <Plus className="h-5 w-5" />
           New Match
@@ -477,17 +477,17 @@ export function JobMatchTab() {
 
       {loading && jobMatches.length === 0 ? (
         <div className="text-center py-12">
-          <Sparkles className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading your matches...</p>
+          <Sparkles className="h-12 w-12 text-[var(--text-3)] mx-auto mb-4 animate-spin" />
+          <p className="text-[var(--text-2)]">Loading your matches...</p>
         </div>
       ) : jobMatches.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No matches yet</h3>
-          <p className="text-gray-600 mb-4">Start by adding an internship description to analyze</p>
+        <div className="text-center py-12 bg-[var(--surface-2)] rounded-lg border border-dashed border-[var(--border)]">
+          <Briefcase className="h-12 w-12 text-[var(--text-3)] mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-[var(--text)] mb-2">No matches yet</h3>
+          <p className="text-[var(--text-2)] mb-4">Start by adding an internship description to analyze</p>
           <button
             onClick={() => setStep('create')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dk)]"
           >
             Add Internship Description
           </button>
@@ -501,14 +501,14 @@ export function JobMatchTab() {
                 setSelectedMatch(match);
                 setStep('results');
               }}
-              className="bg-white p-6 rounded-lg border hover:border-blue-300 cursor-pointer transition-all"
+              className="bg-[var(--surface)] p-6 rounded-lg border hover:border-blue-300 cursor-pointer transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-[var(--text)]">
                     {match.jobDescriptionId.title}
                   </h3>
-                  <p className="text-gray-600">{match.jobDescriptionId.company}</p>
+                  <p className="text-[var(--text-2)]">{match.jobDescriptionId.company}</p>
                 </div>
                 <div className={`px-4 py-2 rounded-lg ${getScoreColor(match.overallScore)}`}>
                   <span className="text-2xl font-bold">{match.overallScore}</span>
@@ -518,24 +518,24 @@ export function JobMatchTab() {
 
               <div className="grid grid-cols-4 gap-2 text-sm">
                 <div>
-                  <p className="text-gray-500">Skills</p>
+                  <p className="text-[var(--text-3)]">Skills</p>
                   <p className="font-medium">{match.matchDetails.skillsMatch.score}%</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Experience</p>
+                  <p className="text-[var(--text-3)]">Experience</p>
                   <p className="font-medium">{match.matchDetails.experienceMatch.score}%</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Education</p>
+                  <p className="text-[var(--text-3)]">Education</p>
                   <p className="font-medium">{match.matchDetails.educationMatch.score}%</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Keywords</p>
+                  <p className="text-[var(--text-3)]">Keywords</p>
                   <p className="font-medium">{match.matchDetails.keywordsMatch.score}%</p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-[var(--text-3)] mt-4">
                 Analyzed {new Date(match.createdAt).toLocaleDateString()}
               </p>
             </div>
