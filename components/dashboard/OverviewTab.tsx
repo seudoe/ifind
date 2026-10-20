@@ -311,21 +311,27 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Applied",     value: appliedList.length, icon: <Send className="h-4 w-4" />,       bg: "bg-blue-50 text-[var(--primary)]" },
-            { label: "Saved",       value: savedList.length,   icon: <Bookmark className="h-4 w-4" />,   bg: "bg-purple-50 text-purple-600" },
-            { label: "Shortlisted", value: shortlisted,                     icon: <TrendingUp className="h-4 w-4" />, bg: "bg-green-50 text-green-600" },
-            { label: "Profile",     value: `${user?.profileCompletionScore ?? 0}%`, icon: <CheckCircle className="h-4 w-4" />, bg: "bg-amber-50 text-amber-600" },
-          ].map(({ label, value, icon, bg }) => (
-            <div key={label} className="plasma-card p-4">
-              <div className={`inline-flex p-2 rounded-[var(--radius-sm)] ${bg} mb-3`}>{icon}</div>
-              <p className="text-xl font-bold text-[var(--text)]">{value}</p>
-              <p className="text-xs text-[var(--text-3)] mt-0.5">{label}</p>
+            { label: "Applied",     value: appliedList.length, icon: <Send className="h-4 w-4" />,       chip: "bg-[var(--primary-bg)] text-[var(--primary-dk)]", accent: "var(--primary)" },
+            { label: "Saved",       value: savedList.length,   icon: <Bookmark className="h-4 w-4" />,   chip: "bg-purple-50 text-purple-700", accent: "#9b59b6" },
+            { label: "Shortlisted", value: shortlisted,                     icon: <TrendingUp className="h-4 w-4" />, chip: "bg-green-50 text-green-700", accent: "var(--success)" },
+            { label: "Profile",     value: `${user?.profileCompletionScore ?? 0}%`, icon: <CheckCircle className="h-4 w-4" />, chip: "bg-amber-50 text-amber-700", accent: "var(--warning)" },
+          ].map(({ label, value, icon, chip, accent }) => (
+            <div
+              key={label}
+              style={{ "--stat-accent": accent } as React.CSSProperties}
+              className="plasma-card stat-tile p-4 pl-5 hover:-translate-y-0.5"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-[var(--text-2)]">{label}</p>
+                <span className={`inline-flex p-1.5 rounded-[var(--radius-sm)] ${chip}`}>{icon}</span>
+              </div>
+              <p className="text-2xl font-bold tracking-tight text-[var(--text)] mt-2 tabular-nums">{value}</p>
             </div>
           ))}
         </div>
 
         {/* Profile completion */}
-        <div className="plasma-card p-5">
+        <div className="plasma-card p-5 bg-gradient-to-br from-[var(--surface)] to-[var(--primary-bg)]">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-[var(--text)]">Profile Completion</h2>
             <span className="text-lg font-bold text-[var(--primary)]">{user?.profileCompletionScore ?? 0}%</span>
@@ -339,7 +345,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                   {isDone
                     ? <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" />
                     : <AlertCircle className="h-3.5 w-3.5 text-[var(--border-2)] shrink-0" />}
-                  <span className={`text-xs ${isDone ? "text-[var(--text-3)] line-through" : "text-[var(--text)]"}`}>
+                  <span className={`text-xs ${isDone ? "text-[var(--text-2)] line-through" : "text-[var(--text)]"}`}>
                     {label}
                   </span>
                 </div>
@@ -396,8 +402,8 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
               {appliedList.map(({ internshipId, appliedAt, status }) => {
                 const cleanId = String(internshipId);
                 return (
-                  <Link key={cleanId} href={`/user/${user.username}/applied-internships/${cleanId}`} className="plasma-card flex items-center gap-3 p-3 hover:shadow-[var(--shadow-md)] transition-shadow">
-                    <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--surface-2)] flex items-center justify-center text-xs font-bold text-[var(--text-2)] shrink-0">?</div>
+                  <Link key={cleanId} href={`/user/${user.username}/applied-internships/${cleanId}`} className="plasma-card flex items-center gap-3 p-3 hover:shadow-[var(--shadow)] hover:-translate-y-px">
+                    <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] flex items-center justify-center text-xs font-bold text-[var(--primary-dk)] shrink-0">{(applicationNames.get(cleanId) ?? "I").charAt(0).toUpperCase()}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[var(--text)] truncate">{applicationNames.get(cleanId) ?? "Internship"}</p>
                       <p className="text-xs text-[var(--text-3)]">

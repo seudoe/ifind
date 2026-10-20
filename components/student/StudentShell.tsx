@@ -6,6 +6,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { AlertTriangle, BadgeCheck, Bell, Briefcase, Link2Off, LogOut, X } from "lucide-react";
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
+import { DotGridBackground } from "@/components/ui/DotGridBackground";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
 import type { User as StudentUser } from "@/types";
@@ -86,6 +87,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
+      <DotGridBackground className="lg:left-60" />
 
       {/* ── Sidebar (large screens) ───────────────────────────────────────── */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-60 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
@@ -146,7 +148,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       </header>
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
-      <div className="lg:pl-60">
+      <div className="lg:pl-60 relative z-10">
         <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
           <h1 className="text-xl font-semibold text-[var(--text)] mb-6">
             {current ? (current.link.title ?? current.link.label) : "Dashboard"}

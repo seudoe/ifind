@@ -111,7 +111,7 @@ export function InternshipCard({
         {/* Deadline */}
         {internship.deadlineDate && (
           <div className="hidden md:block text-[11px] text-right shrink-0">
-            <span className={cn(deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
+            <span className={cn(deadlineSoon ? "text-[var(--danger)] font-medium" : "text-[var(--text-3)]")}>
               {deadlineSoon ? "⚡ " : ""}Closes {formatDate(internship.deadlineDate)}
             </span>
           </div>
@@ -135,8 +135,10 @@ export function InternshipCard({
   return (
     <div
       onClick={onClick}
-      className="plasma-card flex flex-col cursor-pointer group hover:-translate-y-0.5"
+      className="plasma-card relative flex flex-col h-full cursor-pointer group overflow-hidden hover:-translate-y-0.5 hover:border-[var(--primary)]"
     >
+      {/* Accent hairline that lights up on hover */}
+      <span className="absolute inset-x-0 top-0 h-0.5 bg-[var(--primary)] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
       <div className="p-4 flex-1 flex flex-col gap-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
@@ -185,8 +187,8 @@ export function InternshipCard({
           </div>
         </div>
 
-        {/* Skills */}
-        <div className="flex flex-wrap gap-1">
+        {/* Skills pinned to the bottom so cards with 3 vs 5 skills line up */}
+        <div className="mt-auto flex flex-wrap gap-1 pt-1">
           {internship.skills.slice(0, 3).map((s) => (
             <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
           ))}
@@ -196,7 +198,7 @@ export function InternshipCard({
         </div>
 
         {internship.deadlineDate && (
-          <p className={cn("text-[11px] mt-auto", deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
+          <p className={cn("text-[11px]", deadlineSoon ? "text-[var(--danger)] font-medium" : "text-[var(--text-3)]")}>
             Deadline: {formatDate(internship.deadlineDate)}
           </p>
         )}

@@ -139,3 +139,24 @@ body {
   .logo-slider__item { animation: none; }
   .logo-slider__track { flex-wrap: wrap; justify-content: center; width: 100%; }
 }
+
+/* ── Dot-grid backdrop ───────────────────────────────────────────────────── */
+.dot-grid-bg {
+  background-image:
+    radial-gradient(60% 45% at 85% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 70%),
+    radial-gradient(40% 35% at 0% 100%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 70%),
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--text) 13%, transparent) 1px, transparent 0);
+  background-size: auto, auto, 22px 22px;
+  /* Fade the dots toward the bottom so dense content stays calm */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, rgba(0,0,0,.35) 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 35%, rgba(0,0,0,.35) 100%);
+}
+
+/* ── Stat tiles (dashboard home) ─────────────────────────────────────────── */
+.stat-tile { position: relative; overflow: hidden; }
+.stat-tile::before {
+  content: "";
+  position: absolute; inset: 0 auto 0 0; width: 3px;
+  background: var(--stat-accent, var(--primary));
+  opacity: .85;
+}

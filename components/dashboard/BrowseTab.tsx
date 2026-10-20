@@ -276,8 +276,8 @@ export function BrowseTab({
         <div className={cn("space-y-4", selectedInternship && "hidden lg:block")}>
           {/* Search Toolbar */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 flex items-center gap-2 plasma-card px-3.5 py-2.5">
-              <Search className="h-4 w-4 text-[var(--text-3)] shrink-0" />
+            <div className="flex-1 flex items-center gap-2.5 plasma-card px-4 py-3 focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_18%,transparent)]">
+              <Search className="h-4 w-4 text-[var(--primary)] shrink-0" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -299,7 +299,7 @@ export function BrowseTab({
           </div>
 
           {/* Count & Reset */}
-          <div className="flex items-center justify-between text-xs text-[var(--text-3)] px-0.5">
+          <div className="flex items-center justify-between text-xs text-[var(--text-2)] px-0.5">
             <p>
               {results.length} internships found
               {results.length > 0 && ` (showing ${startIndex + 1}–${Math.min(startIndex + pageSize, results.length)})`}
