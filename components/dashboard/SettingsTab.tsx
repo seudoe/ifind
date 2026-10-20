@@ -3,6 +3,7 @@
 import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Lock, Bell, Trash2, Camera, AlertTriangle } from "lucide-react";
 import { Input }  from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -36,6 +37,7 @@ function Section({
 }
 
 export function SettingsTab({ user }: { user: StudentUser }) {
+  const router = useRouter();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew,     setShowNew]     = useState(false);
 
@@ -73,7 +75,7 @@ export function SettingsTab({ user }: { user: StudentUser }) {
       if (!res.ok) throw new Error(json.error || "Failed to delete account");
 
       toast.success(json.message || "Account scheduled for deletion.");
-      window.location.href = "/user/login?deleted=true";
+      router.push("/user/login?deleted=true");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Account deletion failed");
       setDeletingAccount(false);
