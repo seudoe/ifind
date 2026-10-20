@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   Award, BookOpen, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
   GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus, Upload, Camera
@@ -388,9 +388,12 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
   const [awardsList, setAwardsList] = useState<any[]>([]);
   const [affiliationsList, setAffiliationsList] = useState<any[]>([]);
 
-  // Sync state with user data on open or section change
-  useEffect(() => {
-    if (!isOpen) return;
+  // Sync state with user data on open or section change (adjusting state during render)
+  const [syncedWith, setSyncedWith] = useState<{ section: typeof section; user: typeof user } | null>(null);
+  if (!isOpen && syncedWith) {
+    setSyncedWith(null);
+  } else if (isOpen && (!syncedWith || syncedWith.section !== section || syncedWith.user !== user)) {
+    setSyncedWith({ section, user });
 
     // Personal details (recruiter-facing metaDetails)
     const meta = user.resume?.parsedData?.metaDetails;
@@ -425,7 +428,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
     setCertificationsList(resume.certifications ? JSON.parse(JSON.stringify(resume.certifications)) : []);
     setAwardsList(resume.awards ? JSON.parse(JSON.stringify(resume.awards)) : []);
     setAffiliationsList(resume.affiliations ? JSON.parse(JSON.stringify(resume.affiliations)) : []);
-  }, [isOpen, section, user]);
+  }
 
   // --- Dynamic array handlers ---
   const handleAddListItem = (type: "education" | "skillsGroup" | "languages" | "internships" | "employment" | "projects" | "certifications" | "awards" | "affiliations") => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { InternshipCard } from "@/components/internships/InternshipCard";
 import { FilterPanel } from "@/components/internships/FilterPanel";
@@ -43,10 +43,13 @@ export function BrowseTab({
     new Set((user?.savedInternships ?? []).map(String))
   );
 
-  useEffect(() => {
+  // Re-sync when the user prop changes (adjusting state during render, not in an effect)
+  const [syncedUser, setSyncedUser] = useState(user);
+  if (user !== syncedUser) {
+    setSyncedUser(user);
     setAppliedIds(new Set((user?.appliedInternships ?? []).map((item) => String(item.internshipId))));
     setSavedIds(new Set((user?.savedInternships ?? []).map(String)));
-  }, [user]);
+  }
 
   const {
     filters,
@@ -169,9 +172,11 @@ export function BrowseTab({
   }, [internships, query, filters]);
 
   // Reset to page 1 whenever results change (filters/query update)
-  useEffect(() => {
+  const [pagedFor, setPagedFor] = useState({ query, filters });
+  if (pagedFor.query !== query || pagedFor.filters !== filters) {
+    setPagedFor({ query, filters });
     setPage(1);
-  }, [query, filters]);
+  }
 
   const totalPages = Math.ceil(results.length / pageSize) || 1;
   const startIndex = (page - 1) * pageSize;
