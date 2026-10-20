@@ -7,6 +7,8 @@ import { AlertTriangle, BadgeCheck, Bell, Briefcase, Link2Off, LogOut, X } from 
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
 import { DotGridBackground } from "@/components/ui/DotGridBackground";
+import { SmoothScroll } from "@/components/motion/SmoothScroll";
+import { LineHoverStyles, LineHoverText } from "@/components/ui/line-hover-link";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
 import type { User as StudentUser } from "@/types";
@@ -81,31 +83,33 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
 
   const linkCls = (active: boolean) =>
     cn(
-      "flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-colors",
+      "nav-row flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-sm)] text-[15px] font-medium transition-colors",
       active ? "bg-[var(--primary-bg)] text-[var(--primary)]" : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
     );
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <DotGridBackground className="lg:left-60" />
+      <SmoothScroll />
+      <LineHoverStyles />
 
       {/* ── Sidebar (large screens) ───────────────────────────────────────── */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-60 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
         <div className="px-4 h-14 flex items-center shrink-0"><Logo /></div>
 
-        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
+        <nav data-lenis-prevent className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
           {NAV_GROUPS.map((group) =>
             group.links.length === 1 ? (
               <Link key={group.key} href={href(group.links[0])} className={linkCls(isActive(group.links[0]))}>
-                <group.icon className="h-4 w-4" />{group.label}
+                <group.icon className="h-[18px] w-[18px]" /><LineHoverText>{group.label}</LineHoverText>
               </Link>
             ) : (
               <div key={group.key}>
-                <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-3)]">{group.label}</p>
+                <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--text-2)]">{group.label}</p>
                 <div className="space-y-0.5">
                   {group.links.filter((l) => !l.hidden).map((l) => (
                     <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}>
-                      <l.icon className="h-4 w-4" />{l.label}
+                      <l.icon className="h-[18px] w-[18px]" /><LineHoverText>{l.label}</LineHoverText>
                       {l.path === "notifications" && unread > 0 && <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>}
                     </Link>
                   ))}
@@ -166,7 +170,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
               <button onClick={() => setSheet(null)} aria-label="Close" className="p-1 text-[var(--text-3)]"><X className="h-4 w-4" /></button>
             </div>
             {openGroup.links.filter((l) => !l.hidden).map((l) => (
-              <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}><l.icon className="h-4 w-4" />{l.label}{l.path === "notifications" && unread > 0 && <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>}</Link>
+              <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}><l.icon className="h-4 w-4" /><LineHoverText>{l.label}</LineHoverText>{l.path === "notifications" && unread > 0 && <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>}</Link>
             ))}
             {openGroup.key === "system" && (
               <button onClick={handleLogout} className={cn(linkCls(false), "w-full text-[var(--danger)]")}><LogOut className="h-4 w-4" />Logout</button>

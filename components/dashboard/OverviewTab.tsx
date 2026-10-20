@@ -153,7 +153,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-0.5">
             <div>
               <h2 className="text-base font-bold text-[var(--text)]">Your talent card</h2>
-              <p className="text-xs text-[var(--text-3)] mt-0.5">
+              <p className="text-sm text-[var(--text-3)] mt-0.5">
                 Your talent card is visible to employers only when you are <span className="font-semibold text-[var(--text-2)]">actively interviewing</span>
               </p>
             </div>
@@ -198,7 +198,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                   <Avatar src={user.profilePicture} name={recruiterName} size="md" />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-[var(--text)] text-sm">{recruiterName}</span>
+                      <span className="font-bold text-[var(--text)] text-base">{recruiterName}</span>
                       {linkedinUrl && (
                         <a
                           href={linkedinUrl}
@@ -228,7 +228,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                         href={user.resume.driveViewLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline mt-1"
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)] hover:underline mt-1"
                       >
                         <FileText className="h-3.5 w-3.5" />
                         <span>Resume</span>
@@ -236,7 +236,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                     ) : (
                       <Link
                         href={`/user/${user.username}/resume`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline mt-1"
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)] hover:underline mt-1"
                       >
                         <FileText className="h-3.5 w-3.5" />
                         <span>Resume</span>
@@ -245,13 +245,13 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                   </div>
                 </div>
 
-                <span className="text-[10px] text-[var(--text-3)] uppercase tracking-wider font-semibold">
+                <span className="text-xs text-[var(--text-3)] uppercase tracking-wider font-semibold">
                   Last seen {formatDate(user.updatedAt || user.createdAt)}
                 </span>
               </div>
 
               {/* Grid rows with details */}
-              <div className="space-y-2.5 text-xs text-[var(--text-2)] pt-2 border-t border-[var(--border)]">
+              <div className="space-y-2.5 text-sm text-[var(--text-2)] pt-2 border-t border-[var(--border)]">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-[var(--text-3)] shrink-0" />
                   <span>{experienceText}</span>
@@ -275,7 +275,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                 {skillsToRender.length > 0 ? (
                   <>
                     {visibleSkills.map((skill) => (
-                      <Badge key={skill} variant="secondary" className="px-2.5 py-1 text-xs">
+                      <Badge key={skill} variant="secondary" className="px-2.5 py-1 text-sm">
                         {skill}
                       </Badge>
                     ))}
@@ -284,7 +284,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                       <button
                         type="button"
                         onClick={() => setSkillsCollapsed(!skillsCollapsed)}
-                        className="text-xs font-bold text-[var(--primary)] hover:underline ml-1 inline-flex items-center gap-0.5"
+                        className="text-sm font-bold text-[var(--primary)] hover:underline ml-1 inline-flex items-center gap-0.5"
                       >
                         {skillsCollapsed ? (
                           <>
@@ -301,7 +301,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                     )}
                   </>
                 ) : (
-                  <span className="text-xs text-[var(--text-3)]">No skills listed yet</span>
+                  <span className="text-sm text-[var(--text-3)]">No skills listed yet</span>
                 )}
               </div>
             </div>
@@ -322,7 +322,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
               className="plasma-card stat-tile p-4 pl-5 hover:-translate-y-0.5"
             >
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-[var(--text-2)]">{label}</p>
+                <p className="text-sm font-medium text-[var(--text-2)]">{label}</p>
                 <span className={`inline-flex p-1.5 rounded-[var(--radius-sm)] ${chip}`}>{icon}</span>
               </div>
               <p className="text-2xl font-bold tracking-tight text-[var(--text)] mt-2 tabular-nums">{value}</p>
@@ -333,7 +333,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         {/* Profile completion */}
         <div className="plasma-card p-5 bg-gradient-to-br from-[var(--surface)] to-[var(--primary-bg)]">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-[var(--text)]">Profile Completion</h2>
+            <h2 className="text-base font-semibold text-[var(--text)]">Profile Completion</h2>
             <span className="text-lg font-bold text-[var(--primary)]">{user?.profileCompletionScore ?? 0}%</span>
           </div>
           <ProgressBar value={user?.profileCompletionScore ?? 0} className="mb-4" />
@@ -345,7 +345,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                   {isDone
                     ? <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" />
                     : <AlertCircle className="h-3.5 w-3.5 text-[var(--border-2)] shrink-0" />}
-                  <span className={`text-xs ${isDone ? "text-[var(--text-2)] line-through" : "text-[var(--text)]"}`}>
+                  <span className={`text-sm ${isDone ? "text-[var(--text-2)] line-through" : "text-[var(--text)]"}`}>
                     {label}
                   </span>
                 </div>
@@ -358,7 +358,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-0.5">
             <Sparkles className="h-4 w-4 text-[var(--primary)]" />
-            <h2 className="text-sm font-semibold text-[var(--text)]">Best Internships For You</h2>
+            <h2 className="text-base font-semibold text-[var(--text)]">Best Internships For You</h2>
           </div>
           {recommended.length ? (
             <div className="max-h-[70vh] overflow-y-auto pr-2 scrollbar-thin">
@@ -382,7 +382,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
           ) : (
             <div className="plasma-card p-8 text-center">
               <Sparkles className="h-8 w-8 text-[var(--border-2)] mx-auto mb-2" />
-              <p className="text-sm text-[var(--text-2)]">
+              <p className="text-base text-[var(--text-2)]">
                 {user?.resume?.parsedData ? "No recommendations are available yet." : "Upload and extract your resume to enable AI recommendations."}
               </p>
             </div>
@@ -391,11 +391,11 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
 
         {/* Applications */}
         <div>
-          <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Your Applications</h2>
+          <h2 className="text-base font-semibold text-[var(--text)] mb-3">Your Applications</h2>
           {appliedList.length === 0 ? (
             <div className="plasma-card text-center py-10">
               <Send className="h-8 w-8 text-[var(--border-2)] mx-auto mb-2" />
-              <p className="text-sm text-[var(--text-2)]">No applications yet. Start applying!</p>
+              <p className="text-base text-[var(--text-2)]">No applications yet. Start applying!</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -403,10 +403,10 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                 const cleanId = String(internshipId);
                 return (
                   <Link key={cleanId} href={`/user/${user.username}/applied-internships/${cleanId}`} className="plasma-card flex items-center gap-3 p-3 hover:shadow-[var(--shadow)] hover:-translate-y-px">
-                    <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] flex items-center justify-center text-xs font-bold text-[var(--primary-dk)] shrink-0">{(applicationNames.get(cleanId) ?? "I").charAt(0).toUpperCase()}</div>
+                    <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] flex items-center justify-center text-sm font-bold text-[var(--primary-dk)] shrink-0">{(applicationNames.get(cleanId) ?? "I").charAt(0).toUpperCase()}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[var(--text)] truncate">{applicationNames.get(cleanId) ?? "Internship"}</p>
-                      <p className="text-xs text-[var(--text-3)]">
+                      <p className="text-base font-medium text-[var(--text)] truncate">{applicationNames.get(cleanId) ?? "Internship"}</p>
+                      <p className="text-sm text-[var(--text-3)]">
                         {new Date(appliedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                       </p>
                     </div>

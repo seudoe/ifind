@@ -5,7 +5,7 @@ import { SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { TagInput } from "@/components/ui/TagInput";
 import type { InternshipFilters } from "@/types";
-import { LOCATIONS, PERKS_OPTIONS, SOURCE_LABELS } from "@/lib/constants";
+import { LOCATIONS, PERKS_OPTIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface FilterPanelProps {
@@ -17,8 +17,6 @@ interface FilterPanelProps {
   onAddSkill: (skill: string) => void;
   onRemoveSkill: (skill: string) => void;
   userSkills?: string[];
-  /** Listings per source in the loaded list; sources with none are hidden unless selected. */
-  sourceCounts?: Record<string, number>;
 }
 
 export function FilterPanel({
@@ -30,11 +28,9 @@ export function FilterPanel({
   onAddSkill,
   onRemoveSkill,
   userSkills = [],
-  sourceCounts,
 }: FilterPanelProps) {
   const [expanded, setExpanded] = useState({
     sortBy: true,
-    source: true,
     stipend: true,
     location: true,
     duration: true,
@@ -52,7 +48,6 @@ export function FilterPanel({
     filters.durationMin > 1 || filters.durationMax < 12,
     filters.skills.length > 0,
     filters.perks.length > 0,
-    filters.sources.length > 0,
   ].filter(Boolean).length;
 
   return (
@@ -60,10 +55,10 @@ export function FilterPanel({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-[var(--primary)]" />
-          <span className="font-semibold text-[var(--text)] text-sm">Filters</span>
+          <SlidersHorizontal className="h-5 w-5 text-[var(--primary)]" />
+          <span className="font-semibold text-[var(--text)] text-lg">Filters</span>
           {activeCount > 0 && (
-            <span className="h-5 w-5 rounded-full bg-[var(--primary)] text-white text-xs flex items-center justify-center font-medium">
+            <span className="h-5 w-5 rounded-full bg-[var(--primary)] text-white text-sm flex items-center justify-center font-medium">
               {activeCount}
             </span>
           )}
@@ -72,7 +67,7 @@ export function FilterPanel({
           <button
             type="button"
             onClick={onReset}
-            className="text-xs text-[var(--primary)] hover:underline font-medium flex items-center gap-1"
+            className="text-sm text-[var(--primary)] hover:underline font-medium flex items-center gap-1"
           >
             <X className="h-3 w-3" /> Clear all
           </button>
@@ -86,7 +81,7 @@ export function FilterPanel({
           expanded={expanded.sortBy}
           onToggle={() => toggle("sortBy")}
         >
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             {(["latest", "deadline", "stipend"] as const).map((opt) => (
               <label key={opt} className="flex items-center gap-2 cursor-pointer py-0.5 select-none">
                 <input
@@ -95,42 +90,13 @@ export function FilterPanel({
                   value={opt}
                   checked={filters.sortBy === opt}
                   onChange={() => onUpdate("sortBy", opt)}
-                  className="accent-[var(--primary)] h-3.5 w-3.5"
+                  className="accent-[var(--primary)] h-4 w-4"
                 />
-                <span className="text-xs text-[var(--text-2)] capitalize">
+                <span className="text-[15px] text-[var(--text)] capitalize">
                   {opt === "latest" ? "Latest First" : opt === "deadline" ? "Deadline" : "Highest Stipend"}
                 </span>
               </label>
             ))}
-          </div>
-        </FilterSection>
-
-        {/* Source */}
-        <FilterSection
-          title="Source"
-          expanded={expanded.source}
-          onToggle={() => toggle("source")}
-        >
-          <div className="space-y-1.5">
-            {Object.entries(SOURCE_LABELS)
-              .filter(([key]) => !sourceCounts || sourceCounts[key] || filters.sources.includes(key))
-              .map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 cursor-pointer py-0.5 select-none">
-                  <input
-                    type="checkbox"
-                    checked={filters.sources.includes(key)}
-                    onChange={() =>
-                      onUpdate(
-                        "sources",
-                        filters.sources.includes(key) ? filters.sources.filter((s) => s !== key) : [...filters.sources, key],
-                      )
-                    }
-                    className="accent-[var(--primary)] rounded h-3.5 w-3.5"
-                  />
-                  <span className="text-xs text-[var(--text-2)] flex-1">{label}</span>
-                  {sourceCounts && <span className="text-[11px] text-[var(--text-3)] tabular-nums">{sourceCounts[key] ?? 0}</span>}
-                </label>
-              ))}
           </div>
         </FilterSection>
 
@@ -149,31 +115,31 @@ export function FilterPanel({
                   value={opt}
                   checked={filters.stipendType === opt}
                   onChange={() => onUpdate("stipendType", opt)}
-                  className="accent-[var(--primary)] h-3.5 w-3.5"
+                  className="accent-[var(--primary)] h-4 w-4"
                 />
-                <span className="text-xs text-[var(--text-2)] capitalize">
+                <span className="text-[15px] text-[var(--text)] capitalize">
                   {opt === "any" ? "Any" : opt === "paid" ? "Paid" : opt === "unpaid" ? "Unpaid" : "Performance Based"}
                 </span>
               </label>
             ))}
             {filters.stipendType === "paid" && (
               <div className="pt-2 space-y-2">
-                <p className="text-xs text-[var(--text-3)] font-medium">Stipend Range (₹/month)</p>
+                <p className="text-sm text-[var(--text-2)] font-medium">Stipend Range (₹/month)</p>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     placeholder="Min"
                     value={filters.stipendMin || ""}
                     onChange={(e) => onUpdate("stipendMin", Number(e.target.value))}
-                    className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                    className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                   />
-                  <span className="text-[var(--text-3)] text-xs">–</span>
+                  <span className="text-[var(--text-2)] text-sm">–</span>
                   <input
                     type="number"
                     placeholder="Max"
                     value={filters.stipendMax || ""}
                     onChange={(e) => onUpdate("stipendMax", Number(e.target.value))}
-                    className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                    className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                   />
                 </div>
               </div>
@@ -187,7 +153,7 @@ export function FilterPanel({
           expanded={expanded.location}
           onToggle={() => toggle("location")}
         >
-          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          <div data-lenis-prevent className="space-y-2 max-h-56 overflow-y-auto pr-1">
             {LOCATIONS.map((loc) => (
               <label key={loc} className="flex items-center gap-2 cursor-pointer py-0.5 select-none">
                 <input
@@ -200,9 +166,9 @@ export function FilterPanel({
                       onToggleLocation(loc);
                     }
                   }}
-                  className="accent-[var(--primary)] rounded h-3.5 w-3.5"
+                  className="accent-[var(--primary)] rounded h-4 w-4"
                 />
-                <span className="text-xs text-[var(--text-2)]">{loc}</span>
+                <span className="text-[15px] text-[var(--text)]">{loc}</span>
               </label>
             ))}
           </div>
@@ -222,19 +188,19 @@ export function FilterPanel({
                 max={12}
                 value={filters.durationMin}
                 onChange={(e) => onUpdate("durationMin", Number(e.target.value))}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
-              <span className="text-[var(--text-3)] text-xs">–</span>
+              <span className="text-[var(--text-2)] text-sm">–</span>
               <input
                 type="number"
                 min={1}
                 max={12}
                 value={filters.durationMax}
                 onChange={(e) => onUpdate("durationMax", Number(e.target.value))}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
             </div>
-            <p className="text-xs text-[var(--text-3)]">{filters.durationMin} – {filters.durationMax} months</p>
+            <p className="text-sm text-[var(--text-2)]">{filters.durationMin} – {filters.durationMax} months</p>
           </div>
         </FilterSection>
 
@@ -252,9 +218,8 @@ export function FilterPanel({
             />
             {userSkills.length > 0 && (
               <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs"
+                size="md"
+                className="w-full"
                 onClick={() => onUpdate("skills", userSkills)}
               >
                 Use My Skills
@@ -269,16 +234,16 @@ export function FilterPanel({
           expanded={expanded.perks}
           onToggle={() => toggle("perks")}
         >
-          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          <div data-lenis-prevent className="space-y-2 max-h-56 overflow-y-auto pr-1">
             {PERKS_OPTIONS.map((perk) => (
               <label key={perk} className="flex items-center gap-2 cursor-pointer py-0.5 select-none">
                 <input
                   type="checkbox"
                   checked={filters.perks.includes(perk)}
                   onChange={() => onTogglePerk(perk)}
-                  className="accent-[var(--primary)] rounded h-3.5 w-3.5"
+                  className="accent-[var(--primary)] rounded h-4 w-4"
                 />
-                <span className="text-xs text-[var(--text-2)]">{perk}</span>
+                <span className="text-[15px] text-[var(--text)]">{perk}</span>
               </label>
             ))}
           </div>
@@ -300,17 +265,17 @@ function FilterSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="p-3.5">
+    <div className="p-4">
       <button
         type="button"
         onClick={onToggle}
         className="flex items-center justify-between w-full mb-2 text-left"
       >
-        <span className="text-xs font-semibold text-[var(--text)]">{title}</span>
+        <span className="text-base font-semibold text-[var(--text)]">{title}</span>
         {expanded ? (
-          <ChevronUp className="h-4 w-4 text-[var(--text-3)]" />
+          <ChevronUp className="h-4 w-4 text-[var(--text-2)]" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-[var(--text-3)]" />
+          <ChevronDown className="h-4 w-4 text-[var(--text-2)]" />
         )}
       </button>
       <div className={cn(!expanded && "hidden")}>{children}</div>

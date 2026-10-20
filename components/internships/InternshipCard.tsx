@@ -80,18 +80,18 @@ export function InternshipCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
+              <h3 className="text-base font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
                 {internship.name}
               </h3>
-              <p className="text-xs text-[var(--text-3)]">{internship.company} · via {sourceLabel(internship.source)}</p>
+              <p className="text-sm text-[var(--text-3)]">{internship.company} · via {sourceLabel(internship.source)}</p>
             </div>
             {isRecommended && (
-              <Badge variant="default" className="shrink-0 gap-1 text-[10px]">
+              <Badge variant="default" className="shrink-0 gap-1 text-xs">
                 <Sparkles className="h-2.5 w-2.5" /> AI Pick
               </Badge>
             )}
           </div>
-          <div className="flex flex-wrap gap-3 mt-1.5 text-[11px] text-[var(--text-2)]">
+          <div className="flex flex-wrap gap-3 mt-1.5 text-[13px] text-[var(--text-2)]">
             <span className="flex items-center gap-1">
               {internship.isRemote ? <Wifi className="h-3 w-3 text-green-500" /> : <MapPin className="h-3 w-3" />}
               {location}
@@ -104,13 +104,13 @@ export function InternshipCard({
         {/* Skills */}
         <div className="hidden lg:flex flex-wrap gap-1 max-w-[180px]">
           {internship.skills.slice(0, 3).map((s) => (
-            <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+            <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
           ))}
         </div>
 
         {/* Deadline */}
         {internship.deadlineDate && (
-          <div className="hidden md:block text-[11px] text-right shrink-0">
+          <div className="hidden md:block text-[13px] text-right shrink-0">
             <span className={cn(deadlineSoon ? "text-[var(--danger)] font-medium" : "text-[var(--text-3)]")}>
               {deadlineSoon ? "⚡ " : ""}Closes {formatDate(internship.deadlineDate)}
             </span>
@@ -143,14 +143,14 @@ export function InternshipCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2.5">
-            <div className="h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-sm font-bold text-[var(--text-2)] shrink-0 group-hover:border-[var(--primary)] transition-colors">
+            <div className="h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-base font-bold text-[var(--text-2)] shrink-0 group-hover:border-[var(--primary)] transition-colors">
               <CompanyLogo internship={internship} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-2 leading-snug">
+              <h3 className="text-base font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-2 leading-snug">
                 {internship.name}
               </h3>
-              <p className="text-xs text-[var(--text-3)] mt-0.5">{internship.company} · via {sourceLabel(internship.source)}</p>
+              <p className="text-sm text-[var(--text-3)] mt-0.5">{internship.company} · via {sourceLabel(internship.source)}</p>
             </div>
           </div>
           <button
@@ -164,18 +164,18 @@ export function InternshipCard({
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5">
           {internship.isRemote && (
-            <Badge variant="success" className="gap-1 text-[10px]"><Wifi className="h-2.5 w-2.5" />Remote</Badge>
+            <Badge variant="success" className="gap-1 text-xs"><Wifi className="h-2.5 w-2.5" />Remote</Badge>
           )}
           {isRecommended && (
-            <Badge variant="default" className="gap-1 text-[10px]"><Sparkles className="h-2.5 w-2.5" />AI Pick</Badge>
+            <Badge variant="default" className="gap-1 text-xs"><Sparkles className="h-2.5 w-2.5" />AI Pick</Badge>
           )}
           {deadlineSoon && (
-            <Badge variant="warning" className="text-[10px]">⚡ Closing soon</Badge>
+            <Badge variant="warning" className="text-xs">⚡ Closing soon</Badge>
           )}
         </div>
 
         {/* Meta */}
-        <div className="space-y-1 text-[11px] text-[var(--text-2)]">
+        <div className="space-y-1 text-[13px] text-[var(--text-2)]">
           <div className="flex items-center gap-1.5">
             {internship.isRemote ? <Wifi className="h-3 w-3 text-green-500 shrink-0" /> : <MapPin className="h-3 w-3 shrink-0" />}
             <span className="truncate">{location}</span>
@@ -190,15 +190,15 @@ export function InternshipCard({
         {/* Skills pinned to the bottom so cards with 3 vs 5 skills line up */}
         <div className="mt-auto flex flex-wrap gap-1 pt-1">
           {internship.skills.slice(0, 3).map((s) => (
-            <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+            <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
           ))}
           {internship.skills.length > 3 && (
-            <Badge variant="outline" className="text-[10px]">+{internship.skills.length - 3}</Badge>
+            <Badge variant="outline" className="text-xs">+{internship.skills.length - 3}</Badge>
           )}
         </div>
 
         {internship.deadlineDate && (
-          <p className={cn("text-[11px]", deadlineSoon ? "text-[var(--danger)] font-medium" : "text-[var(--text-3)]")}>
+          <p className={cn("text-[13px]", deadlineSoon ? "text-[var(--danger)] font-medium" : "text-[var(--text-3)]")}>
             Deadline: {formatDate(internship.deadlineDate)}
           </p>
         )}
@@ -206,7 +206,7 @@ export function InternshipCard({
 
       {/* Actions */}
       <div className="px-4 pb-4 border-t border-[var(--border)] pt-3">
-        <ApplyButton internship={internship} isApplied={isApplied} onApplied={(id) => onApply?.(id)} className="w-full" />
+        <ApplyButton internship={internship} isApplied={isApplied} onApplied={(id) => onApply?.(id)} size="md" className="w-full" />
       </div>
     </div>
   );

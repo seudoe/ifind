@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
-import { BrowseTab }      from "@/components/dashboard/BrowseTab";
+import { BrowseTab } from "@/components/dashboard/BrowseTab";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 
 export default function BrowsePage() {
   const { data, error } = useStudentDashboard();
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   if (!data) {
     return (
@@ -17,27 +14,5 @@ export default function BrowsePage() {
     );
   }
 
-  const mobileFilterButton = (
-    <button
-      type="button"
-      onClick={() => setMobileFilterOpen(true)}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-sm)] text-xs font-medium bg-[var(--primary-bg)] text-[var(--primary)] border border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all shadow-xs"
-      aria-label="Open Filters"
-    >
-      <SlidersHorizontal className="h-3.5 w-3.5" />
-      <span>Filters</span>
-    </button>
-  );
-
-  return (
-    <>
-      <div className="lg:hidden flex justify-end mb-3">{mobileFilterButton}</div>
-      <BrowseTab
-        internships={data.browse}
-        user={data.user}
-        mobileFilterOpen={mobileFilterOpen}
-        setMobileFilterOpen={setMobileFilterOpen}
-      />
-    </>
-  );
+  return <BrowseTab internships={data.browse} user={data.user} />;
 }

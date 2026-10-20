@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const lineHoverStyles = `
+export const lineHoverStyles = `
 .link-hover {
   cursor: pointer;
   position: relative;
@@ -482,3 +482,22 @@ export const LineHoverLink = React.forwardRef<
 LineHoverLink.displayName = "LineHoverLink";
 
 export default LineHoverLink;
+
+/** Render once per page; LineHoverText relies on these rules. */
+export const LineHoverStyles = () => <style>{lineHoverStyles}</style>;
+
+/**
+ * Text-only variant for use inside another link (a Next <Link> in the sidebar, say), where
+ * nesting a second <a> would be invalid. Underline animates while the text itself is hovered.
+ */
+export const LineHoverText = ({
+    variant = "slide",
+    className,
+    children,
+}: {
+    variant?: LineHoverVariant;
+    className?: string;
+    children: React.ReactNode;
+}) => (
+    <span className={cn("link-hover", `link-hover--${variant}`, className)}>{children}</span>
+);

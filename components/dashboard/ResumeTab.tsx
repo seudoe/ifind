@@ -27,6 +27,7 @@ import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import { AnalysisSection } from "./resume/AnalysisSection";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ResumeUploader, type UploadPhase } from "./resume/ResumeUploader";
 import type { AnalysisData, ExtractedSkill } from "./resume/types";
 import { ResumeParsedViewer } from "./resume/ResumeParsedViewer";
@@ -45,6 +46,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const [dragging, setDragging] = useState(false);
     const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
     const [deleting, setDeleting] = useState(false);
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [reextracting, setReextracting] = useState(false);
     const [applying, setApplying] = useState(false);
     const [pendingData, setPendingData] = useState<ParsedResumeData | null>(
@@ -204,7 +206,6 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     };
 
     const handleDelete = async () => {
-        if (!confirm("Remove your resume? This cannot be undone.")) return;
         setDeleting(true);
         try {
             const res = await fetch("/api/user/resume", {
@@ -627,7 +628,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             className="flex items-center gap-2 text-red-600 hover:text-red-700 ml-auto"
                             loading={deleting}
                             disabled={isUploading}
-                            onClick={handleDelete}
+                            onClick={() => setConfirmingDelete(true)}
                         >
                             <Trash2 className="h-3.5 w-3.5" />
                             Remove
@@ -733,6 +734,19 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                open={confirmingDelete}
+                title="Remove your resume?"
+                description="Your uploaded resume and its extracted data will be removed. This cannot be undone."
+                confirmLabel="Remove resume"
+                loading={deleting}
+                onClose={() => setConfirmingDelete(false)}
+                onConfirm={async () => {
+                    await handleDelete();
+                    setConfirmingDelete(false);
+                }}
+            />
         </div>
     );
 }

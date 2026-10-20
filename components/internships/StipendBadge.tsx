@@ -9,7 +9,7 @@ export function StipendBadge({ stipend, className }: { stipend: Stipend; classNa
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-gradient-to-r from-emerald-50 to-emerald-300/60 px-2.5 py-0.5 text-xs font-bold italic text-emerald-800",
+          "inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-gradient-to-r from-emerald-50 to-emerald-300/60 px-2.5 py-0.5 text-sm font-bold italic text-emerald-800",
           className,
         )}
       >

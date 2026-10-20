@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { InternshipCard } from "@/components/internships/InternshipCard";
 import { FilterPanel } from "@/components/internships/FilterPanel";
 import { InternshipDetailModal, MobileInternshipDetail } from "@/components/internships/InternshipDetail";
@@ -14,21 +14,12 @@ import type { Internship, User } from "@/types";
 interface BrowseTabProps {
   internships?: Internship[];
   user?: User;
-  mobileFilterOpen?: boolean;
-  setMobileFilterOpen?: (open: boolean) => void;
 }
 
-export function BrowseTab({
-  internships = [],
-  user,
-  mobileFilterOpen: externalMobileFilterOpen,
-  setMobileFilterOpen: externalSetMobileFilterOpen,
-}: BrowseTabProps) {
+export function BrowseTab({ internships = [], user }: BrowseTabProps) {
   const [query, setQuery] = useState("");
-  const [internalMobileFilterOpen, setInternalMobileFilterOpen] = useState(false);
-
-  const isMobileFilterOpen = externalMobileFilterOpen ?? internalMobileFilterOpen;
-  const setMobileFilterOpen = externalSetMobileFilterOpen ?? setInternalMobileFilterOpen;
+  // Filters live in a drawer that opens on demand, so results get the full width.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [page, setPage] = useState(1);
   const pageSize = 15;
@@ -68,14 +59,7 @@ export function BrowseTab({
     filters.durationMin > 1 || filters.durationMax < 12,
     filters.skills.length > 0,
     filters.perks.length > 0,
-    filters.sources.length > 0,
   ].filter(Boolean).length;
-
-  const sourceCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const item of internships) counts[item.source] = (counts[item.source] ?? 0) + 1;
-    return counts;
-  }, [internships]);
 
   const results = useMemo(() => {
     let list = [...internships];
@@ -88,11 +72,6 @@ export function BrowseTab({
           .filter(Boolean)
           .some((val) => String(val).toLowerCase().includes(term))
       );
-    }
-
-    // Source filter (legacy "web_scraping" documents match no specific source)
-    if (filters.sources.length > 0) {
-      list = list.filter((item) => filters.sources.includes(item.source));
     }
 
     // Stipend type filter
@@ -205,42 +184,28 @@ export function BrowseTab({
   };
 
   return (
-    <div className="flex gap-6">
-      {/* Desktop Filter Sidebar - hidden on mobile details view */}
-      <aside className={cn("hidden lg:block w-64 shrink-0", selectedInternship && "lg:block")}>
-        <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto pr-1">
-          <FilterPanel
-            filters={filters}
-            onUpdate={updateFilter}
-            onReset={resetFilters}
-            onToggleLocation={toggleLocation}
-            onTogglePerk={togglePerk}
-            onAddSkill={addSkill}
-            onRemoveSkill={removeSkill}
-            userSkills={user?.skills ?? []}
-            sourceCounts={sourceCounts}
-          />
-        </div>
-      </aside>
-
-      {/* Mobile Filter Drawer */}
-      {isMobileFilterOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
+    <div>
+      {/* Filter drawer (opens from the right on demand) */}
+      {filtersOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs"
-            onClick={() => setMobileFilterOpen(false)}
+            onClick={() => setFiltersOpen(false)}
           />
-          <div className="relative z-10 w-80 max-w-[85vw] h-full bg-[var(--surface)] shadow-2xl p-4 overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)] mb-4">
-              <span className="font-semibold text-sm text-[var(--text)]">Filters</span>
-              <button
-                type="button"
-                onClick={() => setMobileFilterOpen(false)}
-                className="p-1 rounded-md text-[var(--text-2)] hover:bg-[var(--surface-2)]"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+          <div
+            data-lenis-prevent
+            role="dialog"
+            aria-label="Filters"
+            className="relative z-10 w-[26rem] max-w-[92vw] h-full bg-[var(--bg)] shadow-2xl p-4 overflow-y-auto"
+          >
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              aria-label="Close filters"
+              className="absolute right-6 top-6 z-10 p-1.5 rounded-md text-[var(--text-2)] hover:bg-[var(--surface-2)]"
+            >
+              <X className="h-5 w-5" />
+            </button>
             <FilterPanel
               filters={filters}
               onUpdate={updateFilter}
@@ -250,14 +215,13 @@ export function BrowseTab({
               onAddSkill={addSkill}
               onRemoveSkill={removeSkill}
               userSkills={user?.skills ?? []}
-              sourceCounts={sourceCounts}
             />
           </div>
         </div>
       )}
 
       {/* Main Results Column */}
-      <div className="flex-1 min-w-0 space-y-4">
+      <div className="min-w-0 space-y-4">
         {/* Mobile-only Full Page Details View (replacing search & card list, keeping bottom navbar) */}
         {selectedInternship && (
           <div className="lg:hidden w-full">
@@ -276,14 +240,14 @@ export function BrowseTab({
         <div className={cn("space-y-4", selectedInternship && "hidden lg:block")}>
           {/* Search Toolbar */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 flex items-center gap-2.5 plasma-card px-4 py-3 focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_18%,transparent)]">
-              <Search className="h-4 w-4 text-[var(--primary)] shrink-0" />
+            <div className="flex-1 flex items-center gap-2.5 plasma-card pl-5 pr-4 py-3.5 focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_18%,transparent)]">
+              <Search className="h-5 w-5 text-[var(--primary)] shrink-0" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 type="search"
                 placeholder="Search by role, company or skill…"
-                className="flex-1 min-w-0 text-sm bg-transparent outline-none text-[var(--text)] placeholder:text-[var(--text-3)] [&::-webkit-search-cancel-button]:hidden"
+                className="flex-1 min-w-0 text-base bg-transparent outline-none text-[var(--text)] placeholder:text-[var(--text-3)] [&::-webkit-search-cancel-button]:hidden"
               />
               {query && (
                 <button
@@ -296,10 +260,25 @@ export function BrowseTab({
                 </button>
               )}
             </div>
+            <Button
+              type="button"
+              size="lg"
+              onClick={() => setFiltersOpen(true)}
+              aria-haspopup="dialog"
+              className="shrink-0 gap-2 self-stretch"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="h-5 min-w-5 px-1 rounded-full bg-white text-[var(--primary-dk)] text-xs font-bold flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Count & Reset */}
-          <div className="flex items-center justify-between text-xs text-[var(--text-2)] px-0.5">
+          <div className="flex items-center justify-between text-sm text-[var(--text-2)] px-0.5">
             <p>
               {results.length} internships found
               {results.length > 0 && ` (showing ${startIndex + 1}–${Math.min(startIndex + pageSize, results.length)})`}
@@ -326,7 +305,7 @@ export function BrowseTab({
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {paginatedResults.map((internship) => {
                 const id = getInternshipId(internship);
                 return (
@@ -348,8 +327,7 @@ export function BrowseTab({
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-4 border-t border-[var(--border)] mt-6">
               <Button
-                variant="outline"
-                size="sm"
+                size="md"
                 disabled={page === 1}
                 onClick={() => {
                   setPage((p) => Math.max(1, p - 1));
@@ -360,13 +338,12 @@ export function BrowseTab({
                 Previous
               </Button>
 
-              <span className="text-xs text-[var(--text-2)] font-medium">
+              <span className="text-sm text-[var(--text-2)] font-medium">
                 Page <span className="font-semibold text-[var(--text)]">{page}</span> of {totalPages}
               </span>
 
               <Button
-                variant="outline"
-                size="sm"
+                size="md"
                 disabled={page === totalPages}
                 onClick={() => {
                   setPage((p) => Math.min(totalPages, p + 1));

@@ -86,7 +86,7 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
     <>
       <Button
         size={size}
-        variant={isApplied ? "secondary" : "primary"}
+        variant="primary"
         className={className}
         onClick={click}
         loading={applying && !open}

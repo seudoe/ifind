@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
+import { toast } from "sonner";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { MessageSquare, Send, Plus, Trash2, Edit2, Check, X, Sparkles } from "lucide-react";
 
 interface ChatSession {
@@ -171,12 +173,12 @@ export function ResumeChatTab() {
       } else {
         // Remove temp message on error
         setMessages(prev => prev.filter(m => m._id !== 'temp-user'));
-        alert(data.error || 'Failed to send message');
+        toast.error(data.error || 'Failed to send message');
       }
     } catch (err) {
       console.error('Error sending message:', err);
       setMessages(prev => prev.filter(m => m._id !== 'temp-user'));
-      alert('Failed to send message');
+      toast.error('Failed to send message');
     } finally {
       setSending(false);
       refreshCredits();
@@ -184,9 +186,9 @@ export function ResumeChatTab() {
     }
   };
 
-  const deleteSession = async (sessionId: string) => {
-    if (!confirm('Delete this chat session? This cannot be undone.')) return;
+  const [sessionToDelete, setSessionToDelete] = useState<ChatSession | null>(null);
 
+  const deleteSession = async (sessionId: string) => {
     try {
       const res = await fetch(`/api/chat/sessions/${sessionId}`, {
         method: 'DELETE',
@@ -195,7 +197,7 @@ export function ResumeChatTab() {
       if (res.ok) {
         setSessions(sessions.filter(s => s._id !== sessionId));
         if (currentSession?._id === sessionId) {
-          setCurrentSession(sessions[0] || null);
+          setCurrentSession(sessions.find((x) => x._id !== sessionId) || null);
           setMessages([]);
         }
       }
@@ -259,7 +261,7 @@ export function ResumeChatTab() {
             <CreditsBadge className="mt-3" />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div data-lenis-prevent className="flex-1 overflow-y-auto p-2 space-y-1">
             {sessions.map((session) => (
               <div
                 key={session._id}
@@ -321,7 +323,7 @@ export function ResumeChatTab() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteSession(session._id);
+                          setSessionToDelete(session);
                         }}
                         className="p-1 text-red-600 hover:bg-red-100 rounded"
                       >
@@ -362,7 +364,7 @@ export function ResumeChatTab() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto p-4 space-y-4">
               {loading ? (
                 <div className="flex justify-center py-12">
                   <Sparkles className="h-8 w-8 text-[var(--text-3)] animate-spin" />
@@ -484,6 +486,20 @@ export function ResumeChatTab() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={sessionToDelete !== null}
+        title="Delete this chat?"
+        description={<>
+          <strong>{sessionToDelete?.title}</strong> and its messages will be permanently removed. This cannot be undone.
+        </>}
+        confirmLabel="Delete chat"
+        onClose={() => setSessionToDelete(null)}
+        onConfirm={async () => {
+          if (sessionToDelete) await deleteSession(sessionToDelete._id);
+          setSessionToDelete(null);
+        }}
+      />
     </div>
   );
 }
