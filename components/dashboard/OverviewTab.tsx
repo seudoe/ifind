@@ -158,7 +158,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
               </p>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               {deleted ? (
                 <Button variant="outline" size="sm" onClick={handleMockReset}>
                   Reactivate card
@@ -181,6 +181,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                     onClick={handleMockDelete}
                     className="p-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 hover:border-[var(--danger)] transition-all"
                     title="Hide Talent Card"
+                    aria-label="Hide talent card"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

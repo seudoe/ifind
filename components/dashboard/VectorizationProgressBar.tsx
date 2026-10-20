@@ -95,10 +95,10 @@ export function VectorizationProgressBar() {
   if (hidden || status === "idle") return null;
 
   return (
-    <div className="fixed bottom-24 right-6 w-72 bg-white border border-gray-200 rounded-lg shadow-md p-3 z-40 flex flex-col gap-2 animate-in slide-in-from-bottom-3">
+    <div className="fixed bottom-24 right-6 w-72 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-md p-3 z-40 flex flex-col gap-2 animate-in slide-in-from-bottom-3">
       <div className="flex items-center gap-2">
         {status === "processing" && (
-          <Loader2 className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
+          <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin shrink-0" />
         )}
         {status === "completed" && (
           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
@@ -110,7 +110,7 @@ export function VectorizationProgressBar() {
         )}
         
         <div className="flex-1">
-          <p className="text-xs font-medium text-gray-900">
+          <p className="text-xs font-medium text-[var(--text)]">
             {status === "processing" && "Updating recommendations..."}
             {status === "completed" && "Recommendations updated!"}
             {status === "failed" && "Update failed"}
@@ -119,9 +119,9 @@ export function VectorizationProgressBar() {
       </div>
 
       {status === "processing" && (
-        <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-[var(--surface-3)] rounded-full overflow-hidden">
           <div 
-            className="h-full rounded-full transition-all duration-500 ease-out bg-blue-500"
+            className="h-full rounded-full transition-all duration-500 ease-out bg-[var(--primary)]"
             style={{ width: `${progress}%` }}
           />
         </div>

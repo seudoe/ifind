@@ -13,7 +13,7 @@ import type { User as StudentUser } from "@/types";
 function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: StudentUser["linkedinDetails"] }) {
   if (!linkedinDetails) {
     return (
-      <span title="User is not connected through LinkedIn" className="inline-flex items-center text-gray-400 hover:text-gray-500 transition-colors">
+      <span title="User is not connected through LinkedIn" className="inline-flex items-center text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors">
         <Link2Off className="h-3.5 w-3.5" />
       </span>
     );

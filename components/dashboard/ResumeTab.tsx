@@ -381,7 +381,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
     const getScoreColor = (score: number) => {
         if (score >= 85) return "text-green-600 bg-green-50 border-green-200";
-        if (score >= 70) return "text-blue-600 bg-blue-50 border-blue-200";
+        if (score >= 70) return "text-[var(--primary-dk)] bg-[var(--primary-bg)] border-blue-200";
         if (score >= 50) return "text-yellow-600 bg-yellow-50 border-yellow-200";
         return "text-red-600 bg-red-50 border-red-200";
     };
@@ -398,10 +398,10 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const getProficiencyColor = (proficiency: string) => {
         switch (proficiency) {
             case "expert": return "bg-purple-100 text-purple-700 border-purple-200";
-            case "advanced": return "bg-blue-100 text-blue-700 border-blue-200";
+            case "advanced": return "bg-blue-100 text-[var(--primary-dk)] border-blue-200";
             case "intermediate": return "bg-green-100 text-green-700 border-green-200";
-            case "beginner": return "bg-gray-100 text-gray-700 border-gray-200";
-            default: return "bg-gray-100 text-gray-600 border-gray-200";
+            case "beginner": return "bg-[var(--surface-3)] text-[var(--text-2)] border-[var(--border)]";
+            default: return "bg-[var(--surface-3)] text-[var(--text-2)] border-[var(--border)]";
         }
     };
 
@@ -410,29 +410,29 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             case "high": return "bg-red-100 text-red-700 border-red-200";
             case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
             case "low": return "bg-green-100 text-green-700 border-green-200";
-            default: return "bg-gray-100 text-gray-600 border-gray-200";
+            default: return "bg-[var(--surface-3)] text-[var(--text-2)] border-[var(--border)]";
         }
     };
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Resume Analyzer</h2>
+                <h2 className="text-2xl font-semibold text-[var(--text)]">Resume Analyzer</h2>
                 <CreditsBadge className="mt-2" />
-                <p className="text-base text-gray-500 mt-1">
+                <p className="text-base text-[var(--text-3)] mt-1">
                     Upload your resume, extract data with AI, and get comprehensive analysis with ATS scoring.
                 </p>
             </div>
 
             {/* ── Extractor Plan Banner ─────────────────────────────────── */}
             {isLinkedInVerified ? (
-                <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-                    <BadgeCheck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-[var(--primary-bg)] px-4 py-3">
+                    <BadgeCheck className="h-5 w-5 text-[var(--primary-dk)] shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0 space-y-0.5">
                         <p className="text-sm font-semibold text-blue-900">
                             LinkedIn Verified — Best extractor available
                         </p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs text-[var(--primary-dk)]">
                             You can use the high-accuracy AI extractor{" "}
                             <span className="font-medium">
                                 {aiRemaining} of {AI_LIMIT} times
@@ -471,16 +471,16 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             {/* Confirmation Modal */}
             {showConfirmModal && pendingData && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+                    <div className="bg-[var(--surface)] rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="h-11 w-11 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                                 <ShieldAlert className="h-5 w-5 text-red-600" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-gray-900">
+                                <h3 className="font-semibold text-[var(--text)]">
                                     This action is irreversible
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-[var(--text-3)] mt-0.5">
                                     Your existing resume data will be
                                     permanently replaced
                                 </p>
@@ -536,8 +536,8 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             ? "pointer-events-none opacity-70 cursor-default"
                             : "cursor-pointer",
                         dragging
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300 hover:border-blue-400 hover:bg-gray-50",
+                            ? "border-blue-500 bg-[var(--primary-bg)]"
+                            : "border-[var(--border)] hover:border-blue-400 hover:bg-[var(--surface-2)]",
                     ].join(" ")}
                 >
                     <input
@@ -554,12 +554,12 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     {uploadPhase === "uploading" && (
                         <div className="flex flex-col items-center gap-3">
                             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <Upload className="h-6 w-6 text-blue-600 animate-bounce" />
+                                <Upload className="h-6 w-6 text-[var(--primary-dk)] animate-bounce" />
                             </div>
-                            <p className="text-sm font-medium text-blue-600">
+                            <p className="text-sm font-medium text-[var(--primary-dk)]">
                                 Uploading resume to ImageKit…
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-[var(--text-3)]">
                                 Saving your file
                             </p>
                         </div>
@@ -573,7 +573,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             <p className="text-sm font-medium text-indigo-600">
                                 Extracting data from resume with AI…
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-[var(--text-3)]">
                                 {isLinkedInVerified && aiRemaining > 0
                                     ? "OpenAI → Gemini (High accuracy)"
                                     : "HuggingFace (Low accuracy)"}
@@ -583,16 +583,16 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                     {uploadPhase === "idle" && (
                         <div className="flex flex-col items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                                <Upload className="h-6 w-6 text-gray-400" />
+                            <div className="h-12 w-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center">
+                                <Upload className="h-6 w-6 text-[var(--text-3)]" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-gray-700">
+                                <p className="text-sm font-medium text-[var(--text-2)]">
                                     {hasResume
                                         ? "Drop a new PDF to replace your resume"
                                         : "Drag & drop your resume here"}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-[var(--text-3)] mt-1">
                                     or click to browse — PDF only, max 5MB
                                 </p>
                             </div>
@@ -642,7 +642,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                         <div className="ml-auto flex items-center gap-2">
                             <button
                                 onClick={() => downloadJson(oldData, "current")}
-                                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors bg-gray-100 hover:bg-gray-200 px-2.5 py-1.5 rounded-lg"
+                                className="flex items-center gap-1.5 text-xs text-[var(--text-3)] hover:text-[var(--text-2)] font-medium transition-colors bg-[var(--surface-3)] hover:bg-gray-200 px-2.5 py-1.5 rounded-lg"
                             >
                                 <Download className="h-3 w-3" />
                                 Current JSON
@@ -661,11 +661,11 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 px-1">
                                 <div className="h-2.5 w-2.5 rounded-full bg-gray-400" />
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                <span className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide">
                                     Current data
                                 </span>
                             </div>
-                            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-4">
+                            <div className="bg-[var(--surface-2)] rounded-xl border border-[var(--border)] p-4 space-y-4">
                                 <ResumeDataDisplay data={oldData} />
                             </div>
                         </div>
@@ -693,17 +693,17 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
             {/* Current Resume Preview Card */}
             {hasResume && !isComparing ? (
-                <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+                <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5 space-y-4">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
                                 <FileText className="h-5 w-5 text-red-500" />
                             </div>
                             <div>
-                                <p className="font-medium text-gray-900 text-sm">
+                                <p className="font-medium text-[var(--text)] text-sm">
                                     Resume.pdf
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-3)]">
                                     Uploaded{" "}
                                     {formatDate(localResume.uploadedAt)}
                                 </p>
@@ -729,7 +729,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     </div>
 
                     <div
-                        className="rounded-lg border border-gray-200 overflow-hidden bg-gray-50"
+                        className="rounded-lg border border-[var(--border)] overflow-hidden bg-[var(--surface-2)]"
                         style={{ height: 480 }}
                     >
                         <iframe
@@ -791,12 +791,12 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             ) : (
                 !isUploading &&
                 !isComparing && (
-                    <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6 text-center">
+                    <div className="bg-[var(--surface-2)] rounded-xl border border-dashed border-[var(--border)] p-6 text-center">
                         <AlertCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-[var(--text-3)]">
                             No resume uploaded yet.
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-[var(--text-3)] mt-1">
                             Upload your resume to improve your profile score and
                             enable skill extraction.
                         </p>
@@ -809,8 +809,8 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6 space-y-6">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-blue-600" />
-                            <h3 className="font-semibold text-gray-900">
+                            <Sparkles className="h-5 w-5 text-[var(--primary-dk)]" />
+                            <h3 className="font-semibold text-[var(--text)]">
                                 Extracted Resume Data
                             </h3>
                             <Badge variant="secondary" className="text-xs">
@@ -824,12 +824,12 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                 !isComparing &&
                 hasResume &&
                 uploadPhase === "idle" && (
-                    <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-6 text-center">
+                    <div className="bg-[var(--surface-2)] rounded-xl border border-dashed border-[var(--border)] p-6 text-center">
                         <Sparkles className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-[var(--text-3)]">
                             No data extracted yet.
                         </p>
-                        <p className="text-xs text-gray-400 mt-1 mb-3">
+                        <p className="text-xs text-[var(--text-3)] mt-1 mb-3">
                             Click "Re-extract Data" to extract information from
                             your resume.
                         </p>
@@ -853,7 +853,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     <div className="flex items-center justify-between flex-wrap gap-3">
                         <div className="flex items-center gap-2">
                             <BarChart3 className="h-5 w-5 text-indigo-600" />
-                            <h3 className="font-semibold text-gray-900">
+                            <h3 className="font-semibold text-[var(--text)]">
                                 Resume Analysis
                             </h3>
                             {analysis && (
@@ -876,19 +876,19 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                     {/* Analysis Content */}
                     {loadingAnalysis && !analysis && (
-                        <div className="bg-gray-50 rounded-xl border border-gray-200 p-8 text-center">
-                            <Loader2 className="h-8 w-8 text-gray-400 animate-spin mx-auto mb-2" />
-                            <p className="text-sm text-gray-500">Loading analysis...</p>
+                        <div className="bg-[var(--surface-2)] rounded-xl border border-[var(--border)] p-8 text-center">
+                            <Loader2 className="h-8 w-8 text-[var(--text-3)] animate-spin mx-auto mb-2" />
+                            <p className="text-sm text-[var(--text-3)]">Loading analysis...</p>
                         </div>
                     )}
 
                     {!loadingAnalysis && !analysis && !analyzing && (
                         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-8 text-center">
                             <Brain className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
-                            <p className="text-sm font-medium text-gray-900 mb-1">
+                            <p className="text-sm font-medium text-[var(--text)] mb-1">
                                 Get AI-Powered Resume Analysis
                             </p>
-                            <p className="text-xs text-gray-600 mb-4">
+                            <p className="text-xs text-[var(--text-2)] mb-4">
                                 Get comprehensive scoring, skill extraction, and actionable recommendations
                             </p>
                             <Button
@@ -945,27 +945,27 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                             {/* Summary */}
                             {analysis.summary && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5">
                                     <div className="flex items-start gap-3">
                                         <div className="h-9 w-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
                                             <FileText className="h-4 w-4 text-indigo-600" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold text-gray-900 text-sm mb-2">Summary</h4>
-                                            <p className="text-sm text-gray-700 leading-relaxed">{analysis.summary}</p>
+                                            <h4 className="font-semibold text-[var(--text)] text-sm mb-2">Summary</h4>
+                                            <p className="text-sm text-[var(--text-2)] leading-relaxed">{analysis.summary}</p>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
                             {/* Tabs */}
-                            <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+                            <div className="flex gap-1 p-1 bg-[var(--surface-3)] rounded-xl">
                                 <button
                                     onClick={() => setActiveAnalysisTab("overview")}
                                     className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                                         activeAnalysisTab === "overview"
-                                            ? "bg-white text-indigo-700 shadow-sm"
-                                            : "text-gray-600 hover:text-gray-900"
+                                            ? "bg-[var(--surface)] text-indigo-700 shadow-sm"
+                                            : "text-[var(--text-2)] hover:text-[var(--text)]"
                                     }`}
                                 >
                                     Overview
@@ -974,8 +974,8 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                     onClick={() => setActiveAnalysisTab("details")}
                                     className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                                         activeAnalysisTab === "details"
-                                            ? "bg-white text-indigo-700 shadow-sm"
-                                            : "text-gray-600 hover:text-gray-900"
+                                            ? "bg-[var(--surface)] text-indigo-700 shadow-sm"
+                                            : "text-[var(--text-2)] hover:text-[var(--text)]"
                                     }`}
                                 >
                                     Detailed Analysis
@@ -1006,11 +1006,11 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="p-6">
                                                 <ul className="space-y-3">
                                                     {analysis.strengths.map((strength, idx) => (
-                                                        <li key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                                                        <li key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
                                                             <div className="mt-0.5">
                                                                 <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                                                             </div>
-                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">{strength}</span>
+                                                            <span className="text-sm text-[var(--text)] leading-relaxed flex-1">{strength}</span>
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -1039,11 +1039,11 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="p-6">
                                                 <ul className="space-y-3">
                                                     {analysis.weaknesses.map((weakness, idx) => (
-                                                        <li key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                                                        <li key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                                                             <div className="mt-0.5">
                                                                 <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
                                                             </div>
-                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">{weakness}</span>
+                                                            <span className="text-sm text-[var(--text)] leading-relaxed flex-1">{weakness}</span>
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -1057,13 +1057,13 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-blue-200">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-blue-100 rounded-lg">
-                                                        <Lightbulb className="h-5 w-5 text-blue-600" />
+                                                        <Lightbulb className="h-5 w-5 text-[var(--primary-dk)]" />
                                                     </div>
                                                     <div>
                                                         <h3 className="font-bold text-blue-900 text-base">
                                                             Recommendations
                                                         </h3>
-                                                        <p className="text-xs text-blue-700">
+                                                        <p className="text-xs text-[var(--primary-dk)]">
                                                             {analysis.recommendations.length} actionable {analysis.recommendations.length === 1 ? 'suggestion' : 'suggestions'} to enhance your resume
                                                         </p>
                                                     </div>
@@ -1072,11 +1072,11 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="p-6">
                                                 <div className="space-y-3">
                                                     {analysis.recommendations.map((rec, idx) => (
-                                                        <div key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                                                        <div key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
                                                             <div className="flex-shrink-0 w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                                                                <span className="font-bold text-blue-700 text-sm">{idx + 1}</span>
+                                                                <span className="font-bold text-[var(--primary-dk)] text-sm">{idx + 1}</span>
                                                             </div>
-                                                            <span className="text-sm text-gray-800 leading-relaxed flex-1">
+                                                            <span className="text-sm text-[var(--text)] leading-relaxed flex-1">
                                                                 {formatRecommendationText(rec)}
                                                             </span>
                                                         </div>
@@ -1093,7 +1093,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                 <div className="space-y-6">
                                     {/* Extracted Skills */}
                                     {extractedSkills?.length > 0 && (
-                                        <div className="bg-white rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
+                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
                                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-200">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
@@ -1137,7 +1137,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                                     {/* Missing Skills */}
                                     {analysis.missingSkills?.length > 0 && (
-                                        <div className="bg-white rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
+                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
                                             <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-orange-200">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -1176,7 +1176,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                                     {/* Keyword Matches */}
                                     {analysis.keywordMatches?.length > 0 && (
-                                        <div className="bg-white rounded-2xl border-2 border-cyan-200 shadow-sm overflow-hidden">
+                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-cyan-200 shadow-sm overflow-hidden">
                                             <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-cyan-200">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-cyan-100 rounded-lg">
@@ -1256,10 +1256,10 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             <Target className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 text-base mb-1.5">
+                            <h3 className="font-semibold text-[var(--text)] text-base mb-1.5">
                                 Find Your Perfect Internship Match
                             </h3>
-                            <p className="text-sm text-gray-600 mb-4">
+                            <p className="text-sm text-[var(--text-2)] mb-4">
                                 Use AI-powered matching to compare your resume against internship descriptions and get detailed compatibility scores with personalized recommendations.
                             </p>
                             <Link href={`/user/${username}/internship-match`}>
@@ -1291,7 +1291,7 @@ function formatRecommendationText(text: string) {
                 if (part.startsWith('**') && part.endsWith('**')) {
                     // Remove ** and make bold
                     const boldText = part.slice(2, -2);
-                    return <strong key={idx} className="font-semibold text-gray-900">{boldText}</strong>;
+                    return <strong key={idx} className="font-semibold text-[var(--text)]">{boldText}</strong>;
                 }
                 // Regular text
                 return <span key={idx}>{part}</span>;
@@ -1340,7 +1340,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
         <div className="space-y-4">
             {data.metaDetails && (
                 <Section
-                    icon={<MapPin className="h-4 w-4 text-blue-600" />}
+                    icon={<MapPin className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Contact Information"
                 >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
@@ -1366,12 +1366,12 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                         )}
                         {data.metaDetails.github_profile && (
                             <div className="flex items-center gap-1">
-                                <LinkIcon className="h-3.5 w-3.5 text-gray-400" />
+                                <LinkIcon className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                 <a
                                     href={data.metaDetails.github_profile}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline text-sm"
+                                    className="text-[var(--primary-dk)] hover:underline text-sm"
                                 >
                                     GitHub
                                 </a>
@@ -1379,12 +1379,12 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                         )}
                         {data.metaDetails.linkedin && (
                             <div className="flex items-center gap-1">
-                                <LinkIcon className="h-3.5 w-3.5 text-gray-400" />
+                                <LinkIcon className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                 <a
                                     href={data.metaDetails.linkedin}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline text-sm"
+                                    className="text-[var(--primary-dk)] hover:underline text-sm"
                                 >
                                     LinkedIn
                                 </a>
@@ -1396,13 +1396,13 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.summary && (
                 <Section title="Summary">
-                    <p className="text-sm text-gray-700">{data.summary}</p>
+                    <p className="text-sm text-[var(--text-2)]">{data.summary}</p>
                 </Section>
             )}
 
             {data.workHistory?.length > 0 && (
                 <Section
-                    icon={<Briefcase className="h-4 w-4 text-blue-600" />}
+                    icon={<Briefcase className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Work History"
                 >
                     <div className="space-y-4">
@@ -1413,10 +1413,10 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                             >
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
-                                        <p className="font-medium text-sm text-gray-900">
+                                        <p className="font-medium text-sm text-[var(--text)]">
                                             {w.title}
                                         </p>
-                                        <p className="text-xs text-gray-600">
+                                        <p className="text-xs text-[var(--text-2)]">
                                             {w.company} · {w.location}
                                         </p>
                                     </div>
@@ -1427,7 +1427,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                         {w.type}
                                     </Badge>
                                 </div>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-3)]">
                                     {w.period?.start} –{" "}
                                     {w.period?.isCurrent
                                         ? "Present"
@@ -1453,7 +1453,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.education?.length > 0 && (
                 <Section
-                    icon={<GraduationCap className="h-4 w-4 text-blue-600" />}
+                    icon={<GraduationCap className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Education"
                 >
                     <div className="space-y-3">
@@ -1462,20 +1462,20 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                 key={i}
                                 className="border-l-2 border-green-200 pl-3 space-y-0.5"
                             >
-                                <p className="font-medium text-sm text-gray-900">
+                                <p className="font-medium text-sm text-[var(--text)]">
                                     {e.institution}
                                 </p>
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-[var(--text-2)]">
                                     {e.field?.type} in {e.field?.course}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-3)]">
                                     {e.period?.start} –{" "}
                                     {e.period?.isCurrent
                                         ? "Present"
                                         : (e.period?.end ?? "N/A")}
                                 </p>
                                 {e.output && (
-                                    <p className="text-xs text-gray-600">
+                                    <p className="text-xs text-[var(--text-2)]">
                                         {e.output}
                                     </p>
                                 )}
@@ -1487,18 +1487,18 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.skills?.length > 0 && (
                 <Section
-                    icon={<Code className="h-4 w-4 text-blue-600" />}
+                    icon={<Code className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Skills"
                 >
                     <div className="space-y-3">
                         {data.skills.map((s, i) => (
                             <div key={i}>
                                 <div className="flex justify-between mb-1">
-                                    <p className="text-sm font-medium text-gray-900">
+                                    <p className="text-sm font-medium text-[var(--text)]">
                                         {s.field}
                                     </p>
                                     {s.yearsOfExperience ? (
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-[var(--text-3)]">
                                             {s.yearsOfExperience} yrs
                                         </span>
                                     ) : null}
@@ -1523,7 +1523,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.projects?.length > 0 && (
                 <Section
-                    icon={<Code className="h-4 w-4 text-blue-600" />}
+                    icon={<Code className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Projects"
                 >
                     <div className="space-y-4">
@@ -1532,16 +1532,16 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                 key={i}
                                 className="border-l-2 border-purple-200 pl-3 space-y-1.5"
                             >
-                                <p className="font-medium text-sm text-gray-900">
+                                <p className="font-medium text-sm text-[var(--text)]">
                                     {p.title}
                                 </p>
                                 {p.role && (
-                                    <p className="text-xs text-gray-600">
+                                    <p className="text-xs text-[var(--text-2)]">
                                         {p.role}
                                     </p>
                                 )}
                                 {p.problemStatement && (
-                                    <p className="text-xs text-gray-600 italic">
+                                    <p className="text-xs text-[var(--text-2)] italic">
                                         {p.problemStatement}
                                     </p>
                                 )}
@@ -1568,7 +1568,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                                 href={p.links.repo}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
+                                                className="text-[var(--primary-dk)] hover:underline"
                                             >
                                                 Repo
                                             </a>
@@ -1578,7 +1578,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                                 href={p.links.live}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
+                                                className="text-[var(--primary-dk)] hover:underline"
                                             >
                                                 Live
                                             </a>
@@ -1588,7 +1588,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                                 href={p.links.demo}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
+                                                className="text-[var(--primary-dk)] hover:underline"
                                             >
                                                 Demo
                                             </a>
@@ -1603,17 +1603,17 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.certifications?.length > 0 && (
                 <Section
-                    icon={<Award className="h-4 w-4 text-blue-600" />}
+                    icon={<Award className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Certifications"
                 >
                     <div className="space-y-2">
                         {data.certifications.map((c, i) => (
                             <div key={i} className="flex justify-between gap-2">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-900">
+                                    <p className="text-sm font-medium text-[var(--text)]">
                                         {c.name}
                                     </p>
-                                    <p className="text-xs text-gray-600">
+                                    <p className="text-xs text-[var(--text-2)]">
                                         {c.issuer}
                                     </p>
                                     {c.skillsEarned?.length > 0 && (
@@ -1630,7 +1630,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-xs text-gray-500 shrink-0">
+                                <span className="text-xs text-[var(--text-3)] shrink-0">
                                     {c.date}
                                 </span>
                             </div>
@@ -1641,7 +1641,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.languages?.length > 0 && (
                 <Section
-                    icon={<Globe className="h-4 w-4 text-blue-600" />}
+                    icon={<Globe className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Languages"
                 >
                     <div className="flex flex-wrap gap-2">
@@ -1657,7 +1657,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.publications?.length > 0 && (
                 <Section
-                    icon={<BookOpen className="h-4 w-4 text-blue-600" />}
+                    icon={<BookOpen className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Publications"
                 >
                     <div className="space-y-2">
@@ -1667,11 +1667,11 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                     href={p.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-sm font-medium text-blue-600 hover:underline"
+                                    className="text-sm font-medium text-[var(--primary-dk)] hover:underline"
                                 >
                                     {p.title}
                                 </a>
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-[var(--text-2)]">
                                     {p.platform} · {p.type} · {p.date}
                                 </p>
                                 {p.keywords?.length > 0 && (
@@ -1695,20 +1695,20 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.awards?.length > 0 && (
                 <Section
-                    icon={<Trophy className="h-4 w-4 text-blue-600" />}
+                    icon={<Trophy className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Awards"
                 >
                     <div className="space-y-2">
                         {data.awards.map((a, i) => (
                             <div key={i}>
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-[var(--text)]">
                                     {a.name}
                                 </p>
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-[var(--text-2)]">
                                     {a.issuingBody} · {a.date}
                                 </p>
                                 {a.justification && (
-                                    <p className="text-xs text-gray-600 mt-0.5">
+                                    <p className="text-xs text-[var(--text-2)] mt-0.5">
                                         {a.justification}
                                     </p>
                                 )}
@@ -1720,7 +1720,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.affiliations?.length > 0 && (
                 <Section
-                    icon={<Users className="h-4 w-4 text-blue-600" />}
+                    icon={<Users className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Affiliations"
                 >
                     <div className="space-y-3">
@@ -1731,14 +1731,14 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                             >
                                 <div className="flex justify-between gap-2">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className="text-sm font-medium text-[var(--text)]">
                                             {a.organization}
                                         </p>
-                                        <p className="text-xs text-gray-600">
+                                        <p className="text-xs text-[var(--text-2)]">
                                             {a.role} · {a.type}
                                         </p>
                                     </div>
-                                    <span className="text-xs text-gray-500 shrink-0">
+                                    <span className="text-xs text-[var(--text-3)] shrink-0">
                                         {a.period?.start} –{" "}
                                         {a.period?.isCurrent
                                             ? "Present"
@@ -1756,20 +1756,20 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
 
             {data.interests?.length > 0 && (
                 <Section
-                    icon={<Heart className="h-4 w-4 text-blue-600" />}
+                    icon={<Heart className="h-4 w-4 text-[var(--primary-dk)]" />}
                     title="Interests"
                 >
                     <div className="space-y-2">
                         {data.interests.map((it, i) => (
                             <div key={i}>
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-[var(--text)]">
                                     {it.activity}
                                 </p>
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-[var(--text-2)]">
                                     {it.description}
                                 </p>
                                 {it.commitmentMetric && (
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-[var(--text-3)]">
                                         {it.commitmentMetric}
                                     </p>
                                 )}
@@ -1792,8 +1792,8 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <div className="bg-white rounded-lg p-4 space-y-3 border border-gray-100 shadow-sm">
-            <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+        <div className="bg-[var(--surface)] rounded-lg p-4 space-y-3 border border-gray-100 shadow-sm">
+            <h4 className="font-semibold text-[var(--text)] flex items-center gap-2 text-sm">
                 {icon}
                 {title}
             </h4>
@@ -1805,8 +1805,8 @@ function Section({
 function Field({ label, value }: { label: string; value: string }) {
     return (
         <div>
-            <span className="text-gray-500 text-sm">{label}: </span>
-            <span className="font-medium text-sm text-gray-900">{value}</span>
+            <span className="text-[var(--text-3)] text-sm">{label}: </span>
+            <span className="font-medium text-sm text-[var(--text)]">{value}</span>
         </div>
     );
 }
@@ -1815,13 +1815,13 @@ function BulletList({ label, items }: { label?: string; items: string[] }) {
     return (
         <div>
             {label && (
-                <p className="text-xs font-medium text-gray-700 mb-0.5">
+                <p className="text-xs font-medium text-[var(--text-2)] mb-0.5">
                     {label}:
                 </p>
             )}
             <ul className="list-disc list-inside space-y-0.5">
                 {items.map((item, i) => (
-                    <li key={i} className="text-xs text-gray-600">
+                    <li key={i} className="text-xs text-[var(--text-2)]">
                         {item}
                     </li>
                 ))}
