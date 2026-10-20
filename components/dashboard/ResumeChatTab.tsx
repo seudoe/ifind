@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
-import { MessageSquare, Send, Plus, Trash2, Archive, Edit2, Check, X, Sparkles } from "lucide-react";
+import { MessageSquare, Send, Plus, Trash2, Edit2, Check, X, Sparkles } from "lucide-react";
 
 interface ChatSession {
   _id: string;
@@ -30,63 +30,72 @@ export function ResumeChatTab() {
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
   
+  const loading = currentSession !== null && loadedFor !== currentSession._id;
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  useEffect(() => {
-    if (currentSession) {
-      loadMessages(currentSession._id);
-    }
-  }, [currentSession]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadSessions = async () => {
-    try {
-      const res = await fetch('/api/chat/sessions');
-      const data = await res.json();
-      if (data.success) {
-        setSessions(data.data);
-        // Auto-select first session
-        if (data.data.length > 0 && !currentSession) {
-          setCurrentSession(data.data[0]);
-        }
-      }
-    } catch (err) {
-      console.error('Error loading sessions:', err);
-    }
-  };
+  // Initial session list. The first session is selected once, only if the user
+  // hasn't picked one while the request was in flight.
+  useEffect(() => {
+    let cancelled = false;
 
-  const loadMessages = async (sessionId: string) => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/chat/messages?sessionId=${sessionId}`);
-      const data = await res.json();
-      if (data.success) {
-        setMessages(data.data);
+    (async () => {
+      try {
+        const res = await fetch('/api/chat/sessions');
+        const data = await res.json();
+        if (cancelled || !data.success) return;
+        setSessions(data.data);
+        if (data.data.length > 0) {
+          setCurrentSession((current) => current ?? data.data[0]);
+        }
+      } catch (err) {
+        console.error('Error loading sessions:', err);
       }
-    } catch (err) {
-      console.error('Error loading messages:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Messages for the selected session. The cleanup flag discards responses for a
+  // session the user has already switched away from.
+  const currentSessionId = currentSession?._id ?? null;
+  useEffect(() => {
+    if (!currentSessionId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/chat/messages?sessionId=${currentSessionId}`);
+        const data = await res.json();
+        if (!cancelled && data.success) setMessages(data.data);
+      } catch (err) {
+        console.error('Error loading messages:', err);
+      } finally {
+        if (!cancelled) setLoadedFor(currentSessionId);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSessionId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const createNewSession = async () => {
     try {
@@ -161,7 +170,7 @@ export function ResumeChatTab() {
         setMessages(prev => prev.filter(m => m._id !== 'temp-user'));
         alert(data.error || 'Failed to send message');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error sending message:', err);
       setMessages(prev => prev.filter(m => m._id !== 'temp-user'));
       alert('Failed to send message');

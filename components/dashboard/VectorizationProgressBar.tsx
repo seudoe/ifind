@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -17,21 +17,10 @@ export function VectorizationProgressBar() {
   // "completed" is persisted on the user; only announce it if we watched it finish.
   const sawProcessing = useRef(false);
   const announced = useRef(false);
+  const lastStatus = useRef<Status>("idle");
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // Initial fetch
-    checkStatus();
-
-    // Set up polling
-    pollIntervalRef.current = setInterval(checkStatus, 3000);
-
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    };
-  }, []);
-
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/user/vectorization-status");
       
@@ -56,23 +45,38 @@ export function VectorizationProgressBar() {
         announced.current = true;
       }
 
+      if (lastStatus.current !== currentStatus) {
+        lastStatus.current = currentStatus;
+        setProgress(currentStatus === "completed" ? 100 : 0);
+      }
       setStatus(currentStatus);
 
     } catch (err) {
       console.error("Failed to fetch vectorization status", err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Initial fetch (deferred so state updates happen outside the effect body)
+    const initial = setTimeout(checkStatus, 0);
+
+    // Set up polling
+    pollIntervalRef.current = setInterval(checkStatus, 3000);
+
+    return () => {
+      clearTimeout(initial);
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [checkStatus]);
 
   useEffect(() => {
     if (status === "processing") {
       // Simulate progress up to 90%
-      setProgress(0);
       const interval = setInterval(() => {
         setProgress((p) => (p >= 90 ? 90 : p + Math.random() * 10));
       }, 1000);
       return () => clearInterval(interval);
     } else if (status === "completed") {
-      setProgress(100);
       router.refresh(); // Refresh current route to fetch new recommendations
       // Hide after 5 seconds
       const timeout = setTimeout(() => {
@@ -86,7 +90,7 @@ export function VectorizationProgressBar() {
       }, 5000);
       return () => clearTimeout(timeout);
     }
-  }, [status]);
+  }, [status, router]);
 
   if (hidden || status === "idle") return null;
 

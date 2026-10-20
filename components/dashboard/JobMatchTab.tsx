@@ -48,10 +48,9 @@ interface JobMatch {
 
 export function JobMatchTab() {
   const [step, setStep] = useState<'list' | 'create' | 'results'>('list');
-  const [jobDescriptions, setJobDescriptions] = useState<JobDescription[]>([]);
   const [jobMatches, setJobMatches] = useState<JobMatch[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<JobMatch | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // initial fetch runs on mount
   const [error, setError] = useState<string | null>(null);
 
   // Form state for creating internship description
@@ -63,26 +62,8 @@ export function JobMatchTab() {
     employmentType: 'full-time',
   });
 
-  useEffect(() => {
-    loadJobMatches();
-    loadJobDescriptions();
-  }, []);
-
-  const loadJobDescriptions = async () => {
-    try {
-      const res = await fetch('/api/job-descriptions');
-      const data = await res.json();
-      if (data.success) {
-        setJobDescriptions(data.data);
-      }
-    } catch (err) {
-      console.error('Error loading internship descriptions:', err);
-    }
-  };
-
   const loadJobMatches = async () => {
     try {
-      setLoading(true);
       const res = await fetch('/api/internship-match');
       const data = await res.json();
       if (data.success) {
@@ -90,10 +71,29 @@ export function JobMatchTab() {
       }
     } catch (err) {
       console.error('Error loading internship matches:', err);
-    } finally {
-      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    // A response arriving after unmount is dropped instead of updating a dead component.
+    (async () => {
+      try {
+        const res = await fetch('/api/internship-match');
+        const data = await res.json();
+        if (!cancelled && data.success) setJobMatches(data.data);
+      } catch (err) {
+        console.error('Error loading internship matches:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCreateJobDescription = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,8 +116,8 @@ export function JobMatchTab() {
       } else {
         setError(data.error || 'Failed to create internship description');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -146,8 +146,8 @@ export function JobMatchTab() {
       } else {
         setError(data.error || 'Failed to generate match');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
       refreshCredits();
