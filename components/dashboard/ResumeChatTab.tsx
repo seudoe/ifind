@@ -30,28 +30,16 @@ export function ResumeChatTab() {
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
   
+  const loading = currentSession !== null && loadedFor !== currentSession._id;
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  useEffect(() => {
-    if (currentSession) {
-      loadMessages(currentSession._id);
-    }
-  }, [currentSession]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -75,7 +63,6 @@ export function ResumeChatTab() {
 
   const loadMessages = async (sessionId: string) => {
     try {
-      setLoading(true);
       const res = await fetch(`/api/chat/messages?sessionId=${sessionId}`);
       const data = await res.json();
       if (data.success) {
@@ -84,9 +71,27 @@ export function ResumeChatTab() {
     } catch (err) {
       console.error('Error loading messages:', err);
     } finally {
-      setLoading(false);
+      setLoadedFor(sessionId);
     }
   };
+
+  // Fetch-on-mount / fetch-on-selection: state is only set after the awaited request resolves.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (currentSession) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadMessages(currentSession._id);
+    }
+  }, [currentSession]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const createNewSession = async () => {
     try {
@@ -161,7 +166,7 @@ export function ResumeChatTab() {
         setMessages(prev => prev.filter(m => m._id !== 'temp-user'));
         alert(data.error || 'Failed to send message');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error sending message:', err);
       setMessages(prev => prev.filter(m => m._id !== 'temp-user'));
       alert('Failed to send message');
