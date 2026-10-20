@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, ArrowRight, Check, GraduationCap } from "lucide-react";
@@ -37,11 +37,11 @@ export default function UserRegisterPage() {
     const {
         register,
         handleSubmit,
-        watch,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<Form>({ resolver: zodResolver(schema) });
 
-    const pw = watch("password", "");
+    const pw = useWatch({ control, name: "password", defaultValue: "" });
     const checks = {
         length: pw.length >= 8,
         uppercase: /[A-Z]/.test(pw),

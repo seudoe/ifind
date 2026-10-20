@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, ArrowRight, Check, Building2 } from "lucide-react";
@@ -24,10 +24,10 @@ export default function EmployerRegisterPage() {
   const router = useRouter();
   const [showPw, setShowPw] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } =
     useForm<Form>({ resolver: zodResolver(schema) });
 
-  const pw = watch("password", "");
+  const pw = useWatch({ control, name: "password", defaultValue: "" });
   const checks = { length: pw.length >= 8, uppercase: /[A-Z]/.test(pw), number: /[0-9]/.test(pw) };
 
   const onSubmit = async (data: Form) => {
