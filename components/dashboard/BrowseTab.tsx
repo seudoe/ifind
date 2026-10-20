@@ -208,7 +208,7 @@ export function BrowseTab({
     <div className="flex gap-6">
       {/* Desktop Filter Sidebar - hidden on mobile details view */}
       <aside className={cn("hidden lg:block w-64 shrink-0", selectedInternship && "lg:block")}>
-        <div className="sticky top-20">
+        <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto pr-1">
           <FilterPanel
             filters={filters}
             onUpdate={updateFilter}
@@ -283,8 +283,18 @@ export function BrowseTab({
                 onChange={(event) => setQuery(event.target.value)}
                 type="search"
                 placeholder="Search by role, company or skill…"
-                className="flex-1 text-sm bg-transparent outline-none text-[var(--text)] placeholder:text-[var(--text-3)]"
+                className="flex-1 min-w-0 text-sm bg-transparent outline-none text-[var(--text)] placeholder:text-[var(--text-3)] [&::-webkit-search-cancel-button]:hidden"
               />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="shrink-0 rounded-full p-0.5 text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--surface-3)] transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
 

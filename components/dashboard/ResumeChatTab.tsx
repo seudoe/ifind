@@ -237,7 +237,7 @@ export function ResumeChatTab() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] bg-[var(--surface)] rounded-lg border overflow-hidden">
+    <div className="flex h-[calc(100dvh-12rem)] bg-[var(--surface)] rounded-lg border overflow-hidden">
       {/* Sidebar */}
       {showSidebar && (
         <div className="w-64 border-r flex flex-col bg-[var(--surface-2)]">
@@ -367,7 +367,7 @@ export function ResumeChatTab() {
                   <p className="text-[var(--text-2)] mb-4">Ask me anything about your resume!</p>
                   <div className="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto">
                     {[
-                      'What are my key skills?',
+                      'What are my top 3 technical strengths?',
                       'Summarize my work experience',
                       'What projects have I worked on?',
                       'How can I improve my resume?',
