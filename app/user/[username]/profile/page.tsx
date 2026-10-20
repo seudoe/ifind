@@ -9,17 +9,9 @@ import { Badge } from "@/components/ui/Badge";
 import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 import type { ParsedResumeData, User } from "@/types";
+import { QuickLinks } from "@/components/profile/QuickLinks";
 import { ProfileEditDrawer } from "@/components/profile/ProfileEditDrawer";
 import { emptyResume, type EditSection } from "@/components/profile/shared";
-
-const QUICK_LINKS = [
-  ["preferences", "Preference"], ["education", "Education"], ["skills", "Key skills"],
-  ["languages", "Languages"], ["internships", "Internships"], ["projects", "Projects"],
-  ["summary", "Profile summary"], ["accomplishments", "Accomplishments"],
-  ["employment", "Employment"], ["resume", "Resume"],
-] as const;
-
-
 
 export default function ProfilePage() {
   const { data, error, mutate } = useStudentDashboard();
@@ -63,9 +55,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[200px_1fr]">
           <aside className="h-fit plasma-card p-4 lg:sticky lg:top-20">
             <h2 className="mb-3 text-sm font-semibold text-[var(--text)]">Quick links</h2>
-            <nav className="grid grid-cols-2 gap-x-3 gap-y-1 lg:block">
-              {QUICK_LINKS.map(([id, label]) => <a key={id} href={`#${id}`} className="block rounded-[var(--radius-sm)] px-2 py-1.5 text-xs text-[var(--text-2)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary)]">{label}</a>)}
-            </nav>
+            <QuickLinks />
           </aside>
 
           <div className="space-y-4">
