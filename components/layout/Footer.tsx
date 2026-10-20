@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Briefcase, GitBranch, ExternalLink } from "lucide-react";
+import LineHoverLink from "@/components/ui/line-hover-link";
 
 const STUDENT_LINKS = [
   { label: "Browse Internships", href: "/dashboard?tab=internships" },
@@ -86,12 +87,13 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
       <ul className="space-y-2">
         {links.map(({ label, href }) => (
           <li key={label}>
-            <Link
+            <LineHoverLink
               href={href}
+              variant="slide"
               className="text-sm text-[var(--text-3)] hover:text-white transition-colors duration-[var(--transition)]"
             >
               {label}
-            </Link>
+            </LineHoverLink>
           </li>
         ))}
       </ul>

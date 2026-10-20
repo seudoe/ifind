@@ -105,3 +105,37 @@ body {
   backdrop-filter: blur(10px) saturate(1.2);
   -webkit-backdrop-filter: blur(10px) saturate(1.2);
 }
+
+/* ── Logo slider (Vengeance UI) ──────────────────────────────────────────────
+   The registry component ships class hooks but no stylesheet, so the marquee
+   lives here. Each item loops on its own phase-shifted animation. */
+.logo-slider { --w: 120px; }
+@media (min-width: 640px)  { .logo-slider { --w: 140px; } }
+@media (min-width: 1024px) { .logo-slider { --w: 160px; } }
+
+.logo-slider__track { height: 100%; }
+.logo-slider__item {
+  width: var(--w);
+  animation: logo-slide calc(var(--speed) * 1s) linear infinite;
+  animation-delay: calc(var(--speed) * -1s * (var(--count) - var(--item-index)) / (var(--count) + 1));
+}
+.logo-slider__container[data-direction="right"] .logo-slider__item { animation-direction: reverse; }
+.logo-slider__container[data-pause-on-hover="true"]:hover .logo-slider__item { animation-play-state: paused; }
+
+@keyframes logo-slide {
+  from { transform: translateX(calc((var(--count) - var(--item-index)) * var(--w))); }
+  to   { transform: translateX(calc((var(--item-index) + 1) * var(--w) * -1)); }
+}
+
+/* Progressive edge blur: each layer blurs more but covers less of the edge. */
+.logo-slider__blur > div {
+  backdrop-filter: blur(calc(var(--blur-index) * 0.6px * var(--blur)));
+  -webkit-backdrop-filter: blur(calc(var(--blur-index) * 0.6px * var(--blur)));
+  mask-image: linear-gradient(to right, transparent calc(var(--blur-index) * 100% / var(--blurs)), #000 calc((var(--blur-index) + 1) * 100% / var(--blurs)));
+  -webkit-mask-image: linear-gradient(to right, transparent calc(var(--blur-index) * 100% / var(--blurs)), #000 calc((var(--blur-index) + 1) * 100% / var(--blurs)));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-slider__item { animation: none; }
+  .logo-slider__track { flex-wrap: wrap; justify-content: center; width: 100%; }
+}
