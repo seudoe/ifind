@@ -75,19 +75,19 @@ export function FeaturedInternships() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
           {FEATURED.map((item) => (
             <Link
               key={item.id}
               href={`/dashboard?tab=internships`}
-              className="plasma-card p-4 flex flex-col gap-3 hover:-translate-y-0.5 transition-transform duration-[var(--transition)]"
+              className="plasma-card h-full p-4 flex flex-col gap-3 hover:-translate-y-0.5 transition-transform duration-[var(--transition)]"
             >
               {/* Header */}
               <div className="flex items-start justify-between gap-2">
                 <div className="h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-base font-bold text-[var(--text-2)] shrink-0">
                   {item.logo}
                 </div>
-                <Badge variant={item.tagVariant} className="text-[10px]">{item.tag}</Badge>
+                <Badge variant={item.tagVariant} className="text-[10px] whitespace-nowrap shrink-0">{item.tag}</Badge>
               </div>
 
               {/* Info */}
@@ -99,23 +99,23 @@ export function FeaturedInternships() {
               </div>
 
               {/* Meta */}
-              <div className="flex flex-wrap gap-2 text-[11px] text-[var(--text-2)]">
-                <span className="flex items-center gap-1">
-                  {item.isRemote ? <Wifi className="h-3 w-3 text-green-500" /> : <MapPin className="h-3 w-3" />}
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--text-2)]">
+                <span className="flex items-center gap-1 whitespace-nowrap">
+                  {item.isRemote ? <Wifi className="h-3 w-3 text-[var(--success)]" /> : <MapPin className="h-3 w-3" />}
                   {item.location}
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 whitespace-nowrap">
                   <IndianRupee className="h-3 w-3" />
                   {item.stipend}
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 whitespace-nowrap">
                   <Clock className="h-3 w-3" />
                   {item.duration}
                 </span>
               </div>
 
               {/* Skills */}
-              <div className="flex flex-wrap gap-1">
+              <div className="mt-auto flex flex-wrap content-start gap-1 min-h-[1.5rem]">
                 {item.skills.map((s) => (
                   <span
                     key={s}

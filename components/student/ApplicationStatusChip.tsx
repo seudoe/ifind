@@ -15,7 +15,7 @@ const COLORS: Record<ApplicationStatus, string> = {
 
 export function ApplicationStatusChip({ status, className }: { status: ApplicationStatus; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", COLORS[status], className)}>
+    <span className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold leading-none", COLORS[status], className)}>
       {APPLICATION_STATUS_LABEL[status]}
     </span>
   );

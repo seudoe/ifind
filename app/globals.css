@@ -45,6 +45,9 @@
 /* ── Base ────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Tailwind v4 defaults borders to currentColor; keep the Plasma hairline instead. */
+*, *::before, *::after { border-color: var(--border); }
+
 html { scroll-behavior: smooth; }
 
 body {

@@ -119,12 +119,15 @@ export function ResumeChatTab() {
     }
   };
 
-  const sendMessage = async (e: React.FormEvent) => {
+  const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!inputMessage.trim() || !currentSession || sending) return;
+    return submitMessage(inputMessage);
+  };
 
-    const userMessageContent = inputMessage.trim();
+  const submitMessage = async (content: string) => {
+    if (!content.trim() || !currentSession || sending) return;
+
+    const userMessageContent = content.trim();
     setInputMessage('');
     setSending(true);
 
@@ -378,8 +381,9 @@ export function ResumeChatTab() {
                     ].map((suggestion) => (
                       <button
                         key={suggestion}
-                        onClick={() => setInputMessage(suggestion)}
-                        className="px-4 py-2 bg-[var(--surface-3)] hover:bg-[var(--border)] rounded-full text-sm text-[var(--text-2)]"
+                        onClick={() => submitMessage(suggestion)}
+                        disabled={sending}
+                        className="px-4 py-2 bg-[var(--surface-2)] border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary-dk)] rounded-full text-sm text-[var(--text-2)] transition-colors disabled:opacity-50"
                       >
                         {suggestion}
                       </button>

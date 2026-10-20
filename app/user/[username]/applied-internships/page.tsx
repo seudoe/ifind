@@ -40,7 +40,7 @@ export default function AppliedInternshipsPage() {
     <ul className="space-y-2 max-w-5xl">
       {items.map((a) => (
         <li key={a.internshipId}>
-          <Link href={`/user/${username}/applied-internships/${a.internshipId}`} className="plasma-card p-4 flex items-center gap-3 hover:shadow-[var(--shadow-md)] transition-shadow">
+          <Link href={`/user/${username}/applied-internships/${a.internshipId}`} className="plasma-card p-4 flex items-center gap-3 hover:shadow-[var(--shadow)] transition-shadow">
             <div className="h-10 w-10 shrink-0 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)] font-semibold flex items-center justify-center">
               <CompanyLogo internship={a.internship} />
             </div>

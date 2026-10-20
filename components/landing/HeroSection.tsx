@@ -21,9 +21,10 @@ export function HeroSection() {
   const [role, setRole]         = useState("");
   const [location, setLocation] = useState("");
 
-  const handleSearch = () => {
+  const handleSearch = (overrideRole?: string) => {
+    const q = overrideRole ?? role;
     const p = new URLSearchParams();
-    if (role) p.set("q", role);
+    if (q) p.set("q", q);
     if (location) p.set("location", location);
     router.push(`/dashboard?tab=internships&${p.toString()}`);
   };
@@ -89,7 +90,7 @@ export function HeroSection() {
                 className="flex-1 text-sm text-[var(--text)] placeholder:text-[var(--text-3)] outline-none bg-transparent py-2"
               />
             </div>
-            <Button onClick={handleSearch} size="md" className="shrink-0 gap-2 px-5">
+            <Button onClick={() => handleSearch()} size="md" className="shrink-0 gap-2 px-5">
               Search <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -100,7 +101,7 @@ export function HeroSection() {
             {POPULAR.map((term) => (
               <button
                 key={term}
-                onClick={() => { setRole(term); handleSearch(); }}
+                onClick={() => { setRole(term); handleSearch(term); }}
                 className="text-xs bg-[var(--surface-2)] border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary)] rounded-[var(--radius-sm)] px-2.5 py-1 transition-all duration-[var(--transition)] text-[var(--text-2)]"
               >
                 {term}

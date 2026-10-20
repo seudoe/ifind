@@ -33,17 +33,21 @@ export default function EmployerLandingPage() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              <Button variant="ghost" size="sm">Student portal</Button>
+          {/* One dominant action; the rest recede so they don't compete with it. */}
+          <nav aria-label="Primary" className="flex items-center gap-1 sm:gap-3">
+            <Link
+              href="/"
+              className="hidden sm:inline text-sm text-[var(--text-3)] hover:text-[var(--text)] transition-colors px-2"
+            >
+              Student portal
             </Link>
             <Link href="/employer/login">
-              <Button variant="outline" size="sm">Login</Button>
+              <Button variant="ghost" size="sm">Login</Button>
             </Link>
             <Link href="/employer/register">
               <Button variant="primary" size="sm">Post Internship</Button>
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
@@ -52,7 +56,9 @@ export default function EmployerLandingPage() {
         {/* Hero */}
         <section className="relative bg-[var(--surface)] border-b border-[var(--border)] overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full bg-[var(--primary-bg)] opacity-50 -translate-x-1/3 -translate-y-1/3" />
+            {/* Sized from the viewport so it never clips or detaches on wide/ultrawide screens */}
+            <div className="absolute -left-[10vw] -top-[12vw] aspect-square w-[min(36vw,560px)] rounded-full bg-[var(--primary-bg)] opacity-60" />
+            <div className="absolute -right-[8vw] -bottom-[14vw] hidden aspect-square w-[min(30vw,480px)] rounded-full bg-[var(--primary-bg)] opacity-40 md:block" />
           </div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
             <div className="max-w-2xl">
@@ -76,7 +82,7 @@ export default function EmployerLandingPage() {
                   </Button>
                 </Link>
                 <Link href="/user">
-                  <Button size="lg" variant="outline" className="gap-2">
+                  <Button size="lg" variant="ghost" className="gap-2">
                     Browse as Student
                   </Button>
                 </Link>
