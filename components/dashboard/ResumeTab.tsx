@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-    Upload,
     FileText,
     RefreshCw,
     Sparkles,
@@ -13,17 +12,6 @@ import {
     Trash2,
     Download,
     ExternalLink,
-    Briefcase,
-    GraduationCap,
-    Code,
-    Award,
-    Globe,
-    BookOpen,
-    Users,
-    Trophy,
-    Heart,
-    MapPin,
-    Link as LinkIcon,
     Loader2,
     DatabaseZap,
     X,
@@ -31,22 +19,17 @@ import {
     ShieldAlert,
     BadgeCheck,
     Link2,
-    BarChart3,
-    TrendingUp,
     Target,
-    Zap,
-    Brain,
-    Star,
-    AlertTriangle,
-    Lightbulb,
-    Tag,
-    Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
+import { AnalysisSection } from "./resume/AnalysisSection";
+import { ResumeUploader, type UploadPhase } from "./resume/ResumeUploader";
+import type { AnalysisData, ExtractedSkill } from "./resume/types";
+import { ResumeParsedViewer } from "./resume/ResumeParsedViewer";
 import type { User, ParsedResumeData } from "@/types";
 
 interface ResumeTabProps {
@@ -54,43 +37,7 @@ interface ResumeTabProps {
     onResumeUpdate?: () => void;
 }
 
-type UploadPhase = "idle" | "uploading" | "extracting";
 
-// Analysis types
-interface AnalysisData {
-    _id: string;
-    user: string;
-    analysisStatus: "pending" | "processing" | "completed" | "failed";
-    overallScore: number;
-    atsScore: number;
-    readabilityScore: number;
-    formatScore: number;
-    contentScore: number;
-    strengths: string[];
-    weaknesses: string[];
-    keywordMatches: Array<{
-        keyword: string;
-        category: string;
-        frequency: number;
-    }>;
-    missingSkills: Array<{
-        skill: string;
-        category: string;
-        importance: "high" | "medium" | "low";
-    }>;
-    recommendations: string[];
-    summary: string;
-    errorMessage?: string; // Added for error handling
-    createdAt: string;
-    updatedAt: string;
-}
-
-interface ExtractedSkill {
-    name: string;
-    category: "technical" | "soft" | "language" | "tool";
-    proficiency: "beginner" | "intermediate" | "advanced" | "expert";
-    verified: boolean;
-}
 
 export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const params = useParams();
@@ -367,7 +314,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                 setAnalysis(json.analysis);
                 setExtractedSkills(json.extractedSkills || []);
             }
-        } catch (err) {
+        } catch {
             // Silently fail - analysis may not exist yet
         } finally {
             setLoadingAnalysis(false);
@@ -378,41 +325,6 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     useState(() => {
         fetchExistingAnalysis();
     });
-
-    const getScoreColor = (score: number) => {
-        if (score >= 85) return "text-green-600 bg-green-50 border-green-200";
-        if (score >= 70) return "text-[var(--primary-dk)] bg-[var(--primary-bg)] border-blue-200";
-        if (score >= 50) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-        return "text-red-600 bg-red-50 border-red-200";
-    };
-
-    const getScoreLabel = (score: number) => {
-        if (score >= 90) return "Excellent";
-        if (score >= 80) return "Very Good";
-        if (score >= 70) return "Good";
-        if (score >= 60) return "Fair";
-        if (score >= 50) return "Needs Work";
-        return "Poor";
-    };
-
-    const getProficiencyColor = (proficiency: string) => {
-        switch (proficiency) {
-            case "expert": return "bg-purple-100 text-purple-700 border-purple-200";
-            case "advanced": return "bg-blue-100 text-[var(--primary-dk)] border-blue-200";
-            case "intermediate": return "bg-green-100 text-green-700 border-green-200";
-            case "beginner": return "bg-[var(--surface-3)] text-[var(--text-2)] border-[var(--border)]";
-            default: return "bg-[var(--surface-3)] text-[var(--text-2)] border-[var(--border)]";
-        }
-    };
-
-    const getImportanceColor = (importance: string) => {
-        switch (importance) {
-            case "high": return "bg-red-100 text-red-700 border-red-200";
-            case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-            case "low": return "bg-green-100 text-green-700 border-green-200";
-            default: return "bg-[var(--surface-3)] text-[var(--text-2)] border-[var(--border)]";
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -522,86 +434,20 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
             {/* Upload Zone */}
             {!isComparing && (
-                <div
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragging(true);
-                    }}
-                    onDragLeave={() => setDragging(false)}
+                <ResumeUploader
+                    inputRef={fileRef}
+                    phase={uploadPhase}
+                    dragging={dragging}
+                    hasResume={hasResume}
+                    extractorNote={
+                        isLinkedInVerified && aiRemaining > 0
+                            ? "OpenAI → Gemini (High accuracy)"
+                            : "HuggingFace (Low accuracy)"
+                    }
+                    onDraggingChange={setDragging}
                     onDrop={handleDrop}
-                    onClick={() => !isUploading && fileRef.current?.click()}
-                    className={[
-                        "relative border-2 border-dashed rounded-xl p-10 text-center transition-all",
-                        isUploading
-                            ? "pointer-events-none opacity-70 cursor-default"
-                            : "cursor-pointer",
-                        dragging
-                            ? "border-blue-500 bg-[var(--primary-bg)]"
-                            : "border-[var(--border)] hover:border-blue-400 hover:bg-[var(--surface-2)]",
-                    ].join(" ")}
-                >
-                    <input
-                        ref={fileRef}
-                        type="file"
-                        accept=".pdf,application/pdf"
-                        className="hidden"
-                        onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleFile(f);
-                        }}
-                    />
-
-                    {uploadPhase === "uploading" && (
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <Upload className="h-6 w-6 text-[var(--primary-dk)] animate-bounce" />
-                            </div>
-                            <p className="text-sm font-medium text-[var(--primary-dk)]">
-                                Uploading resume to ImageKit…
-                            </p>
-                            <p className="text-xs text-[var(--text-3)]">
-                                Saving your file
-                            </p>
-                        </div>
-                    )}
-
-                    {uploadPhase === "extracting" && (
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                                <Sparkles className="h-6 w-6 text-indigo-600 animate-pulse" />
-                            </div>
-                            <p className="text-sm font-medium text-indigo-600">
-                                Extracting data from resume with AI…
-                            </p>
-                            <p className="text-xs text-[var(--text-3)]">
-                                {isLinkedInVerified && aiRemaining > 0
-                                    ? "OpenAI → Gemini (High accuracy)"
-                                    : "HuggingFace (Low accuracy)"}
-                            </p>
-                        </div>
-                    )}
-
-                    {uploadPhase === "idle" && (
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center">
-                                <Upload className="h-6 w-6 text-[var(--text-3)]" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-[var(--text-2)]">
-                                    {hasResume
-                                        ? "Drop a new PDF to replace your resume"
-                                        : "Drag & drop your resume here"}
-                                </p>
-                                <p className="text-xs text-[var(--text-3)] mt-1">
-                                    or click to browse — PDF only, max 5MB
-                                </p>
-                            </div>
-                            <Button variant="outline" size="sm" type="button">
-                                {hasResume ? "Replace Resume" : "Choose File"}
-                            </Button>
-                        </div>
-                    )}
-                </div>
+                    onFile={handleFile}
+                />
             )}
 
             {/* Side-by-side Comparison View */}
@@ -666,7 +512,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                 </span>
                             </div>
                             <div className="bg-[var(--surface-2)] rounded-xl border border-[var(--border)] p-4 space-y-4">
-                                <ResumeDataDisplay data={oldData} />
+                                <ResumeParsedViewer data={oldData} />
                             </div>
                         </div>
 
@@ -684,7 +530,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                 </Badge>
                             </div>
                             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-4 space-y-4">
-                                <ResumeDataDisplay data={pendingData} />
+                                <ResumeParsedViewer data={pendingData} />
                             </div>
                         </div>
                     </div>
@@ -818,7 +664,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             </Badge>
                         </div>
                     </div>
-                    <ResumeDataDisplay data={localResume.parsedData} />
+                    <ResumeParsedViewer data={localResume.parsedData} />
                 </div>
             ) : (
                 !isComparing &&
@@ -830,7 +676,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             No data extracted yet.
                         </p>
                         <p className="text-xs text-[var(--text-3)] mt-1 mb-3">
-                            Click "Re-extract Data" to extract information from
+                            Click &quot;Re-extract Data&quot; to extract information from
                             your resume.
                         </p>
                         <Button
@@ -848,404 +694,16 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
             {/* Resume Analysis Section */}
             {!isComparing && localResume?.parsedData && (
-                <div className="space-y-4">
-                    {/* Analysis Header & Trigger */}
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                        <div className="flex items-center gap-2">
-                            <BarChart3 className="h-5 w-5 text-indigo-600" />
-                            <h3 className="font-semibold text-[var(--text)]">
-                                Resume Analysis
-                            </h3>
-                            {analysis && (
-                                <Badge variant="secondary" className="text-xs">
-                                    Last analyzed {new Date(analysis.updatedAt).toLocaleDateString()}
-                                </Badge>
-                            )}
-                        </div>
-                        <Button
-                            size="sm"
-                            onClick={handleAnalyze}
-                            loading={analyzing}
-                            disabled={analyzing || isUploading}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                        >
-                            <Brain className="h-3.5 w-3.5 mr-1.5" />
-                            {analyzing ? "Analyzing..." : analysis ? "Re-analyze Resume" : "Analyze Resume"}
-                        </Button>
-                    </div>
-
-                    {/* Analysis Content */}
-                    {loadingAnalysis && !analysis && (
-                        <div className="bg-[var(--surface-2)] rounded-xl border border-[var(--border)] p-8 text-center">
-                            <Loader2 className="h-8 w-8 text-[var(--text-3)] animate-spin mx-auto mb-2" />
-                            <p className="text-sm text-[var(--text-3)]">Loading analysis...</p>
-                        </div>
-                    )}
-
-                    {!loadingAnalysis && !analysis && !analyzing && (
-                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-8 text-center">
-                            <Brain className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
-                            <p className="text-sm font-medium text-[var(--text)] mb-1">
-                                Get AI-Powered Resume Analysis
-                            </p>
-                            <p className="text-xs text-[var(--text-2)] mb-4">
-                                Get comprehensive scoring, skill extraction, and actionable recommendations
-                            </p>
-                            <Button
-                                size="sm"
-                                onClick={handleAnalyze}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                            >
-                                <Brain className="h-3.5 w-3.5 mr-1.5" />
-                                Analyze Now
-                            </Button>
-                        </div>
-                    )}
-
-                    {analysis && analysis.analysisStatus === "completed" && (
-                        <div className="space-y-4">
-                            {/* Score Cards */}
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                <ScoreCard
-                                    icon={<Star className="h-4 w-4" />}
-                                    label="Overall"
-                                    score={analysis.overallScore}
-                                    getScoreColor={getScoreColor}
-                                    getScoreLabel={getScoreLabel}
-                                />
-                                <ScoreCard
-                                    icon={<Target className="h-4 w-4" />}
-                                    label="ATS"
-                                    score={analysis.atsScore}
-                                    getScoreColor={getScoreColor}
-                                    getScoreLabel={getScoreLabel}
-                                />
-                                <ScoreCard
-                                    icon={<FileText className="h-4 w-4" />}
-                                    label="Readability"
-                                    score={analysis.readabilityScore}
-                                    getScoreColor={getScoreColor}
-                                    getScoreLabel={getScoreLabel}
-                                />
-                                <ScoreCard
-                                    icon={<Zap className="h-4 w-4" />}
-                                    label="Format"
-                                    score={analysis.formatScore}
-                                    getScoreColor={getScoreColor}
-                                    getScoreLabel={getScoreLabel}
-                                />
-                                <ScoreCard
-                                    icon={<Briefcase className="h-4 w-4" />}
-                                    label="Content"
-                                    score={analysis.contentScore}
-                                    getScoreColor={getScoreColor}
-                                    getScoreLabel={getScoreLabel}
-                                />
-                            </div>
-
-                            {/* Summary */}
-                            {analysis.summary && (
-                                <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5">
-                                    <div className="flex items-start gap-3">
-                                        <div className="h-9 w-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                            <FileText className="h-4 w-4 text-indigo-600" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold text-[var(--text)] text-sm mb-2">Summary</h4>
-                                            <p className="text-sm text-[var(--text-2)] leading-relaxed">{analysis.summary}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Tabs */}
-                            <div className="flex gap-1 p-1 bg-[var(--surface-3)] rounded-xl">
-                                <button
-                                    onClick={() => setActiveAnalysisTab("overview")}
-                                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                                        activeAnalysisTab === "overview"
-                                            ? "bg-[var(--surface)] text-indigo-700 shadow-sm"
-                                            : "text-[var(--text-2)] hover:text-[var(--text)]"
-                                    }`}
-                                >
-                                    Overview
-                                </button>
-                                <button
-                                    onClick={() => setActiveAnalysisTab("details")}
-                                    className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                                        activeAnalysisTab === "details"
-                                            ? "bg-[var(--surface)] text-indigo-700 shadow-sm"
-                                            : "text-[var(--text-2)] hover:text-[var(--text)]"
-                                    }`}
-                                >
-                                    Detailed Analysis
-                                </button>
-                            </div>
-
-                            {/* Overview Tab */}
-                            {activeAnalysisTab === "overview" && (
-                                <div className="space-y-6">
-                                    {/* Strengths Section */}
-                                    {analysis.strengths?.length > 0 && (
-                                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 shadow-sm overflow-hidden">
-                                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-green-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-green-100 rounded-lg">
-                                                        <TrendingUp className="h-5 w-5 text-green-600" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-green-900 text-base">
-                                                            Strengths
-                                                        </h3>
-                                                        <p className="text-xs text-green-700">
-                                                            {analysis.strengths.length} positive {analysis.strengths.length === 1 ? 'highlight' : 'highlights'} identified
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <ul className="space-y-3">
-                                                    {analysis.strengths.map((strength, idx) => (
-                                                        <li key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
-                                                            <div className="mt-0.5">
-                                                                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                                                            </div>
-                                                            <span className="text-sm text-[var(--text)] leading-relaxed flex-1">{strength}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Areas to Improve Section */}
-                                    {analysis.weaknesses?.length > 0 && (
-                                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 shadow-sm overflow-hidden">
-                                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-amber-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-amber-100 rounded-lg">
-                                                        <AlertTriangle className="h-5 w-5 text-amber-600" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-amber-900 text-base">
-                                                            Areas to Improve
-                                                        </h3>
-                                                        <p className="text-xs text-amber-700">
-                                                            {analysis.weaknesses.length} {analysis.weaknesses.length === 1 ? 'area' : 'areas'} needing attention
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <ul className="space-y-3">
-                                                    {analysis.weaknesses.map((weakness, idx) => (
-                                                        <li key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
-                                                            <div className="mt-0.5">
-                                                                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
-                                                            </div>
-                                                            <span className="text-sm text-[var(--text)] leading-relaxed flex-1">{weakness}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Recommendations Section */}
-                                    {analysis.recommendations?.length > 0 && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 shadow-sm overflow-hidden">
-                                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-blue-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-blue-100 rounded-lg">
-                                                        <Lightbulb className="h-5 w-5 text-[var(--primary-dk)]" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-blue-900 text-base">
-                                                            Recommendations
-                                                        </h3>
-                                                        <p className="text-xs text-[var(--primary-dk)]">
-                                                            {analysis.recommendations.length} actionable {analysis.recommendations.length === 1 ? 'suggestion' : 'suggestions'} to enhance your resume
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="space-y-3">
-                                                    {analysis.recommendations.map((rec, idx) => (
-                                                        <div key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
-                                                            <div className="flex-shrink-0 w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                                                                <span className="font-bold text-[var(--primary-dk)] text-sm">{idx + 1}</span>
-                                                            </div>
-                                                            <span className="text-sm text-[var(--text)] leading-relaxed flex-1">
-                                                                {formatRecommendationText(rec)}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Details Tab */}
-                            {activeAnalysisTab === "details" && (
-                                <div className="space-y-6">
-                                    {/* Extracted Skills */}
-                                    {extractedSkills?.length > 0 && (
-                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
-                                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-200">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="p-2 bg-purple-100 rounded-lg">
-                                                            <Code className="h-5 w-5 text-purple-600" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="font-bold text-purple-900 text-base">
-                                                                Extracted Skills
-                                                            </h3>
-                                                            <p className="text-xs text-purple-700">
-                                                                {extractedSkills.length} skills identified from your resume
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 border-purple-200">
-                                                        AI-Powered
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {extractedSkills.map((skill, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-md transition-all ${getProficiencyColor(skill.proficiency)}`}
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="font-semibold text-sm truncate">{skill.name}</p>
-                                                                <p className="text-xs opacity-70 capitalize mt-0.5">{skill.category}</p>
-                                                            </div>
-                                                            <Badge variant="secondary" className="text-xs capitalize flex-shrink-0 font-medium">
-                                                                {skill.proficiency}
-                                                            </Badge>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Missing Skills */}
-                                    {analysis.missingSkills?.length > 0 && (
-                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
-                                            <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-orange-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <Search className="h-5 w-5 text-orange-600" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-orange-900 text-base">
-                                                            Skills Gap Analysis
-                                                        </h3>
-                                                        <p className="text-xs text-orange-700">
-                                                            {analysis.missingSkills.length} in-demand skills missing from your profile
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {analysis.missingSkills.map((skill, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-md transition-all ${getImportanceColor(skill.importance)}`}
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="font-semibold text-sm truncate">{skill.skill}</p>
-                                                                <p className="text-xs opacity-70 capitalize mt-0.5">{skill.category}</p>
-                                                            </div>
-                                                            <Badge variant="secondary" className="text-xs capitalize flex-shrink-0 font-medium">
-                                                                {skill.importance}
-                                                            </Badge>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Keyword Matches */}
-                                    {analysis.keywordMatches?.length > 0 && (
-                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-cyan-200 shadow-sm overflow-hidden">
-                                            <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-cyan-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-cyan-100 rounded-lg">
-                                                        <Tag className="h-5 w-5 text-cyan-600" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-cyan-900 text-base">
-                                                            Keyword Matches
-                                                        </h3>
-                                                        <p className="text-xs text-cyan-700">
-                                                            {analysis.keywordMatches.length} industry keywords found in your resume
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {analysis.keywordMatches
-                                                        .sort((a, b) => b.frequency - a.frequency)
-                                                        .slice(0, 30)
-                                                        .map((kw, idx) => (
-                                                            <div
-                                                                key={idx}
-                                                                className="flex items-center gap-2 bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-xl px-4 py-2 hover:shadow-md transition-all hover:scale-105"
-                                                            >
-                                                                <span className="text-sm font-semibold text-cyan-900">{kw.keyword}</span>
-                                                                <Badge variant="secondary" className="text-xs bg-cyan-100 text-cyan-700 border-cyan-200 font-bold">
-                                                                    ×{kw.frequency}
-                                                                </Badge>
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {analysis && analysis.analysisStatus === "processing" && (
-                        <div className="bg-indigo-50 rounded-xl border border-indigo-200 p-8 text-center">
-                            <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mx-auto mb-2" />
-                            <p className="text-sm font-medium text-indigo-900">Analysis in progress...</p>
-                            <p className="text-xs text-indigo-600 mt-1">This may take 20-30 seconds</p>
-                        </div>
-                    )}
-
-                    {analysis && analysis.analysisStatus === "failed" && (
-                        <div className="bg-red-50 rounded-xl border border-red-200 p-5">
-                            <div className="flex items-start gap-3">
-                                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-sm font-medium text-red-900">Analysis Failed</p>
-                                    <p className="text-xs text-red-700 mt-1">{analysis.errorMessage || "An error occurred during analysis"}</p>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={handleAnalyze}
-                                        className="mt-3"
-                                    >
-                                        <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                                        Retry Analysis
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <AnalysisSection
+                    analysis={analysis}
+                    extractedSkills={extractedSkills}
+                    loadingAnalysis={loadingAnalysis}
+                    analyzing={analyzing}
+                    isUploading={isUploading}
+                    activeAnalysisTab={activeAnalysisTab}
+                    onTabChange={setActiveAnalysisTab}
+                    onAnalyze={handleAnalyze}
+                />
             )}
 
             {/* Internship Match CTA Card */}
@@ -1275,557 +733,6 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
-
-// Helper function to format markdown-style text
-function formatRecommendationText(text: string) {
-    // Split by ** to find bold sections
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    
-    return (
-        <>
-            {parts.map((part, idx) => {
-                // Check if this part should be bold
-                if (part.startsWith('**') && part.endsWith('**')) {
-                    // Remove ** and make bold
-                    const boldText = part.slice(2, -2);
-                    return <strong key={idx} className="font-semibold text-[var(--text)]">{boldText}</strong>;
-                }
-                // Regular text
-                return <span key={idx}>{part}</span>;
-            })}
-        </>
-    );
-}
-
-function ScoreCard({
-    icon,
-    label,
-    score,
-    getScoreColor,
-    getScoreLabel,
-}: {
-    icon: React.ReactNode;
-    label: string;
-    score: number;
-    getScoreColor: (score: number) => string;
-    getScoreLabel: (score: number) => string;
-}) {
-    const baseColor = getScoreColor(score);
-    
-    return (
-        <div className={`relative rounded-xl border-2 p-5 transition-all hover:scale-105 hover:shadow-lg ${baseColor}`}>
-            <div className="flex flex-col h-full">
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="opacity-70">
-                        {icon}
-                    </div>
-                    <span className="text-xs font-semibold uppercase tracking-wider opacity-75">{label}</span>
-                </div>
-                <div className="flex-1 flex flex-col justify-end">
-                    <div className="mb-1">
-                        <p className="text-4xl font-bold leading-none">{score}</p>
-                    </div>
-                    <p className="text-xs font-medium opacity-75">{getScoreLabel(score)}</p>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
-    return (
-        <div className="space-y-4">
-            {data.metaDetails && (
-                <Section
-                    icon={<MapPin className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Contact Information"
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                        <Field label="Name" value={data.metaDetails.name} />
-                        <Field label="Email" value={data.metaDetails.email} />
-                        {data.metaDetails.phone_no && (
-                            <Field
-                                label="Phone"
-                                value={data.metaDetails.phone_no}
-                            />
-                        )}
-                        {data.metaDetails.address && (
-                            <Field
-                                label="Location"
-                                value={[
-                                    data.metaDetails.address.city,
-                                    data.metaDetails.address.state,
-                                    data.metaDetails.address.country,
-                                ]
-                                    .filter(Boolean)
-                                    .join(", ")}
-                            />
-                        )}
-                        {data.metaDetails.github_profile && (
-                            <div className="flex items-center gap-1">
-                                <LinkIcon className="h-3.5 w-3.5 text-[var(--text-3)]" />
-                                <a
-                                    href={data.metaDetails.github_profile}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[var(--primary-dk)] hover:underline text-sm"
-                                >
-                                    GitHub
-                                </a>
-                            </div>
-                        )}
-                        {data.metaDetails.linkedin && (
-                            <div className="flex items-center gap-1">
-                                <LinkIcon className="h-3.5 w-3.5 text-[var(--text-3)]" />
-                                <a
-                                    href={data.metaDetails.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[var(--primary-dk)] hover:underline text-sm"
-                                >
-                                    LinkedIn
-                                </a>
-                            </div>
-                        )}
-                    </div>
-                </Section>
-            )}
-
-            {data.summary && (
-                <Section title="Summary">
-                    <p className="text-sm text-[var(--text-2)]">{data.summary}</p>
-                </Section>
-            )}
-
-            {data.workHistory?.length > 0 && (
-                <Section
-                    icon={<Briefcase className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Work History"
-                >
-                    <div className="space-y-4">
-                        {data.workHistory.map((w, i) => (
-                            <div
-                                key={i}
-                                className="border-l-2 border-blue-200 pl-3 space-y-1"
-                            >
-                                <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                        <p className="font-medium text-sm text-[var(--text)]">
-                                            {w.title}
-                                        </p>
-                                        <p className="text-xs text-[var(--text-2)]">
-                                            {w.company} · {w.location}
-                                        </p>
-                                    </div>
-                                    <Badge
-                                        variant="secondary"
-                                        className="text-xs shrink-0"
-                                    >
-                                        {w.type}
-                                    </Badge>
-                                </div>
-                                <p className="text-xs text-[var(--text-3)]">
-                                    {w.period?.start} –{" "}
-                                    {w.period?.isCurrent
-                                        ? "Present"
-                                        : (w.period?.end ?? "N/A")}
-                                </p>
-                                {w.responsibilities?.length > 0 && (
-                                    <BulletList
-                                        label="Responsibilities"
-                                        items={w.responsibilities}
-                                    />
-                                )}
-                                {w.achievements?.length > 0 && (
-                                    <BulletList
-                                        label="Achievements"
-                                        items={w.achievements}
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.education?.length > 0 && (
-                <Section
-                    icon={<GraduationCap className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Education"
-                >
-                    <div className="space-y-3">
-                        {data.education.map((e, i) => (
-                            <div
-                                key={i}
-                                className="border-l-2 border-green-200 pl-3 space-y-0.5"
-                            >
-                                <p className="font-medium text-sm text-[var(--text)]">
-                                    {e.institution}
-                                </p>
-                                <p className="text-xs text-[var(--text-2)]">
-                                    {e.field?.type} in {e.field?.course}
-                                </p>
-                                <p className="text-xs text-[var(--text-3)]">
-                                    {e.period?.start} –{" "}
-                                    {e.period?.isCurrent
-                                        ? "Present"
-                                        : (e.period?.end ?? "N/A")}
-                                </p>
-                                {e.output && (
-                                    <p className="text-xs text-[var(--text-2)]">
-                                        {e.output}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.skills?.length > 0 && (
-                <Section
-                    icon={<Code className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Skills"
-                >
-                    <div className="space-y-3">
-                        {data.skills.map((s, i) => (
-                            <div key={i}>
-                                <div className="flex justify-between mb-1">
-                                    <p className="text-sm font-medium text-[var(--text)]">
-                                        {s.field}
-                                    </p>
-                                    {s.yearsOfExperience ? (
-                                        <span className="text-xs text-[var(--text-3)]">
-                                            {s.yearsOfExperience} yrs
-                                        </span>
-                                    ) : null}
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {s.tools?.map((t, j) => (
-                                        <Badge
-                                            key={j}
-                                            variant="secondary"
-                                            className="text-xs"
-                                        >
-                                            {t.name}
-                                            {t.score ? ` (${t.score}%)` : ""}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.projects?.length > 0 && (
-                <Section
-                    icon={<Code className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Projects"
-                >
-                    <div className="space-y-4">
-                        {data.projects.map((p, i) => (
-                            <div
-                                key={i}
-                                className="border-l-2 border-purple-200 pl-3 space-y-1.5"
-                            >
-                                <p className="font-medium text-sm text-[var(--text)]">
-                                    {p.title}
-                                </p>
-                                {p.role && (
-                                    <p className="text-xs text-[var(--text-2)]">
-                                        {p.role}
-                                    </p>
-                                )}
-                                {p.problemStatement && (
-                                    <p className="text-xs text-[var(--text-2)] italic">
-                                        {p.problemStatement}
-                                    </p>
-                                )}
-                                {p.techStack?.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                        {p.techStack.map((t, j) => (
-                                            <Badge
-                                                key={j}
-                                                variant="secondary"
-                                                className="text-xs"
-                                            >
-                                                {t}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                )}
-                                {p.description?.length > 0 && (
-                                    <BulletList items={p.description} />
-                                )}
-                                {p.links && (
-                                    <div className="flex gap-3 text-xs">
-                                        {p.links.repo && (
-                                            <a
-                                                href={p.links.repo}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-[var(--primary-dk)] hover:underline"
-                                            >
-                                                Repo
-                                            </a>
-                                        )}
-                                        {p.links.live && (
-                                            <a
-                                                href={p.links.live}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-[var(--primary-dk)] hover:underline"
-                                            >
-                                                Live
-                                            </a>
-                                        )}
-                                        {p.links.demo && (
-                                            <a
-                                                href={p.links.demo}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-[var(--primary-dk)] hover:underline"
-                                            >
-                                                Demo
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.certifications?.length > 0 && (
-                <Section
-                    icon={<Award className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Certifications"
-                >
-                    <div className="space-y-2">
-                        {data.certifications.map((c, i) => (
-                            <div key={i} className="flex justify-between gap-2">
-                                <div>
-                                    <p className="text-sm font-medium text-[var(--text)]">
-                                        {c.name}
-                                    </p>
-                                    <p className="text-xs text-[var(--text-2)]">
-                                        {c.issuer}
-                                    </p>
-                                    {c.skillsEarned?.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                            {c.skillsEarned.map((s, j) => (
-                                                <Badge
-                                                    key={j}
-                                                    variant="secondary"
-                                                    className="text-xs"
-                                                >
-                                                    {s}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-xs text-[var(--text-3)] shrink-0">
-                                    {c.date}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.languages?.length > 0 && (
-                <Section
-                    icon={<Globe className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Languages"
-                >
-                    <div className="flex flex-wrap gap-2">
-                        {data.languages.map((l, i) => (
-                            <Badge key={i} variant="secondary">
-                                {l.lang} – {l.proficiency}
-                                {l.score ? ` (${l.score})` : ""}
-                            </Badge>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.publications?.length > 0 && (
-                <Section
-                    icon={<BookOpen className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Publications"
-                >
-                    <div className="space-y-2">
-                        {data.publications.map((p, i) => (
-                            <div key={i}>
-                                <a
-                                    href={p.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-medium text-[var(--primary-dk)] hover:underline"
-                                >
-                                    {p.title}
-                                </a>
-                                <p className="text-xs text-[var(--text-2)]">
-                                    {p.platform} · {p.type} · {p.date}
-                                </p>
-                                {p.keywords?.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {p.keywords.map((k, j) => (
-                                            <Badge
-                                                key={j}
-                                                variant="secondary"
-                                                className="text-xs"
-                                            >
-                                                {k}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.awards?.length > 0 && (
-                <Section
-                    icon={<Trophy className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Awards"
-                >
-                    <div className="space-y-2">
-                        {data.awards.map((a, i) => (
-                            <div key={i}>
-                                <p className="text-sm font-medium text-[var(--text)]">
-                                    {a.name}
-                                </p>
-                                <p className="text-xs text-[var(--text-2)]">
-                                    {a.issuingBody} · {a.date}
-                                </p>
-                                {a.justification && (
-                                    <p className="text-xs text-[var(--text-2)] mt-0.5">
-                                        {a.justification}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.affiliations?.length > 0 && (
-                <Section
-                    icon={<Users className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Affiliations"
-                >
-                    <div className="space-y-3">
-                        {data.affiliations.map((a, i) => (
-                            <div
-                                key={i}
-                                className="border-l-2 border-orange-200 pl-3 space-y-0.5"
-                            >
-                                <div className="flex justify-between gap-2">
-                                    <div>
-                                        <p className="text-sm font-medium text-[var(--text)]">
-                                            {a.organization}
-                                        </p>
-                                        <p className="text-xs text-[var(--text-2)]">
-                                            {a.role} · {a.type}
-                                        </p>
-                                    </div>
-                                    <span className="text-xs text-[var(--text-3)] shrink-0">
-                                        {a.period?.start} –{" "}
-                                        {a.period?.isCurrent
-                                            ? "Present"
-                                            : (a.period?.end ?? "N/A")}
-                                    </span>
-                                </div>
-                                {a.impact?.length > 0 && (
-                                    <BulletList items={a.impact} />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {data.interests?.length > 0 && (
-                <Section
-                    icon={<Heart className="h-4 w-4 text-[var(--primary-dk)]" />}
-                    title="Interests"
-                >
-                    <div className="space-y-2">
-                        {data.interests.map((it, i) => (
-                            <div key={i}>
-                                <p className="text-sm font-medium text-[var(--text)]">
-                                    {it.activity}
-                                </p>
-                                <p className="text-xs text-[var(--text-2)]">
-                                    {it.description}
-                                </p>
-                                {it.commitmentMetric && (
-                                    <p className="text-xs text-[var(--text-3)]">
-                                        {it.commitmentMetric}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-        </div>
-    );
-}
-
-function Section({
-    icon,
-    title,
-    children,
-}: {
-    icon?: React.ReactNode;
-    title: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="bg-[var(--surface)] rounded-lg p-4 space-y-3 border border-gray-100 shadow-sm">
-            <h4 className="font-semibold text-[var(--text)] flex items-center gap-2 text-sm">
-                {icon}
-                {title}
-            </h4>
-            {children}
-        </div>
-    );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-    return (
-        <div>
-            <span className="text-[var(--text-3)] text-sm">{label}: </span>
-            <span className="font-medium text-sm text-[var(--text)]">{value}</span>
-        </div>
-    );
-}
-
-function BulletList({ label, items }: { label?: string; items: string[] }) {
-    return (
-        <div>
-            {label && (
-                <p className="text-xs font-medium text-[var(--text-2)] mb-0.5">
-                    {label}:
-                </p>
-            )}
-            <ul className="list-disc list-inside space-y-0.5">
-                {items.map((item, i) => (
-                    <li key={i} className="text-xs text-[var(--text-2)]">
-                        {item}
-                    </li>
-                ))}
-            </ul>
         </div>
     );
 }
