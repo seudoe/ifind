@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { requireSecret } from "@/lib/secrets";
 
 const COOKIE_NAME = "ifind_token";
-const JWT_SECRET = process.env.JWT_SECRET;
 
 export interface AuthSession {
   userId: string;
@@ -12,7 +12,7 @@ export interface AuthSession {
 }
 
 function getJwtSecret(): string {
-  return process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
+  return requireSecret("JWT_SECRET");
 }
 
 export function signToken(session: AuthSession): string {

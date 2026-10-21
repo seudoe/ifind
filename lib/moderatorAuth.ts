@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { requireSecret } from "@/lib/secrets";
 
 export const MOD_COOKIE_NAME = "ifind_mod_token";
 
@@ -12,13 +13,7 @@ export interface ModeratorSession {
 }
 
 function getModJwtSecret(): string {
-    const secret = process.env.MOD_JWT_SECRET;
-    if (!secret) {
-        throw new Error(
-            "MOD_JWT_SECRET is not configured. Add it to .env.local.",  
-        );
-    }
-    return secret;
+    return requireSecret("MOD_JWT_SECRET");
 }
 
 export function signModToken(session: ModeratorSession): string {
