@@ -5,6 +5,7 @@ import { SITE_URL } from "@/lib/site";
 const PUBLIC_PAGES: { path: string; priority: number; changeFrequency: "weekly" | "monthly" }[] = [
   { path: "/user", priority: 1, changeFrequency: "weekly" },
   { path: "/employer", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/faq", priority: 0.6, changeFrequency: "monthly" },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -6,7 +6,9 @@ import { TrustBar }            from "@/components/landing/TrustBar";
 import { CategoriesSection }   from "@/components/landing/CategoriesSection";
 import { FeaturedInternships } from "@/components/landing/FeaturedInternships";
 import { HowItWorks }          from "@/components/landing/HowItWorks";
-import { Testimonials }        from "@/components/landing/Testimonials";
+import { StickyMobileCta }    from "@/components/ui/StickyMobileCta";
+import { JsonLd }              from "@/components/seo/JsonLd";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import Link                    from "next/link";
 import { Building2 }           from "lucide-react";
 import { MarketingMotion }     from "@/components/motion/MarketingMotion";
@@ -30,6 +32,21 @@ export default function StudentLandingPage() {
   return (
     <MarketingMotion>
     <div className="flex flex-col min-h-screen">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: SITE_NAME,
+              url: SITE_URL,
+              logo: `${SITE_URL}/opengraph-image`,
+              description: "AI-powered internship matching for students in India.",
+            },
+            { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+          ],
+        }}
+      />
       <Navbar />
       <main className="flex-1">
         <HeroSection />
@@ -38,7 +55,6 @@ export default function StudentLandingPage() {
         <CategoriesSection />
         <FeaturedInternships />
         <HowItWorks />
-        <Testimonials />
 
         {/* Employer CTA strip */}
         <section className="py-10 bg-[var(--surface)] border-t border-[var(--border)]">
@@ -58,6 +74,7 @@ export default function StudentLandingPage() {
         </section>
       </main>
       <Footer />
+      <StickyMobileCta href="/user/register" label="Create your free profile" />
     </div>
     </MarketingMotion>
   );

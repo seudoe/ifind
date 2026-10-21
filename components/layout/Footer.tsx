@@ -10,6 +10,7 @@ const STUDENT_LINKS = [
 ];
 
 const PLATFORM_LINKS = [
+  { label: "FAQ",              href: "/faq" },
   { label: "Student portal",   href: "/user" },
   { label: "For employers",    href: "/employer" },
   { label: "Student sign in",  href: "/user/login" },

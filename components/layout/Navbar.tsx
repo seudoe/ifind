@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Briefcase, Menu, X, LogIn, UserPlus, Search, BookOpen } from "lucide-react";
+import { Briefcase, Menu, X, LogIn, UserPlus, Search, BookOpen, HelpCircle } from "lucide-react";
 import { cn }    from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 
 const NAV_LINKS = [
   { href: "/user#categories", label: "Internships", icon: Search },
   { href: "/user#how-it-works", label: "How it works", icon: BookOpen },
+  { href: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
 interface NavbarProps {

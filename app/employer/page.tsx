@@ -3,6 +3,7 @@ import { Briefcase, Search, Users, BarChart3, ArrowRight, CheckCircle, Graduatio
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
 import { MarketingMotion } from "@/components/motion/MarketingMotion";
+import { StickyMobileCta } from "@/components/ui/StickyMobileCta";
 import { OG_IMAGE } from "@/lib/site";
 import type { Metadata } from "next";
 
@@ -170,6 +171,7 @@ export default function EmployerLandingPage() {
       </main>
 
       <Footer />
+      <StickyMobileCta href="/employer/register" label="Post an internship" />
     </div>
     </MarketingMotion>
   );
