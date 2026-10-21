@@ -1,13 +1,12 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { requireSecret } from "@/lib/secrets";
 import type { EmployerSession } from "@/types/employer";
 
 export const EMP_COOKIE_NAME = "ifind_emp_token";
 
 function getEmpJwtSecret(): string {
-    const secret = process.env.EMP_JWT_SECRET;
-    if (!secret) throw new Error("EMP_JWT_SECRET is not configured. Add it to .env.local.");
-    return secret;
+    return requireSecret("EMP_JWT_SECRET");
 }
 
 export function signEmpToken(session: EmployerSession): string {
