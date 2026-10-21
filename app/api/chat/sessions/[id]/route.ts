@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import ChatSession from '@/models/ChatSession';
 import ChatMessage from '@/models/ChatMessage';
 import { getSession } from '@/lib/auth';
+import { isObjectId, str } from '@/lib/validate';
 
 /**
  * GET /api/chat/sessions/[id]
@@ -19,6 +20,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Chat session not found' }, { status: 404 });
+    }
     await connectDB();
 
     const chatSession = await ChatSession.findOne({
@@ -69,14 +73,22 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await req.json();
-    const { title, isArchived } = body;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Chat session not found' }, { status: 404 });
+    }
+    const body = await req.json().catch(() => ({}));
+    const updateData: { title?: string; isArchived?: boolean } = {};
+    if (body?.title !== undefined) {
+      const title = str(body.title, 200);
+      if (!title) return NextResponse.json({ error: 'Title must be 1-200 characters' }, { status: 400 });
+      updateData.title = title;
+    }
+    if (body?.isArchived !== undefined) {
+      if (typeof body.isArchived !== 'boolean') return NextResponse.json({ error: 'isArchived must be a boolean' }, { status: 400 });
+      updateData.isArchived = body.isArchived;
+    }
 
     await connectDB();
-
-    const updateData: any = {};
-    if (title !== undefined) updateData.title = title;
-    if (isArchived !== undefined) updateData.isArchived = isArchived;
 
     const chatSession = await ChatSession.findOneAndUpdate(
       {
@@ -123,6 +135,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Chat session not found' }, { status: 404 });
+    }
     await connectDB();
 
     // Delete session

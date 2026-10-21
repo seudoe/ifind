@@ -39,3 +39,24 @@ Rotation must be done by the credential owner; this repository change does not r
 - MongoDB Atlas: use a dedicated database user with `readWrite` on the `ifind` database only, require
   TLS (default for `mongodb+srv`), and restrict network access to Vercel's egress (static IPs / Atlas
   private link) instead of `0.0.0.0/0` where the plan allows.
+
+## Authorization model (audited)
+
+Every `app/api/**/route.ts` was reviewed. Identity always comes from the verified session cookie, never from
+the request body, URL or headers.
+
+| Surface | Guard |
+|---|---|
+| Student APIs (`/api/user`, `/api/chat`, `/api/job-descriptions`, `/api/internship-match`, `/api/internships/[id]`, `/api/career-assistant`, `/api/usage`) | `getSession()`; every query is scoped by `userId` from the session. |
+| Employer APIs | `proxy.ts` token check + `requireEmployer()` / `requireCompanyRole()`; non-members get 404 so company ids can't be probed. |
+| Moderator APIs | `proxy.ts` + per-route `getModSession()` and `isVerified`. |
+| `/api/admin/*` | **Previously unauthenticated** (anyone could trigger an index rebuild / recommendation refresh). Now `requireVerifiedModerator()`. |
+
+Fixed in this pass: unauthenticated admin endpoints; `PUT /api/job-descriptions/[id]` used `$set: body` (a client could
+rewrite `userId` and any other field) and now uses an allowlist; `PUT /api/user/profile` accepted arbitrary keys under
+`resume.parsedData` and unvalidated types (non-strings caused 500s) and now allowlists sections and validates every
+field; client-supplied ids are checked with `isObjectId` before reaching a query.
+
+Existing indexes already cover the ownership lookups (`userId`-leading compound indexes on chat, matches, job
+descriptions; unique email/username/linkedinId on users). Remaining database-level controls (least-privilege Atlas
+user, TLS, network allowlist) are deployment settings, listed above.

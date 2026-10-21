@@ -9,10 +9,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { refreshRecommendations } from "@/lib/internship-vectorizer";
 
+import { requireVerifiedModerator } from "@/lib/moderatorAuth";
+
 export const runtime = "nodejs";
 export const maxDuration = 300; // vectorizing pending internships can take a while on a cold vectoriser
 
 export async function POST(request: NextRequest) {
+  // Expensive, platform-wide operation: moderators only.
+  const auth = await requireVerifiedModerator();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { userIds } = await request.json().catch(() => ({}));
     const result = await refreshRecommendations(Array.isArray(userIds) ? userIds.map(String) : undefined);

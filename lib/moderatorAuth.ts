@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import { requireSecret } from "@/lib/secrets";
 
 export const MOD_COOKIE_NAME = "ifind_mod_token";
@@ -46,6 +47,21 @@ export function modAuthCookie(token: string) {
             path: "/",
         },
     };
+}
+
+/**
+ * For routes outside /api/moderator (which proxy.ts already guards): a verified moderator session, or the
+ * 401/403 response to return. Never trust a client-supplied role.
+ */
+export async function requireVerifiedModerator(): Promise<ModeratorSession | NextResponse> {
+    const session = await getModSession();
+    if (!session || session.role !== "moderator") {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    if (!session.isVerified) {
+        return NextResponse.json({ success: false, error: "Only verified moderators can perform this action" }, { status: 403 });
+    }
+    return session;
 }
 
 export { getModJwtSecret };

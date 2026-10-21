@@ -10,6 +10,7 @@
     "test:gemini": "tsx tests/test-gemini-integration.ts",
     "test:usage": "tsx --test tests/usage.test.ts",
     "test:events": "tsx --test tests/events.test.ts",
+    "test:security": "tsx --test tests/validate.test.ts",
     "env-manager": "node env-manager.js"
   },
   "dependencies": {

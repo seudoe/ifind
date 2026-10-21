@@ -1,3 +1,4 @@
+import { isObjectId } from "@/lib/validate";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -22,6 +23,7 @@ export async function PATCH(
         }
 
         const { id } = await params;
+        if (!isObjectId(id)) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
         const body = await request.json();
         const action = typeof body.action === "string" ? body.action : "";
