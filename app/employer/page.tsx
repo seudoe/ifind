@@ -3,6 +3,21 @@ import { Briefcase, Search, Users, BarChart3, ArrowRight, CheckCircle, Graduatio
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
 import { MarketingMotion } from "@/components/motion/MarketingMotion";
+import { OG_IMAGE } from "@/lib/site";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: { absolute: "Hire Student Talent in India — Post Internships Free | iFind for Employers" },
+  description:
+    "Post internships on iFind and reach skill-matched student candidates. Track every applicant in one dashboard; every listing goes through moderation.",
+  alternates: { canonical: "/employer" },
+  openGraph: {
+    images: [OG_IMAGE],
+    url: "/employer",
+    title: "Hire the best student talent in India | iFind for Employers",
+    description: "Post internships and review skill-matched candidates in one dashboard.",
+  },
+};
 
 const FEATURES = [
   { icon: Search,    title: "Smart Candidate Matching",   desc: "Our AI matches your internship requirements with student profiles — skills, education, and experience." },

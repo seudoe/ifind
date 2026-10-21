@@ -63,6 +63,9 @@ const securityHeaders = [
 // Authenticated responses must never be stored by a shared cache or the back/forward cache of a shared device.
 const noStore = [{ key: "Cache-Control", value: "private, no-store, max-age=0" }];
 
+// Private and auth pages must not be indexed. (robots.txt only asks crawlers not to fetch; this tells them not to list.)
+const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+
 const nextConfig: NextConfig = {
   // Don't advertise the framework, and never ship source maps (and the server paths in them) to browsers.
   poweredByHeader: false,
@@ -74,6 +77,12 @@ const nextConfig: NextConfig = {
       { source: "/user/:username/:path*", headers: noStore },
       { source: "/employer/:path((?!login|register).+)", headers: noStore },
       { source: "/moderator/:path((?!login|register).+)", headers: noStore },
+      { source: "/api/:path*", headers: noIndex },
+      { source: "/dashboard", headers: noIndex },
+      { source: "/user/:username", headers: noIndex }, // /user itself is the public landing page and is not matched here
+      { source: "/user/:username/:path+", headers: noIndex },
+      { source: "/employer/:path+", headers: noIndex },
+      { source: "/moderator/:path*", headers: noIndex },
     ];
   },
 };

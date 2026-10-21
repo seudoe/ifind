@@ -13,7 +13,7 @@ const CATEGORIES = [
 
 export function CategoriesSection() {
   return (
-    <section className="py-14 bg-[var(--bg)]">
+    <section id="categories" className="py-14 bg-[var(--bg)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-xl font-bold text-[var(--text)]">Browse by Category</h2>

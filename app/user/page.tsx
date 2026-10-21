@@ -10,6 +10,21 @@ import { Testimonials }        from "@/components/landing/Testimonials";
 import Link                    from "next/link";
 import { Building2 }           from "lucide-react";
 import { MarketingMotion }     from "@/components/motion/MarketingMotion";
+import { OG_IMAGE } from "@/lib/site";
+import type { Metadata }       from "next";
+
+export const metadata: Metadata = {
+  title: { absolute: "iFind — Find Internships That Match Your Skills" },
+  description:
+    "Upload your resume once and let iFind match you with verified internships at top companies across India. Free for students.",
+  alternates: { canonical: "/user" },
+  openGraph: {
+    images: [OG_IMAGE],
+    url: "/user",
+    title: "iFind — Find Internships That Match Your Skills",
+    description: "Upload your resume once; our AI matches you with verified internships tailored to your profile.",
+  },
+};
 
 export default function StudentLandingPage() {
   return (

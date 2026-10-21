@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Briefcase, GitBranch, ExternalLink } from "lucide-react";
+import { Briefcase } from "lucide-react";
 import LineHoverLink from "@/components/ui/line-hover-link";
 
 const STUDENT_LINKS = [
@@ -9,24 +9,18 @@ const STUDENT_LINKS = [
   { label: "Saved",              href: "/dashboard?tab=saved" },
 ];
 
-const COMPANY_LINKS = [
-  { label: "About iFind", href: "#" },
-  { label: "Blog",        href: "#" },
-  { label: "Careers",     href: "#" },
-  { label: "Contact",     href: "#" },
-];
-
-const LEGAL_LINKS = [
-  { label: "Privacy Policy",  href: "#" },
-  { label: "Terms of Service", href: "#" },
-  { label: "Cookie Policy",   href: "#" },
+const PLATFORM_LINKS = [
+  { label: "Student portal",   href: "/user" },
+  { label: "For employers",    href: "/employer" },
+  { label: "Student sign in",  href: "/user/login" },
+  { label: "Employer sign in", href: "/employer/login" },
 ];
 
 export function Footer() {
   return (
     <footer className="bg-[var(--text)] text-[var(--surface-2)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
           {/* Brand */}
           <div className="lg:col-span-2">
@@ -42,29 +36,11 @@ export function Footer() {
               India&apos;s smartest internship platform. AI-powered matching connects students
               with opportunities at top companies — tailored to your profile.
             </p>
-            <div className="flex items-center gap-2 mt-5">
-              {[
-                { icon: ExternalLink, label: "Twitter" },
-                { icon: ExternalLink, label: "LinkedIn" },
-                { icon: ExternalLink, label: "Instagram" },
-                { icon: GitBranch,    label: "GitHub" },
-              ].map(({ icon: Icon, label }) => (
-                <a
-                  key={label}
-                  href="#"
-                  aria-label={label}
-                  className="h-8 w-8 rounded-[var(--radius-sm)] bg-white/10 flex items-center justify-center text-[var(--text-3)] hover:bg-[var(--primary)] hover:text-white transition-all duration-[var(--transition)]"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Link columns */}
           <FooterColumn title="For Students" links={STUDENT_LINKS} />
-          <FooterColumn title="Company"      links={COMPANY_LINKS} />
-          <FooterColumn title="Legal"        links={LEGAL_LINKS} />
+          <FooterColumn title="iFind"         links={PLATFORM_LINKS} />
         </div>
 
         <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">

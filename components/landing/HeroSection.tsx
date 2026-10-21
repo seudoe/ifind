@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -94,6 +95,14 @@ export function HeroSection() {
               Search <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
+
+          <p className="mt-4 text-sm text-[var(--text-2)]">
+            New here?{" "}
+            <Link href="/user/register" className="font-semibold text-[var(--primary-dk)] underline underline-offset-2 hover:text-[var(--primary)]">
+              Create your free profile
+            </Link>{" "}
+            to get matched in minutes.
+          </p>
 
           {/* Popular searches */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-4">

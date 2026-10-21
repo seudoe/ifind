@@ -28,7 +28,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="py-14 bg-[var(--bg)]">
+    <section id="how-it-works" className="py-14 bg-[var(--bg)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h2 className="text-xl font-bold text-[var(--text)]">How iFind Works</h2>
