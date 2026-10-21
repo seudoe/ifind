@@ -82,10 +82,10 @@ Make questions realistic and relevant to the candidate's skill level and experie
       },
       message: 'Interview questions generated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating interview questions:', error);
     return NextResponse.json(
-      { error: 'Failed to generate interview questions', message: error.message },
+      { error: 'Failed to generate interview questions' },
       { status: 500 }
     );
   }

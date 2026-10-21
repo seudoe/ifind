@@ -62,7 +62,7 @@ export async function POST() {
   } catch (err) {
     console.error("[resume/commit POST]", err);
     return NextResponse.json(
-      { success: false, error: err instanceof Error ? err.message : "Commit failed" },
+      { success: false, error: "Commit failed" },
       { status: 500 }
     );
   }

@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import { MAX_PASSWORD_LENGTH } from "@/lib/passwords";
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import { modAuthCookie, signModToken } from "@/lib/moderatorAuth";
 import Moderator from "@/models/Moderator";
 
@@ -8,6 +10,9 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
     try {
+        const limited = await limitAuth(request, "mod-register", RULES.registerIp);
+        if (limited) return limited;
+
         const body = await request.json();
         const name = typeof body.name === "string" ? body.name.trim() : "";
         const email =
@@ -22,6 +27,13 @@ export async function POST(request: NextRequest) {
                     success: false,
                     error: "Name, email, and password are required",
                 },
+                { status: 400 },
+            );
+        }
+
+        if (name.length > 100 || email.length > 254 || password.length > MAX_PASSWORD_LENGTH) {
+            return NextResponse.json(
+                { success: false, error: "One of the fields is too long" },
                 { status: 400 },
             );
         }

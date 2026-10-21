@@ -47,7 +47,7 @@ export async function DELETE() {
   } catch (err) {
     console.error("[resume DELETE]", err);
     return NextResponse.json(
-      { success: false, error: err instanceof Error ? err.message : "Delete failed" },
+      { success: false, error: "Delete failed" },
       { status: 500 }
     );
   }

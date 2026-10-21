@@ -49,10 +49,10 @@ export async function GET(
         messages,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching chat session:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch chat session', message: error.message },
+      { error: 'Failed to fetch chat session' },
       { status: 500 }
     );
   }
@@ -111,10 +111,10 @@ export async function PATCH(
       data: chatSession,
       message: 'Chat session updated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating chat session:', error);
     return NextResponse.json(
-      { error: 'Failed to update chat session', message: error.message },
+      { error: 'Failed to update chat session' },
       { status: 500 }
     );
   }
@@ -160,10 +160,10 @@ export async function DELETE(
       success: true,
       message: 'Chat session deleted successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting chat session:', error);
     return NextResponse.json(
-      { error: 'Failed to delete chat session', message: error.message },
+      { error: 'Failed to delete chat session' },
       { status: 500 }
     );
   }

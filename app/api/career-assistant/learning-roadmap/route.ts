@@ -103,10 +103,10 @@ Focus on practical, hands-on learning.`;
       },
       message: 'Learning roadmap generated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating learning roadmap:', error);
     return NextResponse.json(
-      { error: 'Failed to generate learning roadmap', message: error.message },
+      { error: 'Failed to generate learning roadmap' },
       { status: 500 }
     );
   }

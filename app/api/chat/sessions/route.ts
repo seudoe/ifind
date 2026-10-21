@@ -33,10 +33,10 @@ export async function GET(req: NextRequest) {
       success: true,
       data: sessions,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching chat sessions:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch chat sessions', message: error.message },
+      { error: 'Failed to fetch chat sessions' },
       { status: 500 }
     );
   }
@@ -79,10 +79,10 @@ export async function POST(req: NextRequest) {
       data: chatSession,
       message: 'Chat session created successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating chat session:', error);
     return NextResponse.json(
-      { error: 'Failed to create chat session', message: error.message },
+      { error: 'Failed to create chat session' },
       { status: 500 }
     );
   }

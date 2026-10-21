@@ -42,10 +42,10 @@ export async function GET(
       success: true,
       data: jobMatch,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching internship match:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch internship match', message: error.message },
+      { error: 'Failed to fetch internship match' },
       { status: 500 }
     );
   }
@@ -87,10 +87,10 @@ export async function DELETE(
       success: true,
       message: 'Internship match deleted successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting internship match:', error);
     return NextResponse.json(
-      { error: 'Failed to delete internship match', message: error.message },
+      { error: 'Failed to delete internship match' },
       { status: 500 }
     );
   }

@@ -70,10 +70,10 @@ Provide a JSON response with:
       },
       message: 'STAR story generated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating STAR story:', error);
     return NextResponse.json(
-      { error: 'Failed to generate STAR story', message: error.message },
+      { error: 'Failed to generate STAR story' },
       { status: 500 }
     );
   }

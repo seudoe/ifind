@@ -26,10 +26,10 @@ export async function GET(req: NextRequest) {
       success: true,
       data: jobDescriptions,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching job descriptions:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch job descriptions', message: error.message },
+      { error: 'Failed to fetch job descriptions' },
       { status: 500 }
     );
   }
@@ -127,10 +127,10 @@ ${description}`;
       data: jobDescription,
       message: 'Job description created successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating job description:', error);
     return NextResponse.json(
-      { error: 'Failed to create job description', message: error.message },
+      { error: 'Failed to create job description' },
       { status: 500 }
     );
   }

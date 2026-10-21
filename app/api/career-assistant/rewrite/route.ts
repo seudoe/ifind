@@ -74,10 +74,10 @@ Provide the rewritten version that is more impactful, professional, and achievem
       },
       message: 'Content rewritten successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error rewriting content:', error);
     return NextResponse.json(
-      { error: 'Failed to rewrite content', message: error.message },
+      { error: 'Failed to rewrite content' },
       { status: 500 }
     );
   }

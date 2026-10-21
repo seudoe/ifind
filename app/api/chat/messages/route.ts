@@ -155,10 +155,10 @@ async function handlePost(req: NextRequest) {
       },
       message: 'Message sent successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error sending message:', error);
     return NextResponse.json(
-      { error: 'Failed to send message', message: error.message },
+      { error: 'Failed to send message' },
       { status: 500 }
     );
   }
@@ -208,10 +208,10 @@ export async function GET(req: NextRequest) {
       success: true,
       data: messages,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching messages:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch messages', message: error.message },
+      { error: 'Failed to fetch messages' },
       { status: 500 }
     );
   }
