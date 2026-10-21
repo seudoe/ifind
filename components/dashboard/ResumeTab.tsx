@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { track } from "@/lib/analytics/track";
 import {
     FileText,
     RefreshCw,
@@ -156,6 +157,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || "Commit failed");
+            track("resume_uploaded");
 
             setLocalResume({
                 ...localResume,

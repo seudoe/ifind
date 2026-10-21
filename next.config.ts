@@ -12,8 +12,8 @@ function imagekitOrigin(): string {
   }
 }
 
-// Google Analytics 4 (loaded only when NEXT_PUBLIC_GA_MEASUREMENT_ID is set; see components/analytics).
-const gaEnabled = Boolean(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
+// Google Analytics 4 (loaded only when NEXT_PUBLIC_GA_ID is set; see components/analytics).
+const gaEnabled = Boolean(process.env.NEXT_PUBLIC_GA_ID);
 const GA_SCRIPT = ["https://www.googletagmanager.com"];
 const GA_CONNECT = ["https://www.google-analytics.com", "https://*.google-analytics.com", "https://*.analytics.google.com", "https://www.googletagmanager.com"];
 
@@ -68,6 +68,8 @@ const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
 
 const nextConfig: NextConfig = {
   // Don't advertise the framework, and never ship source maps (and the server paths in them) to browsers.
+  // Load the GA Data API client (gRPC) with native Node require instead of bundling it.
+  serverExternalPackages: ["@google-analytics/data"],
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   async headers() {

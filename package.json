@@ -11,12 +11,16 @@
     "test:usage": "tsx --test tests/usage.test.ts",
     "test:events": "tsx --test tests/events.test.ts",
     "test:security": "tsx --test tests/validate.test.ts tests/auth-security.test.ts",
+    "test:e2e": "tsx --test tests/security.e2e.test.ts",
+    "test:analytics": "tsx --test tests/analytics.test.ts",
     "env-manager": "node env-manager.js"
   },
   "dependencies": {
+    "@google-analytics/data": "^7.3.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.7.1",
     "@radix-ui/react-dialog": "^1.1.23",
+    "@upstash/redis": "^1.39.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.1",

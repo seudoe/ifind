@@ -175,7 +175,9 @@ const UserSchema = new Schema<IUser>(
             trim: true,
         },
         password: { type: String, required: false, select: false },
-        linkedinId: { type: String, default: null, trim: true },
+        // No default: a stored null would collide in the unique sparse index below (sparse skips missing fields, not nulls),
+        // so the second password-only signup on a fresh database would fail as "already taken".
+        linkedinId: { type: String, default: undefined, trim: true },
         linkedinDetails: { type: Schema.Types.Mixed, default: null },
         profilePicture: { type: String, default: null },
         role: { type: String, enum: ["student"], default: "student" },

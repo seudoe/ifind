@@ -118,3 +118,37 @@ RCE/SSRF/cache-poisoning advisories; same major, build verified) and `nanoid`, `
 Remaining (`npm audit`, dev only): `braces` ReDoS reached through `eslint-config-next → fast-glob → micromatch`. It only
 runs inside the linter on repo files; the suggested fix downgrades `eslint-config-next` to v14, so it is left until the
 Next ESLint plugin updates its glob dependency.
+
+## Verification
+
+Run these before a release (`npm run build` first; the e2e suite tests the production build):
+
+| Command | What it covers | Result when written (2026-10-21) |
+|---|---|---|
+| `npm run test:security` | `isObjectId`/input validators, `requireSecret` fail-closed, constant-work password check, upload signature sniffing | 7/7 pass |
+| `npm run test:e2e` | **37 checks against `next start` + in-memory MongoDB** (never a real database): unauthenticated access to 12 protected endpoints, student/employer/unverified-moderator role separation, IDOR on chat sessions and job descriptions, `userId` mass assignment, profile allowlist, malformed ids, login enumeration parity, brute-force 429 + `Retry-After`, cookie flags, password length cap, response minimisation, CSRF (cross-origin / `Sec-Fetch-Site` / same-origin / no-origin), upload validation (HTML/SVG disguised as image, non-PDF, oversize, real PNG), security headers, noindex/no-store, robots.txt, sitemap, 404, unique titles/canonicals/og:image, analytics off without an ID | 37/37 pass |
+| `npm run test:analytics`, `test:events`, `test:usage` | existing suites | 89/89, 9/9, 22/22 pass |
+| `npx tsc --noEmit` | types | clean apart from pre-existing errors in `lib/demoMockData.ts` |
+| `npm audit --omit=dev` | production dependencies | 0 vulnerabilities |
+| `npx next build` | production build | succeeds |
+
+Not verified by automation (needs a browser or live services): CSP behaviour in a real browser, GA consent flow and gtag
+loading with a real measurement ID (covered by the existing `tests/analytics.test.ts` logic tests only), LinkedIn OAuth,
+mobile sticky-CTA appearance, real ImageKit/AI providers, Atlas network/user settings.
+
+The e2e harness blanks every variable named in `.env`/`.env.local` for the server it spawns, so a developer's real
+credentials can never be used by the tests.
+
+### Bugs found by the tests and fixed
+
+- `User.linkedinId` defaulted to `null` while its unique index is *sparse* (which still indexes `null`), so on any fresh
+  database the second password-based signup failed as "already taken". Default is now `undefined`, as `Employer` already did.
+- `PUT /api/user/profile` returned 500 for resume-section edits before a resume had been extracted; it now returns a clear 400.
+
+### Known limits
+
+- Rate limiting trusts `x-vercel-forwarded-for` / `x-real-ip` / `x-forwarded-for` in that order. On Vercel the platform sets
+  these; if the app is ever self-hosted it must sit behind a proxy that overwrites them, or per-IP limits can be evaded
+  (per-account limits still apply).
+- The per-account login limit means an attacker can lock a victim out of password login for 15 minutes by failing
+  logins on purpose. That trade-off is intentional; LinkedIn sign-in is unaffected.

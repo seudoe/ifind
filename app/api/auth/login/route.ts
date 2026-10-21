@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { checkPassword, MAX_PASSWORD_LENGTH } from "@/lib/passwords";
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
         });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
         log.ok("auth/login", "user signed in", { username: user.username, role: "student", notice: loginNotice ? "account restored/reset" : undefined });
+        after(() => sendServerEvent(request, "login", { user_type: "student" }));
         return response;
     } catch (error) {
         console.error("[auth/login]", error);

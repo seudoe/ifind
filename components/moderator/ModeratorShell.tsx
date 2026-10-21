@@ -9,6 +9,7 @@ import {
     UserCheck,
     Activity,
     Gauge,
+    BarChart3,
     Trophy,
     Briefcase,
     Building2,
@@ -18,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { ModeratorSession } from "@/types/moderator";
 
-type Tab = "internships" | "events" | "scrapes" | "usage" | "users" | "employers" | "companies" | "moderators";
+type Tab = "internships" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "moderators";
 
 // ── Nav definition (grouped) ──────────────────────────────────────────────
 const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeof Users }[] }[] = [
@@ -34,6 +35,7 @@ const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeo
         links: [
             { tab: "scrapes", label: "Scrapes", icon: Activity },
             { tab: "usage", label: "Usage", icon: Gauge },
+            { tab: "analytics", label: "Analytics", icon: BarChart3 },
         ],
     },
     {
@@ -76,6 +78,7 @@ export function ModeratorShell({
         events: "Hackathons & Contests",
         scrapes: "Scrapes",
         usage: "AI Usage",
+        analytics: "Analytics",
         users: "User Management",
         employers: "Employer Management",
         companies: "Company Management",

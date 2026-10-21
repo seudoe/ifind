@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { createApplication } from "@/lib/employer/applications";
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
             return fail(err instanceof Error ? err.message : "Unable to apply", 409);
         }
         await record();
+        after(() => sendServerEvent(req, "application_submitted", { user_type: "student" }));
         return NextResponse.json({ success: true }, { status: 201 });
     } catch (error) {
         console.error("[internships/apply]", error);

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics/track";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { sourceLabel } from "@/lib/constants";
@@ -77,6 +78,8 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
       if (internship.applyLink.startsWith("mailto:")) window.location.href = internship.applyLink;
       else window.open(internship.applyLink, "_blank");
     }
+    // Scraped listings only: for iFind posts the server reports application_submitted
+    if (!onPlatform) track("apply_click", { internship_id: id });
     void submit();
   };
 

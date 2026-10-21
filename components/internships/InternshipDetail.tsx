@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapPin, Clock, Calendar, Users,
   CheckCircle, Wifi, Building2, Banknote,
@@ -17,6 +17,7 @@ import { Modal } from "@/components/ui/Modal";
 import type { Internship } from "@/types";
 import { formatDuration, formatDate, cn, getInternshipId } from "@/lib/utils";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics/track";
 
 interface Props {
   internship: Internship;
@@ -39,6 +40,12 @@ export function InternshipDetailModal({
   const [saved, setSaved] = useState(isSaved);
   const internshipId = getInternshipId(internship);
 
+  // The parent mounts this and MobileInternshipDetail together (one hidden by CSS): only the visible one reports the view
+  useEffect(() => {
+    if (!open || !window.matchMedia("(min-width: 1024px)").matches) return;
+    track("view_internship", { internship_id: internshipId });
+  }, [open, internshipId]);
+
   const handleSave = async () => {
     const next = !saved;
     setSaved(next);
@@ -48,6 +55,7 @@ export function InternshipDetailModal({
         credentials: "include",
       });
       if (!res.ok) throw new Error();
+      if (next) track("save_internship", { internship_id: internshipId });
       onSaveToggle?.(internshipId);
       toast.success(next ? "Saved to bookmarks" : "Removed from bookmarks");
     } catch {
@@ -180,6 +188,12 @@ export function MobileInternshipDetail({
   const [saved, setSaved] = useState(isSaved);
   const internshipId = getInternshipId(internship);
 
+  // Counterpart of the modal's effect: this view is the visible one below the lg breakpoint
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 1024px)").matches) return;
+    track("view_internship", { internship_id: internshipId });
+  }, [internshipId]);
+
   const handleSave = async () => {
     const next = !saved;
     setSaved(next);
@@ -189,6 +203,7 @@ export function MobileInternshipDetail({
         credentials: "include",
       });
       if (!res.ok) throw new Error();
+      if (next) track("save_internship", { internship_id: internshipId });
       onSaveToggle?.(internshipId);
       toast.success(next ? "Saved to bookmarks" : "Removed from bookmarks");
     } catch {

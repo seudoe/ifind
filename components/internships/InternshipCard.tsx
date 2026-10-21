@@ -13,6 +13,7 @@ import { sourceLabel } from "@/lib/constants";
 import { formatAddresses } from "@/lib/address";
 import { cn, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
 import { toast }   from "sonner";
+import { track }   from "@/lib/analytics/track";
 import type { Internship } from "@/types";
 
 interface Props {
@@ -57,6 +58,7 @@ export function InternshipCard({
         credentials: "include",
       });
       if (!res.ok) throw new Error();
+      if (next) track("save_internship", { internship_id: internshipId });
       onSave?.(internshipId);
       toast.success(next ? "Saved" : "Removed from saved");
     } catch {
