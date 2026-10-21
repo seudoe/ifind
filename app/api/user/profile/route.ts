@@ -2,8 +2,18 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { str, strList } from "@/lib/validate";
 
 export const runtime = "nodejs";
+
+/** Only these resume sections may be edited from the profile page (mirrors ParsedResumeData). */
+const EDITABLE_RESUME_SECTIONS = new Set([
+  "summary", "workHistory", "education", "skills", "projects", "certifications", "languages",
+  "publications", "affiliations", "awards", "interests", "metaDetails",
+]);
+const MAX_SECTION_BYTES = 200_000;
+
+const bad = (error: string) => NextResponse.json({ success: false, error }, { status: 400 });
 
 export async function PUT(request: Request) {
   try {
@@ -12,8 +22,11 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") return bad("Invalid request body");
     const { userUpdate, resumeUpdate } = body;
+    if (userUpdate !== undefined && (typeof userUpdate !== "object" || userUpdate === null || Array.isArray(userUpdate))) return bad("Invalid userUpdate");
+    if (resumeUpdate !== undefined && (typeof resumeUpdate !== "object" || resumeUpdate === null || Array.isArray(resumeUpdate))) return bad("Invalid resumeUpdate");
 
     await connectDB();
     const db = mongoose.connection.db;
@@ -29,47 +42,70 @@ export async function PUT(request: Request) {
 
     // 1. Process top-level user updates
     if (userUpdate) {
-      const { name, username, email, phone, dateOfBirth, gender, city, state, country, skills, profilePicture } = userUpdate;
-
-      if (name !== undefined) {
-        if (!name.trim()) return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 });
-        setFields["name"] = name.trim();
+      // Every field is type- and length-checked: a non-string here used to throw (500) or reach the query.
+      const text = (key: string, max: number): string | null | undefined => {
+        const v = userUpdate[key];
+        if (v === undefined) return undefined;
+        if (v === null || v === "") return null;
+        return str(v, max) ?? undefined;
+      };
+      for (const key of ["name", "username", "email", "phone", "dateOfBirth", "gender", "city", "state", "country", "profilePicture"]) {
+        const v = userUpdate[key];
+        if (v !== undefined && v !== null && typeof v !== "string") return bad(`Invalid ${key}`);
       }
-      if (username !== undefined) {
-        if (!username.trim()) return NextResponse.json({ success: false, error: "Username is required" }, { status: 400 });
-        const cleanUsername = username.toLowerCase().trim();
-        // Check duplicate
+
+      if (userUpdate.name !== undefined) {
+        const name = str(userUpdate.name, 100);
+        if (!name) return bad("Name is required");
+        setFields["name"] = name;
+      }
+      if (userUpdate.username !== undefined) {
+        const cleanUsername = str(userUpdate.username, 20)?.toLowerCase();
+        if (!cleanUsername) return bad("Username is required");
+        if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) return bad("Username must be 3-20 letters, numbers or underscores");
         const dup = await db.collection("users").findOne({
           username: cleanUsername,
           _id: { $ne: new mongoose.Types.ObjectId(session.userId) }
         });
-        if (dup) return NextResponse.json({ success: false, error: "Username is already taken" }, { status: 400 });
+        if (dup) return bad("Username is already taken");
         setFields["username"] = cleanUsername;
       }
-      if (email !== undefined) {
-        if (!email.trim()) return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
-        const cleanEmail = email.toLowerCase().trim();
-        // Check duplicate
+      if (userUpdate.email !== undefined) {
+        const cleanEmail = str(userUpdate.email, 254)?.toLowerCase();
+        if (!cleanEmail) return bad("Email is required");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return bad("Enter a valid email address");
         const dup = await db.collection("users").findOne({
           email: cleanEmail,
           _id: { $ne: new mongoose.Types.ObjectId(session.userId) }
         });
-        if (dup) return NextResponse.json({ success: false, error: "Email is already taken" }, { status: 400 });
+        if (dup) return bad("Email is already taken");
         setFields["email"] = cleanEmail;
       }
-      if (phone !== undefined) setFields["phone"] = phone || null;
-      if (dateOfBirth !== undefined) setFields["dateOfBirth"] = dateOfBirth || null;
-      if (gender !== undefined) setFields["gender"] = gender || null;
-      if (city !== undefined) setFields["city"] = city || null;
-      if (state !== undefined) setFields["state"] = state || null;
-      if (country !== undefined) setFields["country"] = country || null;
-      if (profilePicture !== undefined) setFields["profilePicture"] = profilePicture || null;
-      if (skills !== undefined) setFields["skills"] = Array.isArray(skills) ? skills.filter(Boolean) : [];
+      const optional: Array<[string, number]> = [["phone", 30], ["dateOfBirth", 40], ["gender", 30], ["city", 100], ["state", 100], ["country", 100]];
+      for (const [key, max] of optional) {
+        const v = text(key, max);
+        if (v === undefined && userUpdate[key] !== undefined) return bad(`Invalid ${key}`);
+        if (v !== undefined) setFields[key] = v;
+      }
+      if (userUpdate.profilePicture !== undefined) {
+        const pic = text("profilePicture", 2000);
+        // Stored URLs end up in <img src>; only allow web URLs so nothing like javascript: is ever persisted.
+        if (pic && !/^https?:\/\//i.test(pic)) return bad("Profile picture must be an http(s) URL");
+        setFields["profilePicture"] = pic ?? null;
+      }
+      if (userUpdate.skills !== undefined) {
+        const skills = strList(userUpdate.skills, 100, 80);
+        if (!skills) return bad("Invalid skills");
+        setFields["skills"] = skills;
+      }
     }
 
     // 2. Process nested resume updates
     if (resumeUpdate) {
       for (const [key, val] of Object.entries(resumeUpdate)) {
+        // Allowlist: arbitrary keys would let a client write any field under resume.parsedData.
+        if (!EDITABLE_RESUME_SECTIONS.has(key)) return bad(`Unknown resume section: ${key}`);
+        if (JSON.stringify(val).length > MAX_SECTION_BYTES) return bad(`Resume section too large: ${key}`);
         setFields[`resume.parsedData.${key}`] = val;
       }
     }

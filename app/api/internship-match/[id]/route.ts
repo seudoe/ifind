@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import JobMatch from '@/models/JobMatch';
 import { getSession } from '@/lib/auth';
+import { isObjectId } from '@/lib/validate';
 
 /**
  * GET /api/internship-match/[id]
@@ -18,6 +19,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Internship match not found' }, { status: 404 });
+    }
     await connectDB();
 
     const jobMatch = await JobMatch.findOne({
@@ -62,6 +66,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Internship match not found' }, { status: 404 });
+    }
     await connectDB();
 
     const jobMatch = await JobMatch.findOneAndDelete({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import JobDescription from '@/models/JobDescription';
 import { getSession } from '@/lib/auth';
+import { isObjectId, str, strList } from '@/lib/validate';
 
 /**
  * GET /api/job-descriptions/[id]
@@ -18,6 +19,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Job description not found' }, { status: 404 });
+    }
     await connectDB();
 
     const jobDescription = await JobDescription.findOne({
@@ -60,7 +64,29 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const body = await req.json();
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Job description not found' }, { status: 404 });
+    }
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    // Allowlist: never `$set: body`, which would let a client rewrite userId or any other field.
+    const update: Record<string, unknown> = {};
+    const text: Array<[string, number]> = [['title', 200], ['company', 200], ['description', 20000], ['location', 200], ['industry', 200], ['employmentType', 30], ['experienceLevel', 30]];
+    for (const [key, max] of text) {
+      if (body[key] === undefined) continue;
+      const v = str(body[key], max);
+      if (v === undefined) return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
+      update[key] = v;
+    }
+    for (const key of ['requirements', 'responsibilities', 'preferredQualifications', 'skills']) {
+      if (body[key] === undefined) continue;
+      const v = strList(body[key], 100, 500);
+      if (v === undefined) return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
+      update[key] = v;
+    }
 
     await connectDB();
 
@@ -69,7 +95,7 @@ export async function PUT(
         _id: id,
         userId: session.userId,
       },
-      { $set: body },
+      { $set: update },
       { new: true, runValidators: true }
     );
 
@@ -109,6 +135,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Job description not found' }, { status: 404 });
+    }
     await connectDB();
 
     const jobDescription = await JobDescription.findOneAndDelete({

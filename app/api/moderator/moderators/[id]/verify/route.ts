@@ -1,3 +1,4 @@
+import { isObjectId } from "@/lib/validate";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -19,6 +20,7 @@ export async function PATCH(
         }
 
         const { id: targetId } = await params;
+        if (!isObjectId(targetId)) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
         // 400 if attempting self-verification
         if (targetId === session.moderatorId) {

@@ -2,15 +2,21 @@
  * Admin API: Rebuild HNSW Index
  * 
  * Rebuilds the HNSW index from all active internships with vectors.
- * This endpoint should be protected and only accessible to administrators.
+ * Requires a verified moderator session.
  */
 
 import { NextResponse } from "next/server";
 import { rebuildInternshipIndex } from "@/lib/internship-vectorizer";
 
+import { requireVerifiedModerator } from "@/lib/moderatorAuth";
+
 export const runtime = "nodejs";
 
 export async function POST() {
+  // Expensive, platform-wide operation: moderators only.
+  const auth = await requireVerifiedModerator();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     console.log("[admin/rebuild-index] Starting HNSW index rebuild");
 

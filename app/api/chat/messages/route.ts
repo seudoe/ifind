@@ -4,6 +4,7 @@ import ChatSession from '@/models/ChatSession';
 import ChatMessage from '@/models/ChatMessage';
 import User from '@/models/User';
 import { getSession } from '@/lib/auth';
+import { isObjectId } from '@/lib/validate';
 import { generateChatCompletion } from '@/lib/groq/groqService';
 import { prepareChatContext, detectResumeSection, extractSection } from '@/lib/chat/embeddingService';
 import { extractResumeText } from '@/lib/resume/resumeTextExtractor';
@@ -23,7 +24,7 @@ async function handlePost(req: NextRequest) {
     const body = await req.json();
     const { sessionId, content } = body;
 
-    if (!sessionId || !content) {
+    if (!isObjectId(sessionId) || typeof content !== 'string' || !content.trim() || content.length > 4000) {
       return NextResponse.json(
         { error: 'Session ID and message content are required' },
         { status: 400 }
@@ -177,9 +178,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get('sessionId');
 
-    if (!sessionId) {
+    if (!isObjectId(sessionId)) {
       return NextResponse.json(
-        { error: 'Session ID is required' },
+        { error: 'A valid session ID is required' },
         { status: 400 }
       );
     }
