@@ -21,7 +21,7 @@ export async function GET() {
 
     const user = await db.collection("users").findOne(
       { _id: new mongoose.Types.ObjectId(session.userId) },
-      { projection: { password: 0, "resume.bert_vector": 0, "resume.tfidf_vector": 0 } },
+      { projection: { password: 0, failedLoginAttempts: 0, "resume.bert_vector": 0, "resume.tfidf_vector": 0 } },
     );
     if (!user) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
 

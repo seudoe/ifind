@@ -40,10 +40,10 @@ export async function GET(
       success: true,
       data: jobDescription,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching job description:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch job description', message: error.message },
+      { error: 'Failed to fetch job description' },
       { status: 500 }
     );
   }
@@ -111,10 +111,10 @@ export async function PUT(
       data: jobDescription,
       message: 'Job description updated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating job description:', error);
     return NextResponse.json(
-      { error: 'Failed to update job description', message: error.message },
+      { error: 'Failed to update job description' },
       { status: 500 }
     );
   }
@@ -156,10 +156,10 @@ export async function DELETE(
       success: true,
       message: 'Job description deleted successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting job description:', error);
     return NextResponse.json(
-      { error: 'Failed to delete job description', message: error.message },
+      { error: 'Failed to delete job description' },
       { status: 500 }
     );
   }

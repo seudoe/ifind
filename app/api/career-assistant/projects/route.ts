@@ -85,10 +85,10 @@ Focus on:
       },
       message: 'Project suggestions generated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating project suggestions:', error);
     return NextResponse.json(
-      { error: 'Failed to generate project suggestions', message: error.message },
+      { error: 'Failed to generate project suggestions' },
       { status: 500 }
     );
   }

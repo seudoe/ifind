@@ -60,3 +60,35 @@ field; client-supplied ids are checked with `isObjectId` before reaching a query
 Existing indexes already cover the ownership lookups (`userId`-leading compound indexes on chat, matches, job
 descriptions; unique email/username/linkedinId on users). Remaining database-level controls (least-privilege Atlas
 user, TLS, network allowlist) are deployment settings, listed above.
+
+## Authentication & API hardening
+
+- **Passwords:** bcrypt cost 12 (existing). Max 128 chars enforced on every login/register/change route to bound work.
+- **Timing/enumeration:** `lib/passwords.ts#checkPassword` always performs a bcrypt compare (against a dummy hash for
+  unknown accounts), and student/employer login now return one identical message for unknown account, LinkedIn-only
+  account and wrong password. Registration still reports "already registered" (needed to be usable); that endpoint is
+  rate-limited.
+- **Rate limiting:** `lib/rateLimit.ts`, a fixed-window counter in MongoDB (`RateLimit` model with TTL index), shared across
+  serverless instances. Login: 30/15 min per IP and 8/15 min per account (5 for moderators). Register: 10/h per IP.
+  Password change and account deletion: 10/h per user. Uploads: 30/h per user. Fails open if the database is
+  unreachable (the routes need it anyway).
+- **CSRF:** cookies are `HttpOnly`, `SameSite=Lax`, `Secure` in production. `proxy.ts` additionally rejects
+  state-changing `/api` requests whose `Origin` host differs from the site or whose `Sec-Fetch-Site` is `cross-site`.
+- **Sessions:** JWT in an `HttpOnly` cookie (students 30 d, employers 7 d, moderators 24 h). Fresh token per login (no
+  fixation). Banned/deleted users are rejected on every request. Tokens are stateless, so a password change does not
+  revoke other devices' tokens until they expire; rotate the signing key to force a global sign-out.
+- **Redirects:** all server redirects are same-origin fixed paths; no user-controlled redirect target exists.
+- **XSS:** React escapes output; `dangerouslySetInnerHTML` is only used for two static `<style>` blocks. Employer rich
+  text goes through `lib/employer/sanitize.ts`.
+- **Uploads:** size cap + *byte-signature* check (`lib/uploads.ts`): avatars/company images must really be JPEG/PNG/WebP
+  (SVG/HTML disguised as images is rejected, extension comes from the detected format); resumes must contain `%PDF-`.
+- **API responses:** internal error text is no longer returned (`message: error.message` removed from 14 routes and the
+  login 500); dashboard/me projections exclude password hash, login-attempt history and embedding vectors.
+
+### Not done / needs a decision
+
+- **Bot protection (CAPTCHA):** needs a provider and keys (e.g. Cloudflare Turnstile) plus a frontend widget. Rate limits
+  are the interim control.
+- Resume upload/re-extract routes still surface parser error text to the signed-in user; those messages come from
+  upstream AI/extractor failures and should be reviewed before being wrapped.
+- Session revocation on password change (needs a token version on the user document).

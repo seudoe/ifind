@@ -113,10 +113,10 @@ Address potential challenges and how to overcome them.`;
       },
       message: 'Career roadmap generated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating career roadmap:', error);
     return NextResponse.json(
-      { error: 'Failed to generate career roadmap', message: error.message },
+      { error: 'Failed to generate career roadmap' },
       { status: 500 }
     );
   }

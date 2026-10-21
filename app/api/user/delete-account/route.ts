@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, authCookie } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import User from "@/models/User";
 
 export const runtime = "nodejs";
@@ -11,6 +12,9 @@ export async function POST(req: NextRequest) {
     if (!session) {
       return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
     }
+
+    const rl = await hit("delete-account", session.userId, RULES.sensitiveUser);
+    if (!rl.ok) return tooManyRequests(rl.retryAfter);
 
     const body = await req.json();
     const confirmUsername = typeof body.confirmUsername === "string" ? body.confirmUsername.trim() : "";

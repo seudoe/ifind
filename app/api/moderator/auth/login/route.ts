@@ -1,6 +1,7 @@
-import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import { checkPassword, MAX_PASSWORD_LENGTH } from "@/lib/passwords";
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import { modAuthCookie, signModToken } from "@/lib/moderatorAuth";
 import Moderator from "@/models/Moderator";
 
@@ -15,30 +16,24 @@ export async function POST(request: NextRequest) {
                 : "";
         const password = typeof body.password === "string" ? body.password : "";
 
-        if (!email || !password) {
+        if (!email || !password || email.length > 254 || password.length > MAX_PASSWORD_LENGTH) {
             return NextResponse.json(
                 { success: false, error: "Email and password are required" },
                 { status: 400 },
             );
         }
 
+        // Moderator accounts are high value: tighter per-account limit than students.
+        const limited = await limitAuth(request, "mod-login", RULES.loginIp, { id: email, rule: { limit: 5, windowSec: 15 * 60 } });
+        if (limited) return limited;
+
         await connectDB();
 
         const moderator = await Moderator.findOne({ email }).select(
             "+password",
         );
-        if (!moderator || !moderator.password) {
-            return NextResponse.json(
-                { success: false, error: "Invalid credentials" },
-                { status: 401 },
-            );
-        }
-
-        const passwordMatch = await bcrypt.compare(
-            password,
-            moderator.password,
-        );
-        if (!passwordMatch) {
+        const passwordMatch = await checkPassword(password, moderator?.password);
+        if (!moderator || !passwordMatch) {
             return NextResponse.json(
                 { success: false, error: "Invalid credentials" },
                 { status: 401 },

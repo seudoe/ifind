@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { connectDB } from "@/lib/db";
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
 import { plainText } from "@/lib/employer/sanitize";
 import Employer from "@/models/Employer";
@@ -10,6 +11,9 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
     try {
+        const limited = await limitAuth(request, "emp-register", RULES.registerIp);
+        if (limited) return limited;
+
         const body = await request.json();
         const name = typeof body.name === "string" ? plainText(body.name) : "";
         const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";

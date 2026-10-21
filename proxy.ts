@@ -7,8 +7,33 @@ import { log } from "@/lib/logger";
 const denied = (area: string, request: NextRequest, reason: string) =>
     log.warn(`proxy/${area}`, "access denied", { method: request.method, path: request.nextUrl.pathname, reason });
 
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
+ * CSRF defence in depth on top of SameSite=Lax cookies: a state-changing /api request from a browser must come
+ * from this site. Browsers always send Origin (or Sec-Fetch-Site) on cross-site writes; server-to-server callers
+ * send neither and are unaffected.
+ */
+function isCrossSiteWrite(request: NextRequest): boolean {
+    if (SAFE_METHODS.has(request.method) || !request.nextUrl.pathname.startsWith("/api/")) return false;
+    if (request.headers.get("sec-fetch-site") === "cross-site") return true;
+    const origin = request.headers.get("origin");
+    if (!origin) return false;
+    try {
+        const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host;
+        return new URL(origin).host !== host;
+    } catch {
+        return true; // "null" or malformed origin
+    }
+}
+
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    if (isCrossSiteWrite(request)) {
+        denied("csrf", request, `cross-site write from ${request.headers.get("origin") ?? "unknown origin"}`);
+        return NextResponse.json({ success: false, error: "Cross-site request blocked" }, { status: 403 });
+    }
 
     // ── Moderator dynamic pages (/moderator/[username]/...) ──────────────────────
     if (
@@ -113,6 +138,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
+        "/api/:path*",
         "/moderator/:path*",
         "/api/moderator/((?!auth/).*)",
         "/employer/:path*",

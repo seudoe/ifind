@@ -11,7 +11,7 @@
     "test:usage": "tsx --test tests/usage.test.ts",
     "test:events": "tsx --test tests/events.test.ts",
     "test:analytics": "tsx --test tests/analytics.test.ts",
-    "test:security": "tsx --test tests/validate.test.ts",
+    "test:security": "tsx --test tests/validate.test.ts tests/auth-security.test.ts",
     "env-manager": "node env-manager.js"
   },
   "dependencies": {

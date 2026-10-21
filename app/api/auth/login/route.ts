@@ -1,12 +1,15 @@
-import bcrypt from "bcryptjs";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { checkPassword, MAX_PASSWORD_LENGTH } from "@/lib/passwords";
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import User from "@/models/User";
 import { log } from "@/lib/logger";
 
 export const runtime = "nodejs";
+
+const INVALID_CREDENTIALS = "Invalid credentials. If you signed up with LinkedIn, use Continue with LinkedIn.";
 
 export async function POST(request: NextRequest) {
     try {
@@ -14,29 +17,28 @@ export async function POST(request: NextRequest) {
         const identifier = typeof body.identifier === "string" ? body.identifier.trim().toLowerCase() : "";
         const password = typeof body.password === "string" ? body.password : "";
 
-        if (!identifier || !password) {
+        if (!identifier || !password || identifier.length > 254 || password.length > MAX_PASSWORD_LENGTH) {
             return NextResponse.json({ success: false, error: "Email or username and password are required" }, { status: 400 });
         }
+
+        const limited = await limitAuth(request, "login", RULES.loginIp, { id: identifier, rule: RULES.loginAccount });
+        if (limited) return limited;
 
         await connectDB();
         const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] }).select("+password");
         if (!user) {
-            log.warn("auth/login", "sign-in rejected: unknown account", { identifier });
-            return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
+            await checkPassword(password, null); // same cost as a real check, so timing doesn't reveal unknown accounts
+            log.warn("auth/login", "sign-in rejected: unknown account");
+            return NextResponse.json({ success: false, error: INVALID_CREDENTIALS }, { status: 401 });
         }
 
-        if (!user.password && user.linkedinId) {
-            return NextResponse.json(
-                { success: false, error: "This account was created using LinkedIn. Please sign in with LinkedIn." },
-                { status: 400 }
-            );
-        }
-
-        if (!user.password || !(await bcrypt.compare(password, user.password))) {
+        // Same response whether the account is unknown, LinkedIn-only, or the password is wrong:
+        // a different message here would reveal which emails have accounts.
+        if (!(await checkPassword(password, user.password))) {
             log.warn("auth/login", "sign-in rejected: wrong password", { username: user.username });
             // Keep the 20 most recent failures; the moderator panel counts the ones from the last 24 hours.
             await User.updateOne({ _id: user._id }, { $push: { failedLoginAttempts: { $each: [new Date()], $slice: -20 } } });
-            return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
+            return NextResponse.json({ success: false, error: INVALID_CREDENTIALS }, { status: 401 });
         }
 
         if (user.isBanned === true) {
@@ -113,7 +115,6 @@ export async function POST(request: NextRequest) {
         return response;
     } catch (error) {
         console.error("[auth/login]", error);
-        const message = error instanceof Error ? error.message : "Unable to sign in";
-        return NextResponse.json({ success: false, error: message }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Unable to sign in" }, { status: 500 });
     }
 }

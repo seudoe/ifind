@@ -1,7 +1,8 @@
-import bcrypt from "bcryptjs";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { connectDB } from "@/lib/db";
+import { checkPassword } from "@/lib/passwords";
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
 import Employer from "@/models/Employer";
 
@@ -16,16 +17,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: "Email and password are required" }, { status: 400 });
         }
 
+        const limited = await limitAuth(request, "emp-login", RULES.loginIp, { id: email, rule: RULES.loginAccount });
+        if (limited) return limited;
+
         await connectDB();
         const employer = await Employer.findOne({ email }).select("+password");
-        if (!employer) {
-            return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
-        }
-        if (!employer.password && employer.linkedinId) {
-            return NextResponse.json({ success: false, error: "This account was created using LinkedIn. Please sign in with LinkedIn." }, { status: 400 });
-        }
-        if (!employer.password || !(await bcrypt.compare(password, employer.password))) {
-            return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
+        // One response (and one amount of work) for unknown account, LinkedIn-only account and wrong password.
+        if (!(await checkPassword(password, employer?.password)) || !employer) {
+            return NextResponse.json({ success: false, error: "Invalid credentials. If you signed up with LinkedIn, use Continue with LinkedIn." }, { status: 401 });
         }
         if (employer.isBanned) {
             return NextResponse.json({ success: false, error: "Your account has been suspended" }, { status: 403 });

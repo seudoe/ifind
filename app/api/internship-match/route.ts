@@ -53,10 +53,10 @@ async function handlePost(req: NextRequest) {
       data: jobMatch,
       message: 'Internship match generated successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating internship match:', error);
     return NextResponse.json(
-      { error: 'Failed to generate internship match', message: error.message },
+      { error: 'Failed to generate internship match' },
       { status: 500 }
     );
   }
@@ -94,10 +94,10 @@ export async function GET(req: NextRequest) {
       success: true,
       data: jobMatches,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching internship matches:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch internship matches', message: error.message },
+      { error: 'Failed to fetch internship matches' },
       { status: 500 }
     );
   }

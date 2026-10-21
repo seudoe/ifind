@@ -3,6 +3,8 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { MAX_PASSWORD_LENGTH } from "@/lib/passwords";
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import User from "@/models/User";
 import { log } from "@/lib/logger";
 
@@ -10,6 +12,9 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await limitAuth(request, "register", RULES.registerIp);
+    if (limited) return limited;
+
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const username = typeof body.username === "string" ? body.username.trim().toLowerCase() : "";
@@ -19,6 +24,9 @@ export async function POST(request: NextRequest) {
 
     if (!name || !username || !email || !password) {
       return NextResponse.json({ success: false, error: "Name, username, email, and password are required" }, { status: 400 });
+    }
+    if (name.length > 100 || email.length > 254 || password.length > MAX_PASSWORD_LENGTH) {
+      return NextResponse.json({ success: false, error: "One of the fields is too long" }, { status: 400 });
     }
     if (!/^[a-z0-9_]{3,20}$/.test(username)) {
       return NextResponse.json({ success: false, error: "Username must be 3–20 lowercase letters, numbers, or underscores" }, { status: 400 });

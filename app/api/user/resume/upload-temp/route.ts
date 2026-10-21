@@ -13,6 +13,8 @@ import {
     AI_EXTRACTION_MONTHLY_LIMIT,
 } from "@/lib/resumeParser";
 import { withBilling } from "@/lib/usage/withBilling";
+import { looksLikePdf } from "@/lib/uploads";
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -25,6 +27,9 @@ async function handlePost(req: NextRequest) {
                 { status: 401 },
             );
         }
+
+        const rl = await hit("upload", session.userId, RULES.uploadUser);
+        if (!rl.ok) return tooManyRequests(rl.retryAfter);
 
         const formData = await req.formData();
         const file = formData.get("resume") as File | null;
@@ -68,6 +73,12 @@ async function handlePost(req: NextRequest) {
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+        if (!looksLikePdf(buffer)) {
+            return NextResponse.json(
+                { success: false, error: "That file is not a valid PDF" },
+                { status: 400 },
+            );
+        }
         const userIdStr = (user._id || user.id).toString();
         const fileName = `${userIdStr}_resume_${Date.now()}.pdf`;
 

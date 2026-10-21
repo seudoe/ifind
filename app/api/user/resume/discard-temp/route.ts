@@ -38,7 +38,7 @@ export async function POST() {
   } catch (err) {
     console.error("[resume/discard-temp POST]", err);
     return NextResponse.json(
-      { success: false, error: err instanceof Error ? err.message : "Discard failed" },
+      { success: false, error: "Discard failed" },
       { status: 500 }
     );
   }
