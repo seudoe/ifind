@@ -92,3 +92,29 @@ user, TLS, network allowlist) are deployment settings, listed above.
 - Resume upload/re-extract routes still surface parser error text to the signed-in user; those messages come from
   upstream AI/extractor failures and should be reviewed before being wrapped.
 - Session revocation on password change (needs a token version on the user document).
+
+## HTTP security headers & dependencies
+
+Set in `next.config.ts` for every route (verified on a production build):
+
+| Header | Value / reason |
+|---|---|
+| `Content-Security-Policy` | `default-src 'self'`; scripts `'self' 'unsafe-inline'` (Next's inline bootstrap; a nonce CSP would force every page dynamic); no `unsafe-eval` in production; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`; images any `https:` (scraped company logos); `frame-src` = ImageKit origin (resume preview); `upgrade-insecure-requests`. |
+| `Strict-Transport-Security` | 2 years, `includeSubDomains`, production only. **No `preload`** — submit to the preload list only after confirming every subdomain is HTTPS. |
+| `X-Content-Type-Options` / `X-Frame-Options` / `Referrer-Policy` / `Permissions-Policy` / `Cross-Origin-Opener-Policy` | `nosniff` / `DENY` / `strict-origin-when-cross-origin` / camera, mic, geolocation, payment off / `same-origin`. |
+| `Cache-Control: private, no-store` | `/api/*`, `/user/*`, and the signed-in parts of `/employer` and `/moderator`. |
+
+CORS: no `Access-Control-*` headers are sent, so browsers keep the default same-origin policy; do not add a wildcard.
+OAuth (LinkedIn) is a top-level redirect and is unaffected; fonts are self-hosted by `next/font`.
+
+Known CSP gap: `script-src 'unsafe-inline'` means the CSP will not stop injected inline scripts. It still blocks
+third-party script origins, framing, plugin content and form hijacking. Moving to nonces is a larger change.
+
+### Dependencies
+
+`npm audit --omit=dev` went from **4 vulnerabilities (1 critical, 3 high) to 0**: `next` 16.3.0 → 16.4.2 (patch-line fixes for
+RCE/SSRF/cache-poisoning advisories; same major, build verified) and `nanoid`, `sharp`, `source-map-js` via `npm audit fix`.
+
+Remaining (`npm audit`, dev only): `braces` ReDoS reached through `eslint-config-next → fast-glob → micromatch`. It only
+runs inside the linter on repo files; the suggested fix downgrades `eslint-config-next` to v14, so it is left until the
+Next ESLint plugin updates its glob dependency.
