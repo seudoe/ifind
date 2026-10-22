@@ -42,3 +42,18 @@ yarn-error.log*
 next-env.d.ts
 
 .kiro/
+# secrets and data dumps that must never be committed
+*.key
+*.p12
+*.pfx
+id_rsa*
+*service-account*.json
+*serviceaccount*.json
+*credentials*.json
+*backup*.json
+*backup*.csv
+*dump*.json
+*dump*.sql
+
+# private security notes (contain exposure details; keep out of public repos until credentials are rotated)
+*.local.md
