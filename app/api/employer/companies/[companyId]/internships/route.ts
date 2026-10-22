@@ -1,3 +1,4 @@
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, postingBlocked, requireCompanyRole } from "@/lib/employer/access";
@@ -53,6 +54,8 @@ export async function POST(request: NextRequest, { params }: Ctx) {
         if (isResponse(access)) return access;
         const blocked = await postingBlocked(access.company);
         if (blocked) return blocked;
+        const rl = await hit("emp-write", String(access.employer._id), RULES.employerWrite);
+        if (!rl.ok) return tooManyRequests(rl.retryAfter);
 
         const parsed = internshipDraftSchema.safeParse(await request.json());
         if (!parsed.success) return NextResponse.json({ success: false, error: zodMessage(parsed.error) }, { status: 400 });

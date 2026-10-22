@@ -1,3 +1,4 @@
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
@@ -21,6 +22,9 @@ export async function PUT(request: Request) {
     if (!session || !mongoose.Types.ObjectId.isValid(session.userId)) {
       return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
     }
+
+    const rl = await hit("profile-write", session.userId, RULES.profileWrite);
+    if (!rl.ok) return tooManyRequests(rl.retryAfter);
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") return bad("Invalid request body");

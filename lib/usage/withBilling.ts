@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getSession, type AuthSession } from "@/lib/auth";
 import { log } from "@/lib/logger";
+import { clientIp, hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import User from "@/models/User";
 import UsageLog, { type IUsageLog } from "@/models/UsageLog";
 import { runInUsageContext, type UsageContext } from "./context";
 import type { FeatureKey } from "./config";
-import { addCallTotals, refundCredits, reserveCredits } from "./quota";
+import { addCallTotals, overSystemBudget, refundCredits, reserveCredits, SYSTEM_SUBJECT, WEB_SOURCE } from "./quota";
 import { getUsageSettings } from "./settings";
 import { nextIstMidnight } from "./time";
 
@@ -67,6 +68,24 @@ export function withBilling<C = unknown>(
 
     let remaining = settings.defaultDailyCredits;
     if (credits > 0) {
+      // In front of the daily pool: a per-user burst cap and a per-address cap, so a script cannot spend a whole
+      // day's credits in seconds or fan out across many accounts from one host.
+      const burst = await hit("ai:user", userId, RULES.aiUserBurst);
+      if (!burst.ok) return tooManyRequests(burst.retryAfter);
+      const byIp = await hit("ai:ip", clientIp(req), RULES.aiIp);
+      if (!byIp.ok) return tooManyRequests(byIp.retryAfter);
+
+      // Site-wide ceiling (moderator setting "systemDailyBudgetUsd"): per-user limits cannot stop many accounts.
+      if (await overSystemBudget(settings.systemDailyBudgetUsd)) {
+        const resetsAt = nextIstMidnight();
+        await writeLogs([{ kind: "request", scope: "user", subject: userId, feature, requestId, credits, status: "blocked", reqHash }]);
+        log.warn("usage", "site-wide AI budget reached", { feature, budgetUsd: settings.systemDailyBudgetUsd });
+        return NextResponse.json(
+          { success: false, error: "AI features are paused for today. They return at 12:00 AM IST.", code: "SYSTEM_BUDGET", resetsAt: resetsAt.toISOString() },
+          { status: 503, headers: { "Retry-After": String(Math.max(1, Math.ceil((resetsAt.getTime() - Date.now()) / 1000))) } },
+        );
+      }
+
       await connectDB();
       const user = await User.findById(userId, { dailyCreditLimit: 1 }).lean();
       const limit = typeof user?.dailyCreditLimit === "number" ? user.dailyCreditLimit : settings.defaultDailyCredits;
@@ -102,7 +121,10 @@ export function withBilling<C = unknown>(
     // Bookkeeping below must never change what the user gets back.
     try {
       const failed = thrown !== null || (response?.status ?? 500) >= 500;
-      const refund = credits > 0 && (failed || ctx.calls.length === 0);
+      // Give credits back when nothing was spent at a provider. A request that failed AFTER a provider call succeeded
+      // already cost money, so it is not refunded (otherwise a request that errors late would be free).
+      const paidCall = ctx.calls.some((c) => c.ok);
+      const refund = credits > 0 && (ctx.calls.length === 0 || (failed && !paidCall));
       if (refund) await refundCredits(userId, credits);
 
       const totals = ctx.calls.reduce(
@@ -110,6 +132,8 @@ export function withBilling<C = unknown>(
         { calls: 0, tokensIn: 0, tokensOut: 0, costUsd: 0 },
       );
       await addCallTotals("user", userId, totals);
+      await addCallTotals("system", SYSTEM_SUBJECT, totals);
+      await addCallTotals("system", WEB_SOURCE, totals);
 
       await writeLogs([
         {

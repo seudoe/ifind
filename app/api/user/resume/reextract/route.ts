@@ -1,3 +1,4 @@
+import { aiExtractionsUsed, paidAiAllowed, releaseAiExtraction, reserveAiExtraction } from "@/lib/aiExtractionQuota";
 import { isImageKitUrl } from "@/lib/uploads";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
@@ -55,22 +56,21 @@ async function handlePost() {
             user.linkedinDetails?.email_verified === true;
         const currentMonth = getCurrentMonthYear();
 
-        if (user.aiExtractionMonthYear !== currentMonth) {
-            user.aiExtractionUsedThisMonth = 0;
-            user.aiExtractionMonthYear = currentMonth;
-        }
-
-        const aiUsed = user.aiExtractionUsedThisMonth ?? 0;
         const canUseAI =
-            isLinkedInVerified && aiUsed < AI_EXTRACTION_MONTHLY_LIMIT;
+            isLinkedInVerified &&
+            (await paidAiAllowed()) &&
+            (await reserveAiExtraction(session.userId, currentMonth, AI_EXTRACTION_MONTHLY_LIMIT));
 
         let parsedData;
         let extractorUsed: "ai" | "hf";
 
         if (canUseAI) {
-            parsedData = await parseResumeWithBestAI(pdfBuffer);
-            user.aiExtractionUsedThisMonth = aiUsed + 1;
-            user.aiExtractionMonthYear = currentMonth;
+            try {
+                parsedData = await parseResumeWithBestAI(pdfBuffer);
+            } catch (error) {
+                await releaseAiExtraction(session.userId);
+                throw error;
+            }
             extractorUsed = "ai";
         } else {
             parsedData = await parseResumeWithHF(pdfBuffer);
@@ -92,7 +92,7 @@ async function handlePost() {
             message: "Resume re-extracted successfully",
             data: parsedData,
             extractorUsed,
-            aiUsedThisMonth: user.aiExtractionUsedThisMonth,
+            aiUsedThisMonth: await aiExtractionsUsed(session.userId),
             aiMonthlyLimit: AI_EXTRACTION_MONTHLY_LIMIT,
         });
     } catch (err) {

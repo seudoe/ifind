@@ -1,3 +1,4 @@
+import { limitAuth, RULES } from "@/lib/rateLimit";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
@@ -19,6 +20,9 @@ interface LinkedInUserInfo {
 }
 
 export async function GET(request: NextRequest) {
+  const limited = await limitAuth(request, "oauth-callback", RULES.oauthIp);
+  if (limited) return limited;
+
   const origin = request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
