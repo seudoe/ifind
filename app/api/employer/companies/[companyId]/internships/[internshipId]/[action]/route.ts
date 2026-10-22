@@ -1,3 +1,4 @@
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { isResponse, postingBlocked, requireCompanyRole } from "@/lib/employer/access";
@@ -29,6 +30,9 @@ export async function POST(req: NextRequest, { params }: Ctx) {
         if (action === "duplicate" || action === "publish") {
             const blocked = await postingBlocked(access.company);
             if (blocked) return blocked;
+            // Publishing calls the moderation pipeline (scam model, then the vectoriser), so it is paced per employer.
+            const rl = await hit("emp-moderation", String(access.employer._id), RULES.employerModeration);
+            if (!rl.ok) return tooManyRequests(rl.retryAfter);
         }
         const doc = await loadInternship(companyId, internshipId);
         if (isResponse(doc)) return doc;

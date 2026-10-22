@@ -565,6 +565,52 @@ describe("hostile input reaches no dangerous sink", () => {
   });
 });
 
+describe("cost and resource controls", () => {
+  it("creating chat sessions is rate limited per user (429 + Retry-After) and the list is bounded", async () => {
+    const jar = await registerStudent("sessionspam");
+    const statuses: number[] = [];
+    let last: Awaited<ReturnType<typeof call>> | undefined;
+    for (let i = 0; i < 32; i++) {
+      last = await call("/api/chat/sessions", { method: "POST", jar, json: { resumeId: "r", title: `t${i}` } });
+      statuses.push(last.status);
+    }
+    assert.equal(statuses.slice(0, 30).every((x) => x === 200 || x === 201), true, statuses.join());
+    assert.equal(statuses[30], 429);
+    assert.ok(last?.headers.get("retry-after"));
+    const list = await call("/api/chat/sessions", { jar });
+    assert.equal(list.status, 200);
+    assert.ok(((list.data?.data as unknown[]) ?? []).length <= 200);
+  });
+
+  it("profile saves (which trigger the vectoriser) are rate limited per user", async () => {
+    const jar = await registerStudent("profilespam");
+    const statuses: number[] = [];
+    for (let i = 0; i < 62; i++) statuses.push((await call("/api/user/profile", { method: "PUT", jar, json: { userUpdate: { city: `City${i}` } } })).status);
+    assert.equal(statuses.slice(0, 60).every((x) => x === 200), true, statuses.join());
+    assert.equal(statuses[60], 429);
+  });
+
+  it("the unauthenticated LinkedIn callback is limited per address before it calls LinkedIn", async () => {
+    const headers = { "x-forwarded-for": "10.9.9.9" };
+    const statuses: number[] = [];
+    for (let i = 0; i < 42; i++) statuses.push((await call("/api/auth/linkedin/callback?error=access_denied", { headers })).status);
+    assert.equal(statuses.slice(0, 40).every((x) => x === 307 || x === 302), true, statuses.join());
+    assert.equal(statuses[40], 429);
+  });
+
+  it("every billed AI route refuses a signed-out caller before doing any work", async () => {
+    for (const path of [
+      "/api/career-assistant/interview", "/api/career-assistant/career-roadmap", "/api/career-assistant/learning-roadmap",
+      "/api/career-assistant/projects", "/api/career-assistant/rewrite", "/api/career-assistant/star",
+      "/api/chat/messages", "/api/internship-match", "/api/job-descriptions", "/api/user/resume/analyze",
+      "/api/user/resume/reextract", "/api/user/resume/upload-temp",
+    ]) {
+      const r = await call(path, { method: "POST", json: { jobRole: "x", targetRole: "y", currentRole: "z", content: "c", experience: "e", targetSkills: ["a"] } });
+      assert.equal(r.status, 401, `${path} -> ${r.status}`);
+    }
+  });
+});
+
 describe("CSRF", () => {
   it("blocks cross-site writes, allows same-origin and server-to-server", async () => {
     const jar = await registerStudent("csrfuser");

@@ -83,3 +83,20 @@ async function noteBlocked(userId: string, limit: number): Promise<Reservation> 
   ).lean();
   return { ok: false, remaining: Math.max(0, limit - (doc?.creditsUsed ?? 0)), limit };
 }
+
+/**
+ * Scope "system": subject "all" is the site-wide total the daily budget is checked against (the scraper service adds
+ * its own spend to the same row); other subjects are per-source breakdowns shown in the moderator panel.
+ */
+export const SYSTEM_SUBJECT = "all";
+export const WEB_SOURCE = "ifind-web";
+
+/**
+ * Has the site already spent today's AI budget? A budget of 0 or less turns the cap off. A database error throws,
+ * so billed routes fail closed (500) instead of spending without a ceiling.
+ */
+export async function overSystemBudget(budgetUsd: number): Promise<boolean> {
+  if (!(budgetUsd > 0)) return false;
+  const day = await getDaily("system", SYSTEM_SUBJECT);
+  return (day?.costUsd ?? 0) >= budgetUsd;
+}

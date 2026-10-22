@@ -202,6 +202,7 @@ export async function GET(req: NextRequest) {
 
     const messages = await ChatMessage.find({ sessionId })
       .sort({ createdAt: 1 })
+      .limit(1000)
       .lean();
 
     return NextResponse.json({

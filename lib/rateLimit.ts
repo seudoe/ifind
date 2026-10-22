@@ -64,6 +64,17 @@ export const RULES = {
   registerIp: { limit: 10, windowSec: 60 * 60 },
   sensitiveUser: { limit: 10, windowSec: 60 * 60 },
   uploadUser: { limit: 30, windowSec: 60 * 60 },
+  // Billed AI routes. Daily credits bound a day; these bound a minute and a network address. The address cap is
+  // generous on purpose: a campus Wi-Fi puts hundreds of real students behind one IP.
+  aiUserBurst: { limit: 12, windowSec: 60 },
+  aiIp: { limit: 600, windowSec: 60 * 60 },
+  // Writes that fan out to the vectoriser or the moderation pipeline, and free-to-create records.
+  profileWrite: { limit: 60, windowSec: 60 * 60 },
+  chatSessionCreate: { limit: 30, windowSec: 60 * 60 },
+  employerWrite: { limit: 120, windowSec: 60 * 60 },
+  employerModeration: { limit: 20, windowSec: 60 * 60 },
+  // Unauthenticated endpoints that make the server call another service.
+  oauthIp: { limit: 40, windowSec: 15 * 60 },
 } as const satisfies Record<string, Rule>;
 
 /**

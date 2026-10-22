@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
 
     const jobDescriptions = await JobDescription.find({ userId: session.userId })
       .sort({ createdAt: -1 })
+      .limit(200)
       .lean();
 
     return NextResponse.json({

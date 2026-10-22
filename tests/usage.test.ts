@@ -243,6 +243,108 @@ describe("credit pool (in-memory MongoDB)", () => {
     });
   });
 
+  describe("abuse limits", () => {
+    const session = (id: string) => ({ userId: id, email: "a@b.c", username: "abuse", role: "student" as const });
+    const request = () => new NextRequest("http://localhost/api/test", { method: "POST", body: JSON.stringify({ q: 1 }) });
+    async function setup() {
+      const { withBilling } = await import("../lib/usage/withBilling");
+      const { recordLlmCall } = await import("../lib/usage/context");
+      const { default: UsageSettings } = await import("../models/UsageSettings");
+      const { clearUsageSettingsCache } = await import("../lib/usage/settings");
+      return { withBilling, recordLlmCall, UsageSettings, clearUsageSettingsCache };
+    }
+
+    it("stops billed routes with 503 once the site-wide daily budget is spent, and 0 turns the cap off", async (t) => {
+      if (skip) return t.skip(skip);
+      const { withBilling, recordLlmCall, UsageSettings, clearUsageSettingsCache } = await setup();
+      let ran = 0;
+      const user = "bbbbbbbbbbbbbbbbbbbbbbb1";
+      const route = withBilling("chat", async () => {
+        ran++;
+        recordLlmCall({ provider: "groq", model: "llama-3.3-70b-versatile", tokensIn: 100_000, tokensOut: 10_000, latencyMs: 5, ok: true });
+        return Response.json({ ok: 1 });
+      }, { getSession: async () => session(user) });
+      try {
+        assert.equal((await route(request(), undefined)).status, 200); // spends real (estimated) money, recorded site-wide
+        const spent = (await quota.getDaily("system", quota.SYSTEM_SUBJECT))?.costUsd ?? 0;
+        assert.ok(spent > 0, "the call was not added to the site-wide total");
+
+        await UsageSettings.updateOne({ _id: "global" }, { $set: { systemDailyBudgetUsd: spent / 2 } }, { upsert: true });
+        clearUsageSettingsCache();
+        const before = ran;
+        const blocked = await route(request(), undefined);
+        assert.equal(blocked.status, 503);
+        assert.equal((await blocked.json()).code, "SYSTEM_BUDGET");
+        assert.ok(Number(blocked.headers.get("Retry-After")) > 0);
+        assert.equal(ran, before, "the handler ran although the budget was spent");
+        assert.equal((await quota.getDaily("user", user))?.creditsUsed, 1, "a blocked request must not take credits");
+
+        await UsageSettings.updateOne({ _id: "global" }, { $set: { systemDailyBudgetUsd: 0 } });
+        clearUsageSettingsCache();
+        assert.equal((await route(request(), undefined)).status, 200);
+      } finally {
+        await UsageSettings.deleteOne({ _id: "global" });
+        clearUsageSettingsCache();
+      }
+    });
+
+    it("answers 429 when one user sends more than 12 billed requests in a minute", async (t) => {
+      if (skip) return t.skip(skip);
+      const { withBilling } = await setup();
+      const route = withBilling("chat", async () => Response.json({ ok: 1 }), { getSession: async () => session("bbbbbbbbbbbbbbbbbbbbbbb2") });
+      const statuses: number[] = [];
+      for (let i = 0; i < 14; i++) statuses.push((await route(request(), undefined)).status);
+      assert.deepEqual(statuses.slice(0, 12), Array(12).fill(200));
+      assert.deepEqual(statuses.slice(12), [429, 429]);
+    });
+
+    it("does not refund a request that failed after a provider call had already succeeded", async (t) => {
+      if (skip) return t.skip(skip);
+      const { withBilling, recordLlmCall } = await setup();
+      const user = "bbbbbbbbbbbbbbbbbbbbbbb3";
+      const lateFailure = withBilling("chat", async () => {
+        recordLlmCall({ provider: "groq", model: "llama-3.3-70b-versatile", tokensIn: 10, tokensOut: 10, latencyMs: 5, ok: true });
+        return Response.json({ error: "could not save" }, { status: 500 });
+      }, { getSession: async () => session(user) });
+      assert.equal((await lateFailure(request(), undefined)).status, 500);
+      assert.equal((await quota.getDaily("user", user))?.creditsUsed, 1);
+    });
+
+    it("hands out exactly the monthly AI allowance to parallel requests, and a failure gives one back", async (t) => {
+      if (skip) return t.skip(skip);
+      const { reserveAiExtraction, releaseAiExtraction, aiExtractionsUsed } = await import("../lib/aiExtractionQuota");
+      const mongoose = (await import("mongoose")).default;
+      const id = new mongoose.Types.ObjectId();
+      // inserted raw: the field is missing, as on accounts created before the counter existed
+      await mongoose.connection.collection("users").insertOne({ _id: id });
+      const results = await Promise.all(Array.from({ length: 20 }, () => reserveAiExtraction(String(id), "2026-10", 3)));
+      assert.equal(results.filter(Boolean).length, 3, "parallel requests got more than the allowance");
+      assert.equal(await aiExtractionsUsed(String(id)), 3);
+      assert.equal(await reserveAiExtraction(String(id), "2026-10", 3), false);
+      await releaseAiExtraction(String(id));
+      assert.equal(await reserveAiExtraction(String(id), "2026-10", 3), true);
+      assert.equal(await reserveAiExtraction(String(id), "2026-11", 3), true, "a new month starts a fresh allowance");
+      assert.equal(await aiExtractionsUsed(String(id)), 1);
+    });
+
+    it("the paid extractor is not used once the site budget is spent", async (t) => {
+      if (skip) return t.skip(skip);
+      const { UsageSettings, clearUsageSettingsCache } = await setup();
+      const { paidAiAllowed } = await import("../lib/aiExtractionQuota");
+      try {
+        await UsageSettings.updateOne({ _id: "global" }, { $set: { systemDailyBudgetUsd: 1e-9 } }, { upsert: true });
+        clearUsageSettingsCache();
+        assert.equal(await paidAiAllowed(), false);
+        await UsageSettings.updateOne({ _id: "global" }, { $set: { systemDailyBudgetUsd: 0 } });
+        clearUsageSettingsCache();
+        assert.equal(await paidAiAllowed(), true);
+      } finally {
+        await UsageSettings.deleteOne({ _id: "global" });
+        clearUsageSettingsCache();
+      }
+    });
+  });
+
   describe("ban signals", () => {
     it("computes usage, behaviour and flags for a user from the stored records", async (t) => {
       if (skip) return t.skip(skip);

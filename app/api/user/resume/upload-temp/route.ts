@@ -1,3 +1,4 @@
+import { aiExtractionsUsed, paidAiAllowed, releaseAiExtraction, reserveAiExtraction } from "@/lib/aiExtractionQuota";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -94,23 +95,23 @@ async function handlePost(req: NextRequest) {
             user.linkedinDetails?.email_verified === true;
         const currentMonth = getCurrentMonthYear();
 
-        // Reset counter if it's a new month
-        if (user.aiExtractionMonthYear !== currentMonth) {
-            user.aiExtractionUsedThisMonth = 0;
-            user.aiExtractionMonthYear = currentMonth;
-        }
-
-        const aiUsed = user.aiExtractionUsedThisMonth ?? 0;
+        // The monthly allowance is taken atomically before the paid model is called (see lib/aiExtractionQuota.ts).
+        const userId = (user._id || user.id).toString();
         const canUseAI =
-            isLinkedInVerified && aiUsed < AI_EXTRACTION_MONTHLY_LIMIT;
+            isLinkedInVerified &&
+            (await paidAiAllowed()) &&
+            (await reserveAiExtraction(userId, currentMonth, AI_EXTRACTION_MONTHLY_LIMIT));
 
         let pendingParsedData;
         let extractorUsed: "ai" | "hf";
 
         if (canUseAI) {
-            pendingParsedData = await parseResumeWithBestAI(buffer);
-            user.aiExtractionUsedThisMonth = aiUsed + 1;
-            user.aiExtractionMonthYear = currentMonth;
+            try {
+                pendingParsedData = await parseResumeWithBestAI(buffer);
+            } catch (error) {
+                await releaseAiExtraction(userId);
+                throw error;
+            }
             extractorUsed = "ai";
         } else {
             pendingParsedData = await parseResumeWithHF(buffer);
@@ -161,7 +162,7 @@ async function handlePost(req: NextRequest) {
                     existingParsedData: null,
                     autoCommitted: true,
                     extractorUsed,
-                    aiUsedThisMonth: user.aiExtractionUsedThisMonth,
+                    aiUsedThisMonth: await aiExtractionsUsed(userId),
                     aiMonthlyLimit: AI_EXTRACTION_MONTHLY_LIMIT,
                 },
             });
@@ -183,7 +184,7 @@ async function handlePost(req: NextRequest) {
                 existingParsedData,
                 autoCommitted: false,
                 extractorUsed,
-                aiUsedThisMonth: user.aiExtractionUsedThisMonth,
+                aiUsedThisMonth: await aiExtractionsUsed(userId),
                 aiMonthlyLimit: AI_EXTRACTION_MONTHLY_LIMIT,
             },
         });

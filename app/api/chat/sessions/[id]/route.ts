@@ -40,6 +40,7 @@ export async function GET(
     // Get messages for this session
     const messages = await ChatMessage.find({ sessionId: id })
       .sort({ createdAt: 1 })
+      .limit(1000)
       .lean();
 
     return NextResponse.json({

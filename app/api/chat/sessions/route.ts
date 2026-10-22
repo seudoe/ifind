@@ -1,3 +1,4 @@
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import { str } from '@/lib/validate';
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
@@ -9,6 +10,8 @@ import { getSession } from '@/lib/auth';
  * GET /api/chat/sessions
  * Get all chat sessions for the current user
  */
+const MAX_CHAT_SESSIONS = 200;
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
@@ -28,6 +31,7 @@ export async function GET(req: NextRequest) {
 
     const sessions = await ChatSession.find(query)
       .sort({ lastMessageAt: -1 })
+      .limit(MAX_CHAT_SESSIONS)
       .lean();
 
     return NextResponse.json({
@@ -54,6 +58,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const rl = await hit("chat-session", authSession.userId, RULES.chatSessionCreate);
+    if (!rl.ok) return tooManyRequests(rl.retryAfter);
+
     const body = await req.json().catch(() => ({}));
     const resumeId = str(body?.resumeId, 100);
     const title = str(body?.title, 200);
@@ -66,6 +73,11 @@ export async function POST(req: NextRequest) {
     }
 
     await connectDB();
+
+    // Creating a session costs nothing, so the number a user can hold is capped instead.
+    if ((await ChatSession.countDocuments({ userId: authSession.userId })) >= MAX_CHAT_SESSIONS) {
+      return NextResponse.json({ error: 'Chat session limit reached. Delete an old chat to start a new one.' }, { status: 429 });
+    }
 
     const chatSession = await ChatSession.create({
       userId: authSession.userId,
