@@ -414,6 +414,105 @@ describe("session lifecycle and password policy", () => {
   });
 });
 
+describe("MongoDB access control", () => {
+  const oid = (v: string) => new mongoose.Types.ObjectId(v);
+  const idOf = async (jar: Jar) => String((await call("/api/auth/me", { jar })).data?.data && ((await call("/api/auth/me", { jar })).data?.data as { _id: string })._id);
+
+  it("internship-match rejects operator objects and other users' job descriptions", async () => {
+    const a = await registerStudent("jdowner");
+    const b = await registerStudent("jdthief");
+    const aId = await idOf(a);
+    const inserted = await mongoose.connection.collection("jobdescriptions").insertOne({
+      userId: oid(aId), title: "Secret role", company: "Acme", description: "confidential text", createdAt: new Date(), updatedAt: new Date(),
+    });
+    const jdId = String(inserted.insertedId);
+
+    // {"$gt": ""} used to match the first job description of ANY user
+    const inj = await call("/api/internship-match", { method: "POST", jar: b, json: { resumeId: "r1", jobDescriptionId: { $gt: "" } } });
+    assert.equal(inj.status, 400, inj.text);
+    const arr = await call("/api/internship-match", { method: "POST", jar: b, json: { resumeId: "r1", jobDescriptionId: [jdId] } });
+    assert.equal(arr.status, 400, arr.text);
+    // a real id that belongs to someone else
+    const idor = await call("/api/internship-match", { method: "POST", jar: b, json: { resumeId: "r1", jobDescriptionId: jdId } });
+    assert.equal(idor.status, 404, idor.text);
+    assert.equal(/confidential text|Secret role/.test(idor.text), false);
+
+    // an old match row pointing at someone else's job description must not populate it
+    await mongoose.connection.collection("jobmatches").insertOne({ userId: oid(await idOf(b)), resumeId: "r1", jobDescriptionId: inserted.insertedId, overallScore: 1, createdAt: new Date() });
+    const list = await call("/api/internship-match", { jar: b });
+    assert.equal(list.status, 200, list.text);
+    assert.equal(/confidential text|Secret role/.test(list.text), false, "foreign job description was populated");
+  });
+
+  it("profile and dashboard responses never include password hash, login history or session version", async () => {
+    const jar = await registerStudent("nosecrets");
+    const put = await call("/api/user/profile", { method: "PUT", jar, json: { userUpdate: { city: "Mumbai" } } });
+    assert.equal(put.status, 200, put.text);
+    for (const [name, text] of [["PUT /api/user/profile", put.text], ["GET /api/auth/me", (await call("/api/auth/me", { jar })).text], ["GET /api/user/dashboard", (await call("/api/user/dashboard", { jar })).text]]) {
+      assert.equal(/"password"|\$2[aby]\$|failedLoginAttempts|tokenVersion/.test(text), false, `${name} leaked a secret field`);
+    }
+  });
+
+  it("a student cannot write role, ban, credit, session or identity-bypass fields through the profile API", async () => {
+    const jar = await registerStudent("escalator");
+    const id = await idOf(jar);
+    const users = mongoose.connection.collection("users");
+    const before = await users.findOne({ _id: oid(id) });
+    const r = await call("/api/user/profile", {
+      method: "PUT", jar,
+      json: { userUpdate: { city: "Delhi", role: "moderator", isBanned: false, dailyCreditLimit: 999999, tokenVersion: 99, password: "x", _id: "000000000000000000000000", linkedinId: "li-evil", "resume.parsedData": {}, $set: { role: "moderator" } } },
+    });
+    assert.ok(r.status === 200 || r.status === 400, r.text);
+    const after = await users.findOne({ _id: oid(id) });
+    for (const f of ["role", "isBanned", "dailyCreditLimit", "tokenVersion", "password", "linkedinId", "email", "username"]) {
+      assert.deepEqual(after?.[f], before?.[f], `${f} was changed by a student`);
+    }
+    assert.equal(String(after?._id), id);
+  });
+
+  it("a student cannot mark another student's notifications read", async () => {
+    const a = await registerStudent("notifa");
+    const b = await registerStudent("notifb");
+    const bId = await idOf(b);
+    const n = await mongoose.connection.collection("notifications.student").insertOne({
+      recipientType: "student", recipientId: oid(bId), type: "application_status", title: "private", body: "b only", readAt: null, createdAt: new Date(), updatedAt: new Date(),
+    });
+    const r = await call("/api/user/notifications", { method: "PATCH", jar: a, json: { id: String(n.insertedId) } });
+    assert.ok(r.status === 200 || r.status === 404, r.text);
+    assert.equal((await mongoose.connection.collection("notifications.student").findOne({ _id: n.insertedId }))?.readAt, null);
+    assert.equal((await call("/api/user/notifications", { jar: a })).text.includes("private"), false);
+  });
+
+  it("an employer cannot read or change another company's data", async () => {
+    const reg = async (email: string) => {
+      const jar: Jar = {};
+      const r = await call("/api/employer/auth/register", { method: "POST", jar, headers: { "x-forwarded-for": `10.1.0.${nextIp++}` }, json: { name: "Tenant", email, password: PASSWORD } });
+      assert.equal(r.status, 201, r.text);
+      return { jar, id: String((r.data?.data as { employerId: string }).employerId) };
+    };
+    const one = await reg("tenant1@example.com");
+    const two = await reg("tenant2@example.com");
+    const company = await mongoose.connection.collection("companies").insertOne({
+      name: "Tenant One Ltd", slug: "tenant-one-ltd", isActive: true, deleteDetails: { deleted: false, deletedAt: null },
+      createdBy: oid(one.id), members: [{ employerId: oid(one.id), role: "owner", addedBy: oid(one.id), addedAt: new Date() }], createdAt: new Date(), updatedAt: new Date(),
+    });
+    const cid = String(company.insertedId);
+    assert.equal((await call(`/api/employer/companies/${cid}`, { jar: one.jar })).status, 200);
+
+    const denied = async (label: string, r: { status: number }) => assert.ok(r.status === 403 || r.status === 404, `${label} -> ${r.status}`);
+    await denied("GET company", await call(`/api/employer/companies/${cid}`, { jar: two.jar }));
+    await denied("GET members", await call(`/api/employer/companies/${cid}/members`, { jar: two.jar }));
+    await denied("GET internships", await call(`/api/employer/companies/${cid}/internships`, { jar: two.jar }));
+    await denied("GET applications", await call(`/api/employer/companies/${cid}/applications`, { jar: two.jar }));
+    await denied("PATCH company", await call(`/api/employer/companies/${cid}`, { method: "PATCH", jar: two.jar, json: { name: "Hijacked" } }));
+    await denied("POST members (add self)", await call(`/api/employer/companies/${cid}/members`, { method: "POST", jar: two.jar, json: { email: "tenant2@example.com", role: "owner" } }));
+    await denied("DELETE company", await call(`/api/employer/companies/${cid}`, { method: "DELETE", jar: two.jar }));
+    const doc = await mongoose.connection.collection("companies").findOne({ _id: company.insertedId });
+    assert.equal(doc?.name, "Tenant One Ltd");
+    assert.equal(doc?.members.length, 1);
+  });
+});
+
 describe("CSRF", () => {
   it("blocks cross-site writes, allows same-origin and server-to-server", async () => {
     const jar = await registerStudent("csrfuser");

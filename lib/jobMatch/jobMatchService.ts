@@ -68,7 +68,7 @@ export async function generateJobMatch(
     }
 
     // Fetch job description
-    const jobDescription = await JobDescription.findById(jobDescriptionId).lean();
+    const jobDescription = await JobDescription.findOne({ _id: jobDescriptionId, userId }).lean();
     if (!jobDescription) {
       throw new Error('Job description not found');
     }

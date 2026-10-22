@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import JobMatch from '@/models/JobMatch';
 import { getSession } from '@/lib/auth';
+import JobDescription from '@/models/JobDescription';
+import { isObjectId, str } from '@/lib/validate';
 import { generateJobMatch, saveJobMatch } from '@/lib/jobMatch/jobMatchService';
 import { withBilling } from '@/lib/usage/withBilling';
 
@@ -16,10 +18,12 @@ async function handlePost(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { resumeId, jobDescriptionId } = body;
+    const body = await req.json().catch(() => ({}));
+    // Types are checked before the values reach a query: an object such as {"$gt": ""} must never be used as an id.
+    const resumeId = str(body?.resumeId, 100);
+    const jobDescriptionId = body?.jobDescriptionId;
 
-    if (!resumeId || !jobDescriptionId) {
+    if (!resumeId || !isObjectId(jobDescriptionId)) {
       return NextResponse.json(
         { error: 'Resume ID and Job Description ID are required' },
         { status: 400 }
@@ -27,6 +31,11 @@ async function handlePost(req: NextRequest) {
     }
 
     await connectDB();
+
+    // The job description must belong to the signed-in user; otherwise anyone who learns an id could read it back.
+    if (!(await JobDescription.exists({ _id: jobDescriptionId, userId: session.userId }))) {
+      return NextResponse.json({ error: 'Job description not found' }, { status: 404 });
+    }
 
     const startTime = Date.now();
 
@@ -77,7 +86,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const resumeId = searchParams.get('resumeId');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 100);
 
     const query: any = { userId: session.userId };
     if (resumeId) {
@@ -85,7 +94,7 @@ export async function GET(req: NextRequest) {
     }
 
     const jobMatches = await JobMatch.find(query)
-      .populate('jobDescriptionId')
+      .populate({ path: 'jobDescriptionId', match: { userId: session.userId } })
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
