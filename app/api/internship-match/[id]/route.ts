@@ -28,7 +28,7 @@ export async function GET(
       _id: id,
       userId: session.userId,
     })
-      .populate('jobDescriptionId')
+      .populate({ path: 'jobDescriptionId', match: { userId: session.userId } })
       .lean();
 
     if (!jobMatch) {

@@ -165,7 +165,11 @@ export async function PUT(request: Request) {
     const result = await db.collection("users").findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(session.userId) },
       { $set: setFields },
-      { returnDocument: "after" }
+      {
+        returnDocument: "after",
+        // The raw driver ignores the schema's `select: false`, so name what must never leave the server.
+        projection: { password: 0, failedLoginAttempts: 0, tokenVersion: 0, "resume.bert_vector": 0, "resume.tfidf_vector": 0 },
+      }
     );
 
     if (!result) {

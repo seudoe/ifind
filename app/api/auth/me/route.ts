@@ -11,7 +11,7 @@ export async function GET() {
     if (!session) return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
 
     await connectDB();
-    const user = await User.findById(session.userId).select("-password -failedLoginAttempts -resume.bert_vector -resume.tfidf_vector").lean();
+    const user = await User.findById(session.userId).select("-password -failedLoginAttempts -tokenVersion -resume.bert_vector -resume.tfidf_vector").lean();
     if (!user) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
 
     return NextResponse.json({ success: true, data: JSON.parse(JSON.stringify(user)) });
