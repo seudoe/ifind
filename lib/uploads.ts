@@ -16,3 +16,14 @@ export function sniffImage(buf: Buffer): ImageKind | null {
 export function looksLikePdf(buf: Buffer): boolean {
   return buf.subarray(0, 1024).includes("%PDF-");
 }
+
+/** True only for an https URL inside our ImageKit endpoint, i.e. a file the upload routes produced. */
+export function isImageKitUrl(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const endpoint = (process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io").replace(/\/$/, "");
+  try {
+    return new URL(value).protocol === "https:" && (value === endpoint || value.startsWith(`${endpoint}/`));
+  } catch {
+    return false;
+  }
+}

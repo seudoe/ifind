@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -200,7 +201,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                       <span className="font-bold text-[var(--text)] text-sm">{recruiterName}</span>
                       {linkedinUrl && (
                         <a
-                          href={linkedinUrl}
+                          href={safeHref(linkedinUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#0a66c2] hover:opacity-85"
@@ -211,7 +212,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                       )}
                       {githubUrl && (
                         <a
-                          href={githubUrl}
+                          href={safeHref(githubUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[var(--text)] hover:text-[var(--primary)] transition-colors"

@@ -1,3 +1,4 @@
+import { safeHref } from "@/lib/safeUrl";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Globe, MapPin } from "lucide-react";
@@ -71,7 +72,7 @@ export default async function CompanyOverviewPage({ params }: { params: Promise<
                 <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-[var(--text-2)]">
                     <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" />{[hq.city, hq.state, hq.country].filter(Boolean).join(", ")}</span>
                     {company.website && (
-                        <a href={company.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[var(--primary)] hover:underline">
+                        <a href={safeHref(company.website)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[var(--primary)] hover:underline">
                             <Globe className="h-4 w-4" />{company.website}
                         </a>
                     )}

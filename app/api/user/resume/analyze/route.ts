@@ -1,3 +1,4 @@
+import { str } from "@/lib/validate";
 /**
  * Resume Analysis API Route for iFind
  * POST /api/user/resume/analyze - Trigger comprehensive resume analysis
@@ -50,7 +51,7 @@ async function handlePost(req: NextRequest) {
 
         // Parse request body for optional job description
         const body = await req.json().catch(() => ({}));
-        const { jobDescription } = body;
+        const jobDescription = str(body?.jobDescription, 20000);
 
         // Extract resume text from parsedData
         const resumeText = extractResumeText(userData.resume.parsedData);

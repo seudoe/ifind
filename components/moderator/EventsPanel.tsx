@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ExternalLink, Eye, EyeOff, Loader2, Trash2 } from "lucide-react";
@@ -97,7 +98,7 @@ export function EventsPanel() {
                             {[e.organiser, eventDates(e)].filter(Boolean).join(" · ") || "No dates found"}
                         </p>
                         <a
-                            href={e.link}
+                            href={safeHref(e.link)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-xs text-[var(--primary)] hover:underline"

@@ -1,3 +1,4 @@
+import { int, str, strList } from '@/lib/validate';
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getSession } from '@/lib/auth';
@@ -17,8 +18,10 @@ async function handlePost(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { jobRole, difficulty, count } = body;
+    const body = await req.json().catch(() => ({}));
+    const jobRole = str(body?.jobRole, 120);
+    const difficulty = str(body?.difficulty, 20);
+    const count = int(body?.count, 1, 20, 10);
 
     if (!jobRole) {
       return NextResponse.json(

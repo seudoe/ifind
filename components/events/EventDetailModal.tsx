@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Briefcase, CalendarDays, ExternalLink, GraduationCap, Info, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -65,7 +66,7 @@ export function EventDetailModal({ event, onClose }: { event: EventItem | null; 
             )}
 
             <a
-              href={event.link}
+              href={safeHref(event.link)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-sm)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-dk)]"
