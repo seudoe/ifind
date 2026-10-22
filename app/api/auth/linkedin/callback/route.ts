@@ -125,9 +125,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (isEmployer) {
+      // An email address is only trusted for matching when LinkedIn says it has verified it.
+      const verifiedEmail = Boolean(profile.email) && profile.email_verified === true;
       let employer = await Employer.findOne({
-        $or: [{ linkedinId: profile.sub }, ...(profile.email_verified ? [{ email }] : [])],
-      });
+        $or: [{ linkedinId: profile.sub }, ...(verifiedEmail ? [{ email }] : [])],
+      }).select("+password");
       if (!employer && (await Employer.exists({ email }))) {
         // Unverified LinkedIn email must not take over an existing account
         return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("An account with this email already exists. Sign in with your password.")}`);
@@ -138,6 +140,16 @@ export async function GET(request: NextRequest) {
         }
         if (employer.deleteDetails?.deleted) {
           return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("This account has been deleted")}`);
+        }
+        if (employer.linkedinId && employer.linkedinId !== profile.sub) {
+          return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("This email is linked to a different LinkedIn account")}`);
+        }
+        if (employer.linkedinId !== profile.sub && employer.password) {
+          // First LinkedIn sign-in into a password account, matched only by email. Whoever registered that password
+          // never proved they own the address (the person LinkedIn just verified does), so the password is dropped
+          // and every older session ends. The owner can set a new password from settings.
+          employer.password = undefined;
+          employer.tokenVersion = (employer.tokenVersion ?? 0) + 1;
         }
         employer.linkedinId = profile.sub;
         employer.linkedinDetails = profile;
@@ -157,7 +169,7 @@ export async function GET(request: NextRequest) {
           lastLoginAt: new Date(),
         });
       }
-      const empCookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }));
+      const empCookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }, employer.tokenVersion ?? 0));
       const empResponse = NextResponse.redirect(new URL("/employer/companies", origin));
       empResponse.cookies.set(empCookie.name, empCookie.value, empCookie.options);
       empResponse.cookies.delete("linkedin_oauth_state");
@@ -166,14 +178,29 @@ export async function GET(request: NextRequest) {
       return empResponse;
     }
 
-    // 3. Find existing user by linkedinId OR email
+    // 3. Find existing user by linkedinId, or by email when LinkedIn has verified that email
+    const verifiedEmail = Boolean(profile.email) && profile.email_verified === true;
     let user = await User.findOne({
-      $or: [{ linkedinId: profile.sub }, { email }],
-    });
+      $or: [{ linkedinId: profile.sub }, ...(verifiedEmail ? [{ email }] : [])],
+    }).select("+password");
+    if (!user && (await User.exists({ email }))) {
+      // An unverified LinkedIn email must not take over an existing account
+      return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("An account with this email already exists. Sign in with your password.")}`);
+    }
 
     if (user) {
       if (user.isBanned === true) {
         return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("Your account has been suspended")}`);
+      }
+      if (user.linkedinId && user.linkedinId !== profile.sub) {
+        return NextResponse.redirect(`${origin}${loginPath}?error=${encodeURIComponent("This email is linked to a different LinkedIn account")}`);
+      }
+      if (user.linkedinId !== profile.sub && user.password) {
+        // First LinkedIn sign-in into a password account, matched only by email. Whoever registered that password
+        // never proved they own the address (the person LinkedIn just verified does), so the password is dropped
+        // and every older session ends.
+        user.password = undefined;
+        user.tokenVersion = (user.tokenVersion ?? 0) + 1;
       }
       // Update existing user with linkedinId, linkedinDetails, or profile picture
       user.linkedinId = profile.sub;
@@ -291,7 +318,7 @@ export async function GET(request: NextRequest) {
       role: "student" as const,
     };
 
-    const token = signToken(session);
+    const token = signToken(session, user.tokenVersion ?? 0);
     const cookie = authCookie(token);
 
     const redirectUrl = new URL(`/user/${user.username}/overview`, origin);

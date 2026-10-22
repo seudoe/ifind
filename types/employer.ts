@@ -52,6 +52,8 @@ export interface EmployerSession {
     email: string;
     name: string;
     role: "employer";
+    /** Session version the token was issued at; must equal Employer.tokenVersion. */
+    tv?: number;
 }
 
 export interface Employer {

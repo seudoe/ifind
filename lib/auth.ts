@@ -9,14 +9,16 @@ export interface AuthSession {
   email: string;
   username: string;
   role: "student";
+  /** Session version the token was issued at; must equal User.tokenVersion. */
+  tv?: number;
 }
 
 function getJwtSecret(): string {
   return requireSecret("JWT_SECRET");
 }
 
-export function signToken(session: AuthSession): string {
-  return jwt.sign(session, getJwtSecret(), { expiresIn: "30d" });
+export function signToken(session: AuthSession, tokenVersion = 0): string {
+  return jwt.sign({ ...session, tv: tokenVersion }, getJwtSecret(), { expiresIn: "30d" });
 }
 
 export function verifyToken(token: string): AuthSession | null {
@@ -32,9 +34,13 @@ export async function getSession(): Promise<AuthSession | null> {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   const session = token ? verifyToken(token) : null;
   if (!session) return null;
-  // A banned student keeps a valid 30-day token, so the ban is checked on every request (cached for a minute).
-  const { isUserBanned } = await import("@/lib/banCheck");
-  return (await isUserBanned(session.userId)) ? null : session;
+  // A token stays cryptographically valid for 30 days, so ban and revocation are checked against the database
+  // on every request (cached for seconds). A missing account, a ban, or an outdated session version ends the session.
+  const { getAccountState } = await import("@/lib/banCheck");
+  const state = await getAccountState(session.userId);
+  if (!state) return session; // lookup failed; routes that need the database will fail on their own
+  if (!state.exists || state.banned || (session.tv ?? 0) !== state.tokenVersion) return null;
+  return session;
 }
 
 export function authCookie(token: string) {

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { getModSession } from "@/lib/moderatorAuth";
+import { getModSessionAny } from "@/lib/moderatorAuth";
 import Moderator from "@/models/Moderator";
 
 export const runtime = "nodejs";
 
 export async function GET() {
     try {
-        const session = await getModSession();
+        const session = await getModSessionAny();
         if (!session) {
             return NextResponse.json(
                 { success: false, error: "Not authenticated" },

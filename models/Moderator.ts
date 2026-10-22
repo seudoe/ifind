@@ -9,6 +9,8 @@ export interface IModerator extends Document {
     verifiedAt?: Date | null;
     role: "moderator";
     isBanned: boolean;
+    /** Bumped on logout; tokens carry the value they were issued at. */
+    tokenVersion?: number;
     bannedBy?: mongoose.Types.ObjectId | null;
     bannedAt?: Date | null;
     bannedReason?: string | null;
@@ -37,6 +39,7 @@ const ModeratorSchema = new Schema<IModerator>(
         verifiedAt: { type: Date, default: null },
         role: { type: String, enum: ["moderator"], default: "moderator" },
         isBanned: { type: Boolean, default: false },
+        tokenVersion: { type: Number, default: 0 },
         bannedBy: { type: Schema.Types.ObjectId, ref: "Moderator", default: null },
         bannedAt: { type: Date, default: null },
         bannedReason: { type: String, default: null },

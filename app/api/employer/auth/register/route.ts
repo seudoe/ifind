@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { connectDB } from "@/lib/db";
+import { passwordProblem } from "@/lib/passwords";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
 import { plainText } from "@/lib/employer/sanitize";
@@ -32,8 +33,9 @@ export async function POST(request: NextRequest) {
         if (password.length > 128 || email.length > 254) {
             return NextResponse.json({ success: false, error: "Email or password is too long" }, { status: 400 });
         }
-        if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-            return NextResponse.json({ success: false, error: "Password must be at least 8 characters and include an uppercase letter and number" }, { status: 400 });
+        const passwordIssue = await passwordProblem(password, { email, name });
+        if (passwordIssue) {
+            return NextResponse.json({ success: false, error: passwordIssue }, { status: 400 });
         }
 
         await connectDB();
