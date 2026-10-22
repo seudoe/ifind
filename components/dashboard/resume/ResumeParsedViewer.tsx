@@ -1,3 +1,4 @@
+import { safeHref } from "@/lib/safeUrl";
 import {
     Briefcase,
     GraduationCap,
@@ -47,7 +48,7 @@ export function ResumeParsedViewer({ data }: { data: ParsedResumeData }) {
                             <div className="flex items-center gap-1">
                                 <LinkIcon className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                 <a
-                                    href={data.metaDetails.github_profile}
+                                    href={safeHref(data.metaDetails.github_profile)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[var(--primary-dk)] hover:underline text-sm"
@@ -60,7 +61,7 @@ export function ResumeParsedViewer({ data }: { data: ParsedResumeData }) {
                             <div className="flex items-center gap-1">
                                 <LinkIcon className="h-3.5 w-3.5 text-[var(--text-3)]" />
                                 <a
-                                    href={data.metaDetails.linkedin}
+                                    href={safeHref(data.metaDetails.linkedin)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[var(--primary-dk)] hover:underline text-sm"
@@ -244,7 +245,7 @@ export function ResumeParsedViewer({ data }: { data: ParsedResumeData }) {
                                     <div className="flex gap-3 text-xs">
                                         {p.links.repo && (
                                             <a
-                                                href={p.links.repo}
+                                                href={safeHref(p.links.repo)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-[var(--primary-dk)] hover:underline"
@@ -254,7 +255,7 @@ export function ResumeParsedViewer({ data }: { data: ParsedResumeData }) {
                                         )}
                                         {p.links.live && (
                                             <a
-                                                href={p.links.live}
+                                                href={safeHref(p.links.live)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-[var(--primary-dk)] hover:underline"
@@ -264,7 +265,7 @@ export function ResumeParsedViewer({ data }: { data: ParsedResumeData }) {
                                         )}
                                         {p.links.demo && (
                                             <a
-                                                href={p.links.demo}
+                                                href={safeHref(p.links.demo)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-[var(--primary-dk)] hover:underline"
@@ -343,7 +344,7 @@ export function ResumeParsedViewer({ data }: { data: ParsedResumeData }) {
                         {data.publications.map((p, i) => (
                             <div key={i}>
                                 <a
-                                    href={p.link}
+                                    href={safeHref(p.link)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-sm font-medium text-[var(--primary-dk)] hover:underline"

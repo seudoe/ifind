@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -124,7 +125,7 @@ export default function AppliedInternshipPage() {
           <div className="text-sm text-[var(--text-2)] space-y-2">
             <p>You applied on {sourceLabel(i.source)}. Updates on this application come from there, so there is no status to track here.</p>
             {i.applyLink && (
-              <a href={i.applyLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[var(--primary)] hover:underline">
+              <a href={safeHref(i.applyLink)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[var(--primary)] hover:underline">
                 Open on {sourceLabel(i.source)} <ExternalLink className="h-3.5 w-3.5" />
               </a>
             )}

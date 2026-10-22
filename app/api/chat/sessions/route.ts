@@ -1,3 +1,4 @@
+import { str } from '@/lib/validate';
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import ChatSession from '@/models/ChatSession';
@@ -53,8 +54,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { resumeId, title } = body;
+    const body = await req.json().catch(() => ({}));
+    const resumeId = str(body?.resumeId, 100);
+    const title = str(body?.title, 200);
 
     if (!resumeId) {
       return NextResponse.json(

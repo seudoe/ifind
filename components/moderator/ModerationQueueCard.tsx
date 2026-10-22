@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { ExternalLink, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -110,7 +111,7 @@ export function ModerationQueueCard({
                     </span>
                 ) : (
                     <a
-                        href={applyLink ?? undefined}
+                        href={safeHref(applyLink ?? undefined)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[var(--primary)] hover:underline"

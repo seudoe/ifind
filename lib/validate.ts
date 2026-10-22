@@ -23,3 +23,14 @@ export function strList(value: unknown, maxItems: number, maxLen: number): strin
   }
   return out;
 }
+
+/** A finite number clamped into [min, max] and truncated to an integer; `fallback` when the value is not numeric. */
+export function int(value: unknown, min: number, max: number, fallback: number): number {
+  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.trunc(n))) : fallback;
+}
+
+/** Escapes a string for literal use inside a RegExp (search boxes must never be compiled as patterns). */
+export function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}

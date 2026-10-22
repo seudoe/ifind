@@ -1,3 +1,4 @@
+import { isImageKitUrl } from "@/lib/uploads";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -32,6 +33,10 @@ async function handlePost() {
         }
 
         // Fetch PDF from ImageKit URL
+        // Only ever fetch a file our own upload route produced, even if the stored value were tampered with.
+        if (!isImageKitUrl(user.resume.driveViewLink)) {
+            return NextResponse.json({ success: false, error: "Stored resume location is not valid" }, { status: 400 });
+        }
         const pdfResponse = await fetch(user.resume.driveViewLink);
         if (!pdfResponse.ok) {
             return NextResponse.json(

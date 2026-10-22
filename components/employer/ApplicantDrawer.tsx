@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { useCallback, useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ExternalLink, Star, X } from "lucide-react";
@@ -160,7 +161,7 @@ export function ApplicantDrawer({ companyId, applicationId, onClose, onChanged }
 
                                 <Section title="Resume (as submitted)">
                                     {app.resumeSnapshot.url ? (
-                                        <a href={app.resumeSnapshot.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[var(--primary)] hover:underline">
+                                        <a href={safeHref(app.resumeSnapshot.url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[var(--primary)] hover:underline">
                                             <ExternalLink className="h-4 w-4" /> Open resume
                                         </a>
                                     ) : <p className="text-sm text-[var(--text-3)]">No resume file.</p>}

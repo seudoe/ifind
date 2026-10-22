@@ -8,6 +8,7 @@ const denied = (area: string, request: NextRequest, reason: string) =>
     log.warn(`proxy/${area}`, "access denied", { method: request.method, path: request.nextUrl.pathname, reason });
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const UPLOAD_PATHS = new Set(["/api/user/resume/upload-temp", "/api/user/upload-picture", "/api/employer/uploads"]);
 
 /**
  * CSRF defence in depth on top of SameSite=Lax cookies: a state-changing /api request from a browser must come
@@ -33,6 +34,16 @@ export function proxy(request: NextRequest) {
     if (isCrossSiteWrite(request)) {
         denied("csrf", request, `cross-site write from ${request.headers.get("origin") ?? "unknown origin"}`);
         return NextResponse.json({ success: false, error: "Cross-site request blocked" }, { status: 403 });
+    }
+
+    // A body is fully parsed before most handlers look at it, so cap its size here. Uploads get room for a 5 MB file.
+    if (pathname.startsWith("/api/") && !SAFE_METHODS.has(request.method)) {
+        const size = Number(request.headers.get("content-length") ?? 0);
+        const isUpload = UPLOAD_PATHS.has(pathname);
+        if (size > (isUpload ? 6 * 1024 * 1024 : 2 * 1024 * 1024)) {
+            denied("size", request, `request too large (${size} bytes)`);
+            return NextResponse.json({ success: false, error: "Request too large" }, { status: 413 });
+        }
     }
 
     // ── Moderator dynamic pages (/moderator/[username]/...) ──────────────────────

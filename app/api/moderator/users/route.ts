@@ -1,3 +1,4 @@
+import { escapeRegex } from "@/lib/validate";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
         const query: Record<string, unknown> = {};
 
         if (search) {
-            const regex = new RegExp(search, "i");
+            const regex = new RegExp(escapeRegex(search.slice(0, 100)), "i");
             query.$or = [
                 { name: regex },
                 { email: regex },

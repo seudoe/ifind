@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { useState } from "react";
 import {
   Award, BookOpen, BriefcaseBusiness, Building2, Edit3, FileText, GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users
@@ -151,17 +152,17 @@ export default function ProfilePage() {
                       {project.links && (project.links.repo || project.links.live || project.links.demo) && (
                         <div className="flex flex-wrap gap-3 pt-1 text-xs">
                           {project.links.repo && (
-                            <a href={project.links.repo} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
+                            <a href={safeHref(project.links.repo)} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
                               <Link2 className="h-3 w-3" /> Repository
                             </a>
                           )}
                           {project.links.live && (
-                            <a href={project.links.live} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
+                            <a href={safeHref(project.links.live)} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
                               <Link2 className="h-3 w-3" /> Live Demo
                             </a>
                           )}
                           {project.links.demo && (
-                            <a href={project.links.demo} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
+                            <a href={safeHref(project.links.demo)} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1 font-medium">
                               <Link2 className="h-3 w-3" /> Demo
                             </a>
                           )}
@@ -239,17 +240,17 @@ function ProfileHeader({ user, education, missing, onEditClick }: { user: User; 
         {(linkedin || github || extraLinks.length > 0) && (
           <div className="flex flex-wrap items-center gap-3 mt-2">
             {linkedin && (
-              <a href={linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[#0a66c2] hover:underline">
+              <a href={safeHref(linkedin)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[#0a66c2] hover:underline">
                 <Link2 className="h-3 w-3" /> LinkedIn
               </a>
             )}
             {github && (
-              <a href={github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--text)] hover:underline">
+              <a href={safeHref(github)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--text)] hover:underline">
                 <Link2 className="h-3 w-3" /> GitHub
               </a>
             )}
             {extraLinks.map((item, idx) => (
-              <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--primary)] hover:underline">
+              <a key={idx} href={safeHref(item.link)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--primary)] hover:underline">
                 <Link2 className="h-3 w-3" /> {item.name || "Link"}
               </a>
             ))}

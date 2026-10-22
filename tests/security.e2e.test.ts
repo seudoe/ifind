@@ -513,6 +513,58 @@ describe("MongoDB access control", () => {
   });
 });
 
+describe("hostile input reaches no dangerous sink", () => {
+  it("career-assistant and chat routes reject wrong types and oversized text before any model call", async () => {
+    const jar = await registerStudent("promptabuse");
+    const post = (path: string, json: unknown) => call(path, { method: "POST", jar, json });
+    assert.equal((await post("/api/career-assistant/interview", { jobRole: { $ne: 1 } })).status, 400);
+    assert.equal((await post("/api/career-assistant/interview", { jobRole: ["a"] })).status, 400);
+    assert.equal((await post("/api/career-assistant/career-roadmap", { currentRole: "x".repeat(500), targetRole: "y" })).status, 400);
+    assert.equal((await post("/api/career-assistant/learning-roadmap", { targetSkills: "not-a-list" })).status, 400);
+    assert.equal((await post("/api/career-assistant/learning-roadmap", { targetSkills: Array(500).fill("js") })).status, 400);
+    assert.equal((await post("/api/career-assistant/rewrite", { content: "z".repeat(6000) })).status, 400);
+    assert.equal((await post("/api/career-assistant/star", { experience: { toString: "x" } })).status, 400);
+    assert.equal((await post("/api/career-assistant/projects", { targetRole: 12345 })).status, 400);
+    assert.equal((await post("/api/chat/sessions", { resumeId: { $gt: "" } })).status, 400);
+    assert.equal((await post("/api/chat/sessions", { resumeId: "r", title: { a: 1 } })).status < 500, true);
+  });
+
+  it("oversized request bodies are refused before parsing", async () => {
+    const jar = await registerStudent("bigbody");
+    const big = JSON.stringify({ resumeId: "r", title: "t", pad: "a".repeat(3 * 1024 * 1024) });
+    const r = await call("/api/chat/sessions", { method: "POST", jar, headers: { "content-type": "application/json" }, body: big });
+    assert.equal(r.status, 413, `${r.status} ${r.text.slice(0, 120)}`);
+    const up = new FormData();
+    up.append("file", new Blob([new Uint8Array(7 * 1024 * 1024)], { type: "image/png" }), "x.png");
+    assert.equal((await call("/api/user/upload-picture", { method: "POST", jar, body: up })).status, 413);
+  });
+
+  it("a moderator search is matched literally: invalid or catastrophic patterns neither error nor hang", async () => {
+    const email = "mod3@example.com";
+    assert.equal((await call("/api/moderator/auth/register", { method: "POST", json: { name: "Mod Three", email, password: PASSWORD } })).status, 201);
+    await mongoose.connection.collection("moderators").updateOne({ email }, { $set: { isVerified: true } });
+    const jar: Jar = {};
+    assert.equal((await call("/api/moderator/auth/login", { method: "POST", jar, json: { email, password: PASSWORD } })).status, 200);
+    for (const q of ["[", "(a+)+$", "(", "*", ".*", "\\"]) {
+      const t0 = Date.now();
+      const r = await call(`/api/moderator/users?search=${encodeURIComponent(q)}`, { jar });
+      assert.equal(r.status, 200, `search ${JSON.stringify(q)} -> ${r.status} ${r.text.slice(0, 100)}`);
+      assert.ok(Date.now() - t0 < 3000, `search ${JSON.stringify(q)} was slow`);
+    }
+  });
+
+  it("upload filenames and declared types are never used: traversal names are accepted only as inert metadata", async () => {
+    const jar = await registerStudent("traversal");
+    const form = new FormData();
+    form.append("resume", new Blob([new Uint8Array(Buffer.from("MZ\x90\x00 this is an executable"))], { type: "application/pdf" }), "../../../etc/passwd.pdf");
+    const r = await call("/api/user/resume/upload-temp", { method: "POST", jar, body: form });
+    assert.equal(r.status, 400, r.text); // content is not a PDF, whatever the name or declared type says
+    const exe = new FormData();
+    exe.append("file", new Blob([new Uint8Array(Buffer.from("MZ\x90\x00"))], { type: "image/png" }), "..\..\evil.exe");
+    assert.equal((await call("/api/user/upload-picture", { method: "POST", jar, body: exe })).status, 400);
+  });
+});
+
 describe("CSRF", () => {
   it("blocks cross-site writes, allows same-origin and server-to-server", async () => {
     const jar = await registerStudent("csrfuser");
@@ -560,7 +612,7 @@ describe("uploads", () => {
     const jar = await registerStudent("uploader4");
     const big = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.alloc(6 * 1024 * 1024)]);
     const r = await upload(jar, "/api/user/upload-picture", "file", big, "image/jpeg", "big.jpg");
-    assert.equal(r.status, 400, r.text);
+    assert.ok(r.status === 400 || r.status === 413, r.text); // 413 from the request-size cap, 400 from the route's own check
   });
 });
 

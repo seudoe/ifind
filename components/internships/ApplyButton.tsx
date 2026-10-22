@@ -1,5 +1,6 @@
 "use client";
 
+import { safeHref } from "@/lib/safeUrl";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -73,10 +74,11 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
     }
     if (needsForm) return setOpen(true);
     // Open the source site synchronously to bypass popup blockers
-    if (!onPlatform && internship.applyLink) {
+    const target = onPlatform ? undefined : safeHref(internship.applyLink, { mailto: true });
+    if (target) {
       // mailto: (Telegram email-apply posts) opens the mail client instead of a new tab
-      if (internship.applyLink.startsWith("mailto:")) window.location.href = internship.applyLink;
-      else window.open(internship.applyLink, "_blank");
+      if (target.startsWith("mailto:")) window.location.href = target;
+      else window.open(target, "_blank", "noopener,noreferrer");
     }
     // Scraped listings only: for iFind posts the server reports application_submitted
     if (!onPlatform) track("apply_click", { internship_id: id });
