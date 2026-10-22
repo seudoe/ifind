@@ -53,6 +53,8 @@ export interface IUser extends Document {
     username: string;
     email: string;
     password?: string;
+    /** Bumped on logout, account deletion and account takeover; tokens carry the value they were issued at. */
+    tokenVersion?: number;
     linkedinId?: string;
     linkedinDetails?: any;
     profilePicture?: string | null;
@@ -175,6 +177,7 @@ const UserSchema = new Schema<IUser>(
             trim: true,
         },
         password: { type: String, required: false, select: false },
+        tokenVersion: { type: Number, default: 0 },
         // No default: a stored null would collide in the unique sparse index below (sparse skips missing fields, not nulls),
         // so the second password-only signup on a fresh database would fail as "already taken".
         linkedinId: { type: String, default: undefined, trim: true },

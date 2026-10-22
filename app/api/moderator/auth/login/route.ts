@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
             name: moderator.name,
             role: "moderator",
             isVerified: moderator.isVerified,
-        });
+        }, moderator.tokenVersion ?? 0);
 
         const cookie = modAuthCookie(token);
         const response = NextResponse.json({

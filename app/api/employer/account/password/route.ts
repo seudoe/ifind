@@ -2,7 +2,8 @@ import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
-import { checkPassword } from "@/lib/passwords";
+import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
+import { checkPassword, passwordProblem } from "@/lib/passwords";
 import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import Employer from "@/models/Employer";
 
@@ -24,8 +25,9 @@ export async function POST(request: NextRequest) {
         if (newPassword.length > 128 || currentPassword.length > 128) {
             return NextResponse.json({ success: false, error: "Password is too long" }, { status: 400 });
         }
-        if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-            return NextResponse.json({ success: false, error: "Password must be at least 8 characters and include an uppercase letter and number" }, { status: 400 });
+        const passwordIssue = await passwordProblem(newPassword, { email: auth.email, name: auth.name });
+        if (passwordIssue) {
+            return NextResponse.json({ success: false, error: passwordIssue }, { status: 400 });
         }
 
         await connectDB();
@@ -35,8 +37,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: "Current password is incorrect" }, { status: 400 });
         }
         employer.password = await bcrypt.hash(newPassword, 12);
+        // Every token issued before this moment (including a thief's) stops working; this browser gets a fresh one.
+        employer.tokenVersion = (employer.tokenVersion ?? 0) + 1;
         await employer.save();
-        return NextResponse.json({ success: true });
+        const cookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }, employer.tokenVersion));
+        const response = NextResponse.json({ success: true });
+        response.cookies.set(cookie.name, cookie.value, cookie.options);
+        return response;
     } catch (error) {
         console.error("[employer/account/password]", error);
         return NextResponse.json({ success: false, error: "Unable to update password" }, { status: 500 });

@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { Shield, Clock } from "lucide-react";
-import { getModSession } from "@/lib/moderatorAuth";
+import { getModSessionAny } from "@/lib/moderatorAuth";
 
 export default async function ModeratorPendingPage() {
-    const session = await getModSession();
+    const session = await getModSessionAny();
 
     if (!session) {
         redirect("/moderator/login");

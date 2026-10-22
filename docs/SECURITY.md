@@ -152,3 +152,12 @@ credentials can never be used by the tests.
   (per-account limits still apply).
 - The per-account login limit means an attacker can lock a victim out of password login for 15 minutes by failing
   logins on purpose. That trade-off is intentional; LinkedIn sign-in is unaffected.
+
+## Session lifecycle and passwords
+
+- Tokens: student `ifind_token` (30 days), employer `ifind_emp_token` (7 days), moderator `ifind_mod_token` (24 hours). All are HttpOnly, SameSite=Lax, Secure in production.
+- Every account has a `tokenVersion`; each token carries the value it was issued at (`tv`). Logout, password change, account deletion and the first LinkedIn sign-in into a password account increment it, which ends every older token on every device. Students are checked through a 15-second cache (`lib/banCheck.ts`); employers and moderators on every request.
+- Moderator routes read `isBanned`, `isVerified` and `tokenVersion` from the database (`getModSession`), not from the token, so a ban or un-verify applies immediately instead of at token expiry.
+- LinkedIn: an email address is used to match an existing account only when LinkedIn reports it verified. A match that links a LinkedIn identity for the first time drops any password set earlier on that account, because the person who registered it never proved they own the address.
+- New passwords (`lib/passwords.ts`): 8 to 128 characters with an uppercase letter and a digit, not in a short list of common passwords, not containing the email name or username, and not found in the Have I Been Pwned breach corpus (only a 5-character hash prefix is sent; fails open if the service is unreachable; `BREACH_CHECK=off` disables it).
+- Not present: email verification, password reset and multi-factor authentication. They need an email provider and a product decision; see the open items in the authentication audit.

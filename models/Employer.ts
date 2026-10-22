@@ -12,6 +12,8 @@ export interface IEmployer extends Document {
     designation?: string | null;
     role: "employer";
     isBanned: boolean;
+    /** Bumped on logout, password change and account takeover; tokens carry the value they were issued at. */
+    tokenVersion?: number;
     bannedReason?: string | null;
     bannedBy?: mongoose.Types.ObjectId | null;
     bannedAt?: Date | null;
@@ -34,6 +36,7 @@ const EmployerSchema = new Schema<IEmployer>(
         designation: { type: String, default: null, trim: true },
         role: { type: String, enum: ["employer"], default: "employer" },
         isBanned: { type: Boolean, default: false },
+        tokenVersion: { type: Number, default: 0 },
         bannedReason: { type: String, default: null },
         bannedBy: { type: Schema.Types.ObjectId, ref: "Moderator", default: null },
         bannedAt: { type: Date, default: null },

@@ -99,6 +99,7 @@ before(async () => {
       EMP_JWT_SECRET: "e2e-employer-secret-0123456789abcdef012345",
       NEXT_PUBLIC_APP_URL: BASE,
       NEXT_PUBLIC_GA_ID: "",
+      BREACH_CHECK: "off", // no calls to third-party services from tests
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -327,6 +328,89 @@ describe("authentication behaviour", () => {
       assert.equal(r.status, 200, `${path}: ${r.text.slice(0, 200)}`);
       assert.equal(/"password"|failedLoginAttempts|\$2[aby]\$/.test(r.text), false, `${path} leaked a sensitive field`);
     }
+  });
+});
+
+describe("session lifecycle and password policy", () => {
+  /** A cookie lifted before logout/password change (what a thief holds). */
+  const copyOf = (jar: Jar): Jar => ({ ...jar });
+  /** Revocation is read through a 15-second cache on student sessions, so allow for it; employers and moderators are immediate. */
+  async function statusEventually(path: string, jar: Jar, want: number, budgetMs = 20_000) {
+    const end = Date.now() + budgetMs;
+    let status = 0;
+    do {
+      status = (await call(path, { jar })).status;
+      if (status === want) return status;
+      await new Promise((r) => setTimeout(r, 1000));
+    } while (Date.now() < end);
+    return status;
+  }
+
+  it("student logout invalidates a copied session token", async () => {
+    const jar = await registerStudent("logoutuser");
+    const stolen = copyOf(jar);
+    assert.equal((await call("/api/auth/me", { jar: stolen })).status, 200);
+    assert.equal((await call("/api/auth/logout", { method: "POST", jar })).status, 200);
+    assert.equal(await statusEventually("/api/auth/me", copyOf(stolen), 401), 401, "copied token still works after logout");
+  });
+
+  it("employer password change and logout invalidate older tokens; the changing browser keeps working", async () => {
+    const jar: Jar = {};
+    const reg = await call("/api/employer/auth/register", { method: "POST", jar, json: { name: "Emp Two", email: "emp2@example.com", password: PASSWORD } });
+    assert.equal(reg.status, 201, reg.text);
+    const stolen = copyOf(jar);
+    const change = await call("/api/employer/account/password", { method: "POST", jar, json: { currentPassword: PASSWORD, newPassword: "BrandNewPassw0rd" } });
+    assert.equal(change.status, 200, change.text);
+    assert.equal((await call("/api/employer/profile", { jar: stolen })).status, 401, "token from before the password change still works");
+    assert.equal((await call("/api/employer/profile", { jar })).status, 200, "the browser that changed the password was logged out");
+
+    const copy = copyOf(jar);
+    assert.equal((await call("/api/employer/auth/logout", { method: "POST", jar })).status, 200);
+    assert.equal((await call("/api/employer/profile", { jar: copy })).status, 401, "copied employer token works after logout");
+  });
+
+  it("a moderator who is banned or un-verified loses access even though the 24h token is still valid", async () => {
+    const email = "mod2@example.com";
+    const reg = await call("/api/moderator/auth/register", { method: "POST", json: { name: "Mod Two", email, password: PASSWORD } });
+    assert.equal(reg.status, 201, reg.text);
+    const mods = mongoose.connection.collection("moderators");
+    await mods.updateOne({ email }, { $set: { isVerified: true } });
+    const jar: Jar = {};
+    const login = await call("/api/moderator/auth/login", { method: "POST", jar, json: { email, password: PASSWORD } });
+    assert.equal(login.status, 200, login.text);
+    assert.equal((await call("/api/moderator/users", { jar })).status, 200);
+
+    await mods.updateOne({ email }, { $set: { isBanned: true } });
+    const banned = await call("/api/moderator/users", { jar });
+    assert.ok(banned.status === 401 || banned.status === 403, `banned moderator kept access (${banned.status})`);
+    assert.equal((await call("/api/admin/refresh-recommendations", { method: "POST", jar })).status, 401);
+
+    await mods.updateOne({ email }, { $set: { isBanned: false, isVerified: false } });
+    const r = await call("/api/moderator/users", { jar });
+    assert.ok(r.status === 401 || r.status === 403, `un-verified moderator got ${r.status}`);
+
+    await mods.updateOne({ email }, { $set: { isVerified: true } });
+    const copy = copyOf(jar);
+    assert.equal((await call("/api/moderator/auth/logout", { method: "POST", jar })).status, 200);
+    const after = await call("/api/moderator/users", { jar: copy });
+    assert.ok(after.status === 401 || after.status === 403, `copied moderator token works after logout (${after.status})`);
+  });
+
+  it("new passwords are screened: common, containing the username or email, and the old policy", async () => {
+    const bad = async (password: string, extra: Record<string, string> = {}) =>
+      call("/api/auth/register", {
+        method: "POST",
+        headers: { "x-forwarded-for": `10.1.0.${nextIp++}` },
+        json: { name: "Policy Test", username: "policyuser", email: "policyuser@example.com", password, ...extra },
+      });
+    assert.equal((await bad("Password1")).status, 400);
+    assert.equal((await bad("Welcome123")).status, 400);
+    assert.equal((await bad("Policyuser99X")).status, 400); // contains the username
+    assert.equal((await bad("short1A")).status, 400);
+    assert.equal((await bad("nouppercase123")).status, 400);
+    const emp = await call("/api/employer/auth/register", { method: "POST", headers: { "x-forwarded-for": `10.1.0.${nextIp++}` }, json: { name: "Emp", email: "emppolicy@example.com", password: "Qwerty123" } });
+    assert.equal(emp.status, 400);
+    assert.equal((await bad("Xk9mQ2vLp8Rt")).status, 201);
   });
 });
 

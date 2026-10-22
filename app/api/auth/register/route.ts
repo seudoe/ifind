@@ -3,7 +3,7 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { MAX_PASSWORD_LENGTH } from "@/lib/passwords";
+import { MAX_PASSWORD_LENGTH, passwordProblem } from "@/lib/passwords";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import User from "@/models/User";
 import { log } from "@/lib/logger";
@@ -34,8 +34,9 @@ export async function POST(request: NextRequest) {
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       return NextResponse.json({ success: false, error: "A valid email is required" }, { status: 400 });
     }
-    if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-      return NextResponse.json({ success: false, error: "Password must be at least 8 characters and include an uppercase letter and number" }, { status: 400 });
+    const passwordIssue = await passwordProblem(password, { email, username, name });
+    if (passwordIssue) {
+      return NextResponse.json({ success: false, error: passwordIssue }, { status: 400 });
     }
 
     await connectDB();

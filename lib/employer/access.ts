@@ -13,6 +13,7 @@ export async function getValidEmployer(): Promise<IEmployer | null> {
     await connectDB();
     const employer = await Employer.findById(session.employerId);
     if (!employer || employer.isBanned || employer.deleteDetails?.deleted) return null;
+    if ((session.tv ?? 0) !== (employer.tokenVersion ?? 0)) return null; // revoked by logout or password change
     return employer;
 }
 

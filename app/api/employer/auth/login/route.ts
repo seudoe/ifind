@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         employer.lastLoginAt = new Date();
         await employer.save();
 
-        const cookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }));
+        const cookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }, employer.tokenVersion ?? 0));
         const response = NextResponse.json({ success: true, data: { employerId: employer.id } });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
         after(() => sendServerEvent(request, "login", { user_type: "employer" }));

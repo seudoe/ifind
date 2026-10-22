@@ -27,3 +27,48 @@ test("looksLikePdf requires the %PDF- header", () => {
   assert.equal(looksLikePdf(Buffer.from("MZ\x90\x00 not a pdf")), false);
   assert.equal(looksLikePdf(Buffer.from("<html>%PDF-</html>".padStart(2000, " "))), false);
 });
+
+import { isBreachedPassword, passwordPolicyProblem } from "../lib/passwords";
+
+test("passwordPolicyProblem enforces length, composition, common passwords and own identifiers", () => {
+  assert.match(passwordPolicyProblem("short1A") ?? "", /at least 8 characters/);
+  assert.match(passwordPolicyProblem("alllowercase1") ?? "", /uppercase/);
+  assert.match(passwordPolicyProblem("NoDigitsHere") ?? "", /number/);
+  assert.match(passwordPolicyProblem("Password1") ?? "", /too common/);
+  assert.match(passwordPolicyProblem("Welcome123") ?? "", /too common/);
+  assert.match(passwordPolicyProblem("Sunil2024xyz", { email: "sunil@example.com" }) ?? "", /must not contain your email or username/);
+  assert.equal(passwordPolicyProblem("Xk9mQ2vLp8Rt", { username: "sunil", email: "sunil@example.com" }), null);
+});
+
+test("isBreachedPassword sends only a 5-character hash prefix and recognises a listed suffix", async () => {
+  const { createHash } = await import("node:crypto");
+  const sha1 = createHash("sha1").update("Xk9mQ2vLp8Rt").digest("hex").toUpperCase();
+  const realFetch = globalThis.fetch;
+  const seen: string[] = [];
+  const saved = process.env.BREACH_CHECK;
+  delete process.env.BREACH_CHECK;
+  try {
+    globalThis.fetch = (async (url: string | URL | Request) => {
+      seen.push(String(url));
+      return new Response(`0018A45C4D1DEF81644B54AB7F969B88D65:0\r\n${sha1.slice(5)}:42\r\nFFFF0000FFFF0000FFFF0000FFFF0000FFF:3`, { status: 200 });
+    }) as typeof fetch;
+    assert.equal(await isBreachedPassword("Xk9mQ2vLp8Rt"), true);
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0], `https://api.pwnedpasswords.com/range/${sha1.slice(0, 5)}`); // nothing beyond the prefix leaves the server
+    // padding rows (count 0) are not matches
+    globalThis.fetch = (async () => new Response(`${sha1.slice(5)}:0`, { status: 200 })) as typeof fetch;
+    assert.equal(await isBreachedPassword("Xk9mQ2vLp8Rt"), false);
+    // an unreachable service must not block sign-ups
+    globalThis.fetch = (async () => { throw new Error("offline"); }) as typeof fetch;
+    assert.equal(await isBreachedPassword("Xk9mQ2vLp8Rt"), false);
+    // and the switch turns the lookup off entirely
+    process.env.BREACH_CHECK = "off";
+    seen.length = 0;
+    globalThis.fetch = (async (url: string | URL | Request) => { seen.push(String(url)); return new Response(""); }) as typeof fetch;
+    assert.equal(await isBreachedPassword("Xk9mQ2vLp8Rt"), false);
+    assert.equal(seen.length, 0);
+  } finally {
+    globalThis.fetch = realFetch;
+    if (saved === undefined) delete process.env.BREACH_CHECK; else process.env.BREACH_CHECK = saved;
+  }
+});

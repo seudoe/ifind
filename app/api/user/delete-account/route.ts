@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, authCookie } from "@/lib/auth";
+import { revokeStudentSessions } from "@/lib/banCheck";
 import { connectDB } from "@/lib/db";
 import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import User from "@/models/User";
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
       deletedAt: new Date(),
     };
     await user.save();
+    await revokeStudentSessions(session.userId); // a deleted account's other devices are signed out too
 
     const response = NextResponse.json({
       success: true,

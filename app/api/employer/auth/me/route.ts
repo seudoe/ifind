@@ -13,7 +13,7 @@ export async function GET() {
 
         await connectDB();
         const e = await Employer.findById(session.employerId).select("+password").lean();
-        if (!e || e.isBanned || e.deleteDetails?.deleted) {
+        if (!e || e.isBanned || e.deleteDetails?.deleted || (session.tv ?? 0) !== (e.tokenVersion ?? 0)) {
             return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
         }
         const data: EmployerDTO = {

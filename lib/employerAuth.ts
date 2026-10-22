@@ -9,8 +9,8 @@ function getEmpJwtSecret(): string {
     return requireSecret("EMP_JWT_SECRET");
 }
 
-export function signEmpToken(session: EmployerSession): string {
-    return jwt.sign(session, getEmpJwtSecret(), { expiresIn: "7d" });
+export function signEmpToken(session: EmployerSession, tokenVersion = 0): string {
+    return jwt.sign({ ...session, tv: tokenVersion }, getEmpJwtSecret(), { expiresIn: "7d" });
 }
 
 export function verifyEmpToken(token: string): EmployerSession | null {

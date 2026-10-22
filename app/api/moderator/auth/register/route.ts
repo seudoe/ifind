@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { MAX_PASSWORD_LENGTH } from "@/lib/passwords";
+import { MAX_PASSWORD_LENGTH, passwordProblem } from "@/lib/passwords";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import { modAuthCookie, signModToken } from "@/lib/moderatorAuth";
 import Moderator from "@/models/Moderator";
@@ -45,16 +45,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (
-            password.length < 8 ||
-            !/[A-Z]/.test(password) ||
-            !/[0-9]/.test(password)
-        ) {
+        const passwordIssue = await passwordProblem(password, { email, name });
+        if (passwordIssue) {
             return NextResponse.json(
-                {
-                    success: false,
-                    error: "Password must be 8+ chars, 1 uppercase, 1 number",
-                },
+                { success: false, error: passwordIssue },
                 { status: 400 },
             );
         }
