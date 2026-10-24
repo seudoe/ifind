@@ -42,6 +42,11 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
+    if (resumeUpdate && !existingUser.resume?.parsedData) {
+      // $set on resume.parsedData.* fails (500) when parsedData is null, i.e. before a resume has been extracted.
+      return bad("Upload and extract your resume before editing its sections");
+    }
+
     const setFields: Record<string, any> = {};
 
     // 1. Process top-level user updates
