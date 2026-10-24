@@ -29,7 +29,7 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <section className="py-14 bg-[var(--bg)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h2 className="text-xl font-bold text-[var(--heading)]">How iFind Works</h2>
           <p className="text-sm text-[var(--text-2)] mt-1">Get started in 3 simple steps</p>

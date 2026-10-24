@@ -77,8 +77,11 @@ a.plasma-card:hover, button.plasma-card:hover, .plasma-card.hoverable:hover, .pl
 /* ── Page-title bar: "01 / TITLE" with the 2px structural rule ───────────── */
 .page-header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-bottom: 22px; padding-bottom: 14px; border-bottom: 2px solid var(--rule);
+  margin-bottom: 22px; padding: 12px 0 14px; border-bottom: 2px solid var(--rule);
+  /* stays put while the tab content scrolls; sits under the 56px mobile top bar */
+  position: sticky; top: 56px; z-index: 20; background: var(--bg);
 }
+@media (min-width: 1024px) { .page-header { top: 0; } }
 .page-header .path   { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-2); }
 .page-header .status { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--success); }
 

@@ -7,7 +7,7 @@ const COMPANIES = [
 export function TrustBar() {
   return (
     <section className="py-8 bg-[var(--surface)] border-t border-[var(--border)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="text-xs text-center text-[var(--text-3)] font-mono uppercase tracking-[0.07em] mb-5">
           Internships from top companies
         </p>

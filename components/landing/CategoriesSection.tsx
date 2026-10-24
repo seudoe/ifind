@@ -14,7 +14,7 @@ const CATEGORIES = [
 export function CategoriesSection() {
   return (
     <section className="py-14 bg-[var(--bg)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-xl font-bold text-[var(--heading)]">Browse by Category</h2>
           <p className="text-sm text-[var(--text-2)] mt-1">Explore opportunities across popular domains</p>

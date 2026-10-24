@@ -25,7 +25,7 @@ export default function StudentLandingPage() {
 
         {/* Employer CTA strip */}
         <section className="py-10 bg-[var(--surface)] border-t border-[var(--border)]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-[var(--text)]">Are you an employer?</p>
               <p className="text-xs text-[var(--text-3)] mt-0.5">Post internships and find the right candidates.</p>

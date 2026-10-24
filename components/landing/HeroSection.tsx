@@ -38,7 +38,7 @@ export function HeroSection() {
         <div className="absolute -bottom-28 right-[10%] w-64 h-64 rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-navy), transparent 70%)" }} />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <div className="max-w-3xl mx-auto text-center">
 
           {/* Status badge */}
