@@ -86,7 +86,7 @@ export default function AppliedInternshipPage() {
           <CompanyLogo internship={i} />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold text-[var(--text)]">{i.name}</h2>
+          <h2 className="text-base font-semibold text-[var(--heading)]">{i.name}</h2>
           <p className="text-sm text-[var(--text-2)]">{i.company} · {sourceLabel(i.source)}</p>
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <StipendBadge stipend={i.stipend} />
@@ -97,7 +97,7 @@ export default function AppliedInternshipPage() {
       </div>
 
       <div className="plasma-card p-5 mt-4">
-        <h3 className="text-sm font-semibold text-[var(--text)] mb-4">Status</h3>
+        <h3 className="text-sm font-semibold text-[var(--heading)] mb-4">Status</h3>
         {item.tracked ? (
           <ol className="space-y-0">
             {steps.map((s, idx) => (
@@ -135,7 +135,7 @@ export default function AppliedInternshipPage() {
 
       {item.tracked && (item.coverLetter || item.answers.length > 0) && (
         <div className="plasma-card p-5 mt-4 space-y-4">
-          <h3 className="text-sm font-semibold text-[var(--text)]">Your application</h3>
+          <h3 className="text-sm font-semibold text-[var(--heading)]">Your application</h3>
           {item.coverLetter && (
             <div>
               <p className="text-xs font-medium text-[var(--text-3)] mb-1">Cover letter</p>

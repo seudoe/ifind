@@ -98,7 +98,7 @@ export function TagInput({
             className="w-full text-xs outline-none bg-transparent text-[var(--text)] placeholder:text-[var(--text-3)]"
           />
           {showSuggestions && filtered.length > 0 && (
-            <div className="absolute top-full left-0 z-20 mt-1 w-48 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] shadow-lg py-1">
+            <div className="absolute top-full left-0 z-20 mt-1 w-48 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)] py-1">
               {filtered.slice(0, 5).map((suggestion) => (
                 <button
                   key={suggestion}

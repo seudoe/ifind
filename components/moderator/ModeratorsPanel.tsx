@@ -167,19 +167,19 @@ export function ModeratorsPanel({ currentModeratorId }: ModeratorsPanelProps) {
                     <table className="w-full text-left">
                         <thead className="bg-[var(--surface-2)] border-b border-[var(--border)]">
                             <tr>
-                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide">
+                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] font-mono uppercase tracking-[0.07em]">
                                     Moderator
                                 </th>
-                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide">
+                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] font-mono uppercase tracking-[0.07em]">
                                     Status
                                 </th>
-                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide whitespace-nowrap">
+                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] font-mono uppercase tracking-[0.07em] whitespace-nowrap">
                                     Verified By
                                 </th>
-                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide whitespace-nowrap">
+                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] font-mono uppercase tracking-[0.07em] whitespace-nowrap">
                                     Joined
                                 </th>
-                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide">
+                                <th className="py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] font-mono uppercase tracking-[0.07em]">
                                     Actions
                                 </th>
                             </tr>

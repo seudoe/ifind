@@ -60,7 +60,7 @@ export default function EmployerLandingPage() {
                 <GraduationCap className="h-3.5 w-3.5" />
                 2M+ students ready to intern
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text)] leading-tight tracking-tight mb-5">
+              <h1 className="text-4xl sm:text-5xl font-bold text-[var(--heading)] leading-tight tracking-tight mb-5">
                 Hire the best{" "}
                 <span className="text-[var(--primary)]">student talent</span>
                 {" "}in India
@@ -89,7 +89,7 @@ export default function EmployerLandingPage() {
         <section className="py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--text)]">Why employers choose iFind</h2>
+              <h2 className="text-xl font-bold text-[var(--heading)]">Why employers choose iFind</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {FEATURES.map(({ icon: Icon, title, desc }) => (
@@ -97,7 +97,7 @@ export default function EmployerLandingPage() {
                   <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)] flex items-center justify-center mb-3">
                     <Icon className="h-4.5 w-4.5" />
                   </div>
-                  <h3 className="text-sm font-semibold text-[var(--text)] mb-1.5">{title}</h3>
+                  <h3 className="text-sm font-semibold text-[var(--heading)] mb-1.5">{title}</h3>
                   <p className="text-xs text-[var(--text-2)] leading-relaxed">{desc}</p>
                 </div>
               ))}
@@ -109,13 +109,13 @@ export default function EmployerLandingPage() {
         <section className="py-14 bg-[var(--surface)] border-t border-b border-[var(--border)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-10 text-center">
-              <h2 className="text-xl font-bold text-[var(--text)]">Get started in 3 steps</h2>
+              <h2 className="text-xl font-bold text-[var(--heading)]">Get started in 3 steps</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {STEPS.map(({ num, title, desc }) => (
                 <div key={num} className="plasma-card p-6 text-center">
                   <div className="text-3xl font-black text-[var(--primary)] opacity-30 mb-3">{num}</div>
-                  <h3 className="text-sm font-semibold text-[var(--text)] mb-2">{title}</h3>
+                  <h3 className="text-sm font-semibold text-[var(--heading)] mb-2">{title}</h3>
                   <p className="text-xs text-[var(--text-2)] leading-relaxed">{desc}</p>
                 </div>
               ))}

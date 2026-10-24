@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { AlertTriangle, BadgeCheck, Bell, Briefcase, Link2Off, LogOut, X } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Bell, Link2Off, LogOut, X } from "lucide-react";
 import { cn }          from "@/lib/utils";
 import { Avatar }      from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Logo as LogoBadge } from "@/components/ui/Logo";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
 import type { User as StudentUser } from "@/types";
 
@@ -34,13 +37,8 @@ function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: Studen
 
 function Logo() {
   return (
-    <Link href="/user" className="flex items-center gap-2 shrink-0">
-      <div className="h-8 w-8 rounded-[var(--radius-sm)] bg-[var(--primary)] flex items-center justify-center">
-        <Briefcase className="h-4 w-4 text-white" />
-      </div>
-      <span className="text-base font-bold text-[var(--text)]">
-        i<span className="text-[var(--primary)]">Find</span>
-      </span>
+    <Link href="/user" className="flex items-center shrink-0" aria-label="iFind home">
+      <LogoBadge size="md" />
     </Link>
   );
 }
@@ -80,18 +78,18 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
 
   const linkCls = (active: boolean) =>
     cn(
-      "flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-colors",
-      active ? "bg-[var(--primary-bg)] text-[var(--primary)]" : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
+      "relative flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-[13.5px] transition-colors",
+      active ? "bg-[var(--primary)] text-white font-semibold" : "font-medium text-[var(--text)] hover:bg-[var(--primary-bg)] hover:text-[var(--heading)]",
     );
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
 
       {/* ── Sidebar (large screens) ───────────────────────────────────────── */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-60 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
-        <div className="px-4 h-14 flex items-center shrink-0"><Logo /></div>
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-60 flex-col border-r-2 border-[var(--rule)] bg-[var(--surface)]">
+        <div className="px-4 h-14 flex items-center shrink-0 border-b-2 border-[var(--rule)]"><Logo /></div>
 
-        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
           {NAV_GROUPS.map((group) =>
             group.links.length === 1 ? (
               <Link key={group.key} href={href(group.links[0])} className={linkCls(isActive(group.links[0]))}>
@@ -99,7 +97,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
               </Link>
             ) : (
               <div key={group.key}>
-                <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-3)]">{group.label}</p>
+                <p className="px-3 mb-1 text-[10px] font-bold font-mono uppercase tracking-[0.08em] text-[var(--text-2)]">{group.label}</p>
                 <div className="space-y-0.5">
                   {group.links.filter((l) => !l.hidden).map((l) => (
                     <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}>
@@ -120,13 +118,14 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
             </div>
             <ProgressBar value={user.profileCompletionScore} />
           </div>
+          <ThemeSwitcher />
           <div className="flex items-center gap-1">
             <Link href={`${base}/profile`} className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors">
               <Avatar src={user.profilePicture} name={user.name} size="xs" />
               <span className="text-sm font-medium text-[var(--text)] truncate">{user.name}</span>
               <LinkedInStatusIndicator linkedinDetails={user.linkedinDetails} />
             </Link>
-            <button onClick={handleLogout} title="Logout" className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-red-50 transition-colors">
+            <button onClick={handleLogout} title="Logout" className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-[var(--surface-2)] transition-colors">
               <LogOut className="h-4 w-4" />
             </button>
           </div>
@@ -134,7 +133,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       </aside>
 
       {/* ── Top bar (small screens) ───────────────────────────────────────── */}
-      <header className="lg:hidden sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
+      <header className="lg:hidden sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-[var(--surface)] border-b-2 border-[var(--rule)] plasma-glass">
         <Logo />
         <div className="flex items-center gap-3">
           <Link href={`${base}/notifications`} aria-label="Notifications" className="relative p-1.5 text-[var(--text-2)]">
@@ -148,34 +147,35 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       {/* ── Page content ─────────────────────────────────────────────────── */}
       <div className="lg:pl-60">
         <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
-          <h1 className="text-xl font-semibold text-[var(--text)] mb-6">
-            {current ? (current.link.title ?? current.link.label) : "Dashboard"}
-          </h1>
+          <PageHeader title={current ? (current.link.title ?? current.link.label) : "Dashboard"} status="Online" />
           {children}
         </main>
       </div>
 
       {/* ── Bottom bar + group sheet (small screens) ─────────────────────── */}
       {openGroup && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setSheet(null)}>
-          <div className="absolute inset-x-0 bottom-14 rounded-t-2xl bg-[var(--surface)] p-3 shadow-[var(--shadow-lg)]" onClick={(e) => e.stopPropagation()}>
+        <div className="lg:hidden fixed inset-0 z-40 bg-[var(--overlay)]" onClick={() => setSheet(null)}>
+          <div className="absolute inset-x-0 bottom-14 rounded-t-[var(--radius-2xl)] border-t-2 border-[var(--rule)] bg-[var(--surface)] p-3 shadow-[var(--shadow-lg)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-2 pb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{openGroup.label}</p>
+              <p className="text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)]">{openGroup.label}</p>
               <button onClick={() => setSheet(null)} aria-label="Close" className="p-1 text-[var(--text-3)]"><X className="h-4 w-4" /></button>
             </div>
             {openGroup.links.filter((l) => !l.hidden).map((l) => (
               <Link key={l.path} href={href(l)} className={linkCls(isActive(l))}><l.icon className="h-4 w-4" />{l.label}{l.path === "notifications" && unread > 0 && <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>}</Link>
             ))}
             {openGroup.key === "system" && (
-              <button onClick={handleLogout} className={cn(linkCls(false), "w-full text-[var(--danger)]")}><LogOut className="h-4 w-4" />Logout</button>
+              <>
+                <ThemeSwitcher className="my-2" />
+                <button onClick={handleLogout} className={cn(linkCls(false), "w-full text-[var(--danger)]")}><LogOut className="h-4 w-4" />Logout</button>
+              </>
             )}
           </div>
         </div>
       )}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 h-14 flex bg-[var(--surface)] border-t border-[var(--border)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 h-14 flex bg-[var(--surface)] border-t-2 border-[var(--rule)]">
         {NAV_GROUPS.map((group) => {
           const active = current?.group.key === group.key;
-          const cls = cn("flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors", active ? "text-[var(--primary)]" : "text-[var(--text-3)]");
+          const cls = cn("flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-mono font-bold uppercase tracking-[0.04em] transition-colors", active ? "text-[var(--primary)] bg-[var(--primary-bg)]" : "text-[var(--text-3)]");
           const inner = <><group.icon className="h-5 w-5" />{group.label}</>;
           return group.links.length === 1 ? (
             <Link key={group.key} href={href(group.links[0])} className={cls}>{inner}</Link>

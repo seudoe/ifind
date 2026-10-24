@@ -3,19 +3,19 @@
 // Dependency-free SVG/CSS charts for the scrape dashboards.
 
 export const COLORS = {
-    green: "#27ae60",
-    amber: "#f39c12",
-    red: "#e74c3c",
-    blue: "#3daee9",
-    gray: "#9aa5b1",
-    purple: "#8e6bd8",
-    slate: "#34495e",
+    green: "var(--success)",
+    amber: "var(--warning)",
+    red: "var(--danger)",
+    blue: "var(--primary)",
+    gray: "var(--text-3)",
+    purple: "var(--accent-10)",
+    slate: "var(--navy)",
 };
 
 export function Card({ title, children, className = "" }: { title?: string; children: React.ReactNode; className?: string }) {
     return (
         <div className={`rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 ${className}`}>
-            {title && <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)] mb-3">{title}</h3>}
+            {title && <h3 className="text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-3">{title}</h3>}
             {children}
         </div>
     );

@@ -46,7 +46,7 @@ export default function ProfilePage() {
 
     return (
         <main className="flex-1 min-w-0 p-4 md:p-8 max-w-xl">
-            <h1 className="text-lg font-bold text-[var(--text)] mb-6">Profile</h1>
+            <h1 className="text-lg font-bold text-[var(--heading)] mb-6">Profile</h1>
             {error ? (
                 <p className="text-sm text-[var(--danger)]">{error}</p>
             ) : !p ? (

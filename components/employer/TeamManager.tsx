@@ -64,7 +64,7 @@ export function TeamManager({ companyId }: { companyId: string }) {
 
     return (
         <div className="max-w-3xl space-y-6">
-            <h1 className="text-lg font-bold text-[var(--text)]">Team</h1>
+            <h1 className="text-lg font-bold text-[var(--heading)]">Team</h1>
 
             {canManage && (
                 <form onSubmit={add} className="plasma-card p-4 flex flex-col gap-3 sm:flex-row sm:items-end">

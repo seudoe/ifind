@@ -31,7 +31,7 @@ export function HowItWorks() {
     <section className="py-14 bg-[var(--bg)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
-          <h2 className="text-xl font-bold text-[var(--text)]">How iFind Works</h2>
+          <h2 className="text-xl font-bold text-[var(--heading)]">How iFind Works</h2>
           <p className="text-sm text-[var(--text-2)] mt-1">Get started in 3 simple steps</p>
         </div>
 
@@ -44,12 +44,12 @@ export function HowItWorks() {
               <div className="inline-flex justify-center mb-4">
                 <div className={`h-16 w-16 rounded-[var(--radius)] ${color} flex items-center justify-center relative`}>
                   <Icon className="h-7 w-7" />
-                  <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-[var(--text)] text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 h-5 w-5 rounded-[var(--radius-xl)] bg-[var(--navy)] text-white text-[10px] font-bold flex items-center justify-center">
                     {num}
                   </span>
                 </div>
               </div>
-              <h3 className="font-semibold text-[var(--text)] mb-2">{title}</h3>
+              <h3 className="font-semibold text-[var(--heading)] mb-2">{title}</h3>
               <p className="text-sm text-[var(--text-2)] leading-relaxed">{desc}</p>
             </div>
           ))}

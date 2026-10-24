@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: ["500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -15,6 +22,7 @@ export const metadata: Metadata = {
   keywords: ["internship", "jobs", "students", "placement", "career"],
 };
 
+import { ThemeProvider, THEME_INIT_SCRIPT } from "@/components/theme/ThemeProvider";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import { VectorizationProgressBar } from "@/components/dashboard/VectorizationProgressBar";
 
@@ -24,12 +32,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col antialiased">
-        {children}
-        <Toaster position="top-right" richColors />
-        <AnalyticsProvider />
-        <VectorizationProgressBar />
+        <ThemeProvider>
+          {children}
+          <Toaster position="top-right" richColors />
+          <AnalyticsProvider />
+          <VectorizationProgressBar />
+        </ThemeProvider>
       </body>
     </html>
   );

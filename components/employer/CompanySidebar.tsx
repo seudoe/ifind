@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    Building2, ChevronsUpDown, LayoutDashboard, Menu, PlusCircle, Briefcase, Settings, Users, UserSearch, X,
+    Building2, ChevronsUpDown, LayoutDashboard, PlusCircle, Briefcase, Settings, Users, UserSearch,
     type LucideIcon,
 } from "lucide-react";
 import { VerificationBadge } from "@/components/employer/VerificationBadge";
@@ -33,9 +33,6 @@ interface Props {
 export function CompanySidebar({ companyId, name, logo, verification, role, companies }: Props) {
     const pathname = usePathname();
     const router = useRouter();
-    const [openAt, setOpenAt] = useState<string | null>(null);
-    const open = openAt === pathname;
-    const setOpen = (v: boolean) => setOpenAt(v ? pathname : null);
     const [switcher, setSwitcher] = useState(false);
     const base = `/employer/company/${companyId}`;
 
@@ -96,10 +93,10 @@ export function CompanySidebar({ companyId, name, logo, verification, role, comp
                             key={segment}
                             href={href}
                             className={cn(
-                                "flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm font-medium transition-colors",
+                                "flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-[13.5px] transition-colors",
                                 active
-                                    ? "bg-[var(--primary-bg)] text-[var(--primary)]"
-                                    : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
+                                    ? "bg-[var(--primary)] text-white font-semibold"
+                                    : "font-medium text-[var(--text)] hover:bg-[var(--primary-bg)] hover:text-[var(--heading)]",
                             )}
                         >
                             <Icon size={18} className="shrink-0" />
@@ -118,26 +115,30 @@ export function CompanySidebar({ companyId, name, logo, verification, role, comp
                 {body}
             </aside>
 
-            {/* Mobile: trigger + drawer */}
-            <button
-                onClick={() => setOpen(true)}
-                aria-label="Open company menu"
-                className="md:hidden fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-full bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white shadow-[var(--shadow-lg)]"
-            >
-                <Menu className="h-4 w-4" /> {name}
-            </button>
-            {open && <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />}
-            <aside
-                className={cn(
-                    "md:hidden fixed inset-y-0 right-0 z-50 flex w-64 flex-col bg-[var(--surface)] py-5 transition-transform duration-300",
-                    open ? "translate-x-0" : "translate-x-full",
-                )}
-            >
-                <button className="absolute right-3 top-3 p-1 text-[var(--text-3)]" aria-label="Close company menu" onClick={() => setOpen(false)}>
-                    <X className="h-5 w-5" />
-                </button>
-                <div className="mt-6 flex flex-col">{body}</div>
-            </aside>
+            {/* Mobile: scrollable tab strip — the tabs stay on screen */}
+            <nav className="md:hidden sticky top-14 z-20 flex items-stretch overflow-x-auto border-b border-[var(--border)] bg-[var(--surface)]" aria-label="Company sections">
+                <Link href="/employer/companies" className="flex items-center gap-2 border-r border-[var(--border)] px-3 max-w-[40%] shrink-0" title="All companies">
+                    <Building2 className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                    <span className="truncate text-xs font-semibold text-[var(--heading)]">{name}</span>
+                </Link>
+                {TABS.filter((t) => RANK[role] >= RANK[t.minRole]).map(({ label, segment, icon: Icon }) => {
+                    const href = `${base}/${segment}`;
+                    const active = pathname === href || pathname.startsWith(`${href}/`);
+                    return (
+                        <Link
+                            key={segment}
+                            href={href}
+                            className={cn(
+                                "flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 font-mono text-[10.5px] font-bold uppercase tracking-[0.05em] transition-colors",
+                                active ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-bg)]" : "border-transparent text-[var(--text-2)]",
+                            )}
+                        >
+                            <Icon size={14} className="shrink-0" />
+                            {label}
+                        </Link>
+                    );
+                })}
+            </nav>
         </>
     );
 }

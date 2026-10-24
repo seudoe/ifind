@@ -36,7 +36,7 @@ export default async function CompaniesPage() {
         <main className="flex-1 min-w-0 p-4 md:p-8 max-w-5xl">
             <div className="flex items-center justify-between gap-3 mb-6">
                 <div>
-                    <h1 className="text-lg font-bold text-[var(--text)]">Your companies</h1>
+                    <h1 className="text-lg font-bold text-[var(--heading)]">Your companies</h1>
                     <p className="text-sm text-[var(--text-3)]">Pick a company to post internships and manage applicants.</p>
                 </div>
                 <Link href="/employer/companies/new">

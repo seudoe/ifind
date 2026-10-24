@@ -38,7 +38,7 @@ export function EventCard({ event, onOpen }: { event: EventItem; onOpen: (event:
           <Badge variant="default">{TYPE_LABELS[event.type]}</Badge>
           {event.mode && <Badge variant="outline">{MODE_LABELS[event.mode]}</Badge>}
         </div>
-        <h3 className="text-sm font-semibold text-[var(--text)] leading-snug line-clamp-2">{event.title}</h3>
+        <h3 className="text-sm font-semibold text-[var(--heading)] leading-snug line-clamp-2">{event.title}</h3>
         {event.organiser && <p className="text-xs text-[var(--text-2)]">by {event.organiser}</p>}
         {event.summary && <p className="text-xs text-[var(--text-3)] line-clamp-2">{event.summary}</p>}
 

@@ -185,7 +185,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
             {/* Heading + error stay visible (top-12 clears the mobile bar when merely sticky) */}
             {(title || error) && (
                 <div className={fixed ? "shrink-0 space-y-2" : "sticky top-12 md:top-0 z-20 -mx-1 space-y-2 bg-[var(--bg)] px-1 pb-2 pt-1"}>
-                    {title && <h1 className="text-lg font-bold text-[var(--text)]">{title}</h1>}
+                    {title && <h1 className="text-lg font-bold text-[var(--heading)]">{title}</h1>}
                     {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">{error}</div>}
                 </div>
             )}
@@ -194,7 +194,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
 
             <fieldset disabled={readOnly || publishing} className="space-y-5 min-w-0">
                 <section className="plasma-card p-5 space-y-4">
-                    <h2 className="font-semibold text-[var(--text)]">Basics</h2>
+                    <h2 className="font-semibold text-[var(--heading)]">Basics</h2>
                     <Input label="Title" value={data.name} onChange={(e) => set("name", e.target.value)} maxLength={150} placeholder="e.g. Backend Developer Intern" />
                     <Field label="Work mode">
                         <select className={controlCls} value={data.workMode} onChange={(e) => set("workMode", e.target.value as WorkMode)}>
@@ -232,7 +232,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                 </section>
 
                 <section className="plasma-card p-5 space-y-4">
-                    <h2 className="font-semibold text-[var(--text)]">Stipend</h2>
+                    <h2 className="font-semibold text-[var(--heading)]">Stipend</h2>
                     <div className="grid gap-4 sm:grid-cols-3">
                         <Field label="Type">
                             <select className={controlCls} value={data.stipendType} onChange={(e) => set("stipendType", e.target.value as FormState["stipendType"])}>
@@ -253,7 +253,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                 </section>
 
                 <section className="plasma-card p-5 space-y-4">
-                    <h2 className="font-semibold text-[var(--text)]">Requirements</h2>
+                    <h2 className="font-semibold text-[var(--heading)]">Requirements</h2>
                     <TagInput label="Skills" tags={data.skills} onChange={(v) => set("skills", v)} placeholder="e.g. React, SQL" />
                     <TagInput label="Degrees (optional)" tags={data.degree} onChange={(v) => set("degree", v)} placeholder="e.g. B.Tech" />
                     <TagInput label="Fields of study (optional)" tags={data.field} onChange={(v) => set("field", v)} placeholder="e.g. Computer Science" />
@@ -264,7 +264,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                 </section>
 
                 <section className="plasma-card p-5 space-y-4">
-                    <h2 className="font-semibold text-[var(--text)]">Description</h2>
+                    <h2 className="font-semibold text-[var(--heading)]">Description</h2>
                     <Field label="Summary" hint="Plain text. What will the intern do and learn? (min 30 characters to publish)">
                         <textarea rows={6} maxLength={5000} className={controlCls} value={data.summary} onChange={(e) => set("summary", e.target.value)} />
                     </Field>
@@ -282,7 +282,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                 </section>
 
                 <section className="plasma-card p-5 space-y-4">
-                    <h2 className="font-semibold text-[var(--text)]">Application settings</h2>
+                    <h2 className="font-semibold text-[var(--heading)]">Application settings</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <Input label="Deadline" type="date" value={data.deadlineDate} onChange={(e) => set("deadlineDate", e.target.value)} hint="Closes automatically after this day" />
                         <Input label="Max applications" type="number" min={1} value={data.maxApplications} onChange={(e) => set("maxApplications", e.target.value)} hint="Closes automatically when reached" />
@@ -293,7 +293,7 @@ export function InternshipForm({ companyId, initial, title }: Props) {
                     </div>
 
                     <div className="space-y-3">
-                        <p className="text-xs font-medium text-[var(--text-2)] uppercase tracking-wide">Screening questions ({q.length}/10)</p>
+                        <p className="text-xs font-medium text-[var(--text-2)] font-mono uppercase tracking-[0.07em]">Screening questions ({q.length}/10)</p>
                         {q.map((item, i) => (
                             <div key={item._id ?? i} className="rounded-[var(--radius-sm)] border border-[var(--border)] p-3 space-y-3">
                                 <div className="flex gap-2">

@@ -26,7 +26,7 @@ function Section({
       <div className="flex items-center gap-2 mb-1 pb-3 border-b border-[var(--border)]">
         <span className="text-[var(--primary)]">{icon}</span>
         <div>
-          <h3 className="text-sm font-semibold text-[var(--text)]">{title}</h3>
+          <h3 className="text-sm font-semibold text-[var(--heading)]">{title}</h3>
           <p className="text-xs text-[var(--text-3)]">{desc}</p>
         </div>
       </div>
@@ -330,10 +330,10 @@ export function SettingsTab({ user }: { user: StudentUser }) {
       {/* ── Delete Account Confirmation Modal ─────────────────────────────────────── */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-[var(--shadow-lg)]">
             <div className="flex items-center gap-3 text-red-600">
               <AlertTriangle className="h-6 w-6 shrink-0" />
-              <h3 className="text-lg font-bold text-[var(--text)]">Delete Account Confirmation</h3>
+              <h3 className="text-lg font-bold text-[var(--heading)]">Delete Account Confirmation</h3>
             </div>
             
             <p className="text-sm text-[var(--text-2)] leading-relaxed">

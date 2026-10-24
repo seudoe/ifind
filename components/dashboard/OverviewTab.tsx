@@ -153,7 +153,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-0.5">
             <div>
-              <h2 className="text-base font-bold text-[var(--text)]">Your talent card</h2>
+              <h2 className="text-base font-bold text-[var(--heading)]">Your talent card</h2>
               <p className="text-xs text-[var(--text-3)] mt-0.5">
                 Your talent card is visible to employers only when you are <span className="font-semibold text-[var(--text-2)]">actively interviewing</span>
               </p>
@@ -245,7 +245,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
                   </div>
                 </div>
 
-                <span className="text-[10px] text-[var(--text-3)] uppercase tracking-wider font-semibold">
+                <span className="text-[10px] text-[var(--text-3)] font-mono uppercase tracking-[0.07em] font-semibold">
                   Last seen {formatDate(user.updatedAt || user.createdAt)}
                 </span>
               </div>
@@ -327,7 +327,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         {/* Profile completion */}
         <div className="plasma-card p-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-[var(--text)]">Profile Completion</h2>
+            <h2 className="text-sm font-semibold text-[var(--heading)]">Profile Completion</h2>
             <span className="text-lg font-bold text-[var(--primary)]">{user?.profileCompletionScore ?? 0}%</span>
           </div>
           <ProgressBar value={user?.profileCompletionScore ?? 0} className="mb-4" />
@@ -352,7 +352,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-0.5">
             <Sparkles className="h-4 w-4 text-[var(--primary)]" />
-            <h2 className="text-sm font-semibold text-[var(--text)]">Best Internships For You</h2>
+            <h2 className="text-sm font-semibold text-[var(--heading)]">Best Internships For You</h2>
           </div>
           {recommended.length ? (
             <div className="max-h-[70vh] overflow-y-auto pr-2 scrollbar-thin">
@@ -385,7 +385,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
 
         {/* Applications */}
         <div>
-          <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Your Applications</h2>
+          <h2 className="text-sm font-semibold text-[var(--heading)] mb-3">Your Applications</h2>
           {appliedList.length === 0 ? (
             <div className="plasma-card text-center py-10">
               <Send className="h-8 w-8 text-[var(--border-2)] mx-auto mb-2" />
@@ -396,7 +396,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
               {appliedList.map(({ internshipId, appliedAt, status }) => {
                 const cleanId = String(internshipId);
                 return (
-                  <Link key={cleanId} href={`/user/${user.username}/applied-internships/${cleanId}`} className="plasma-card flex items-center gap-3 p-3 hover:shadow-[var(--shadow-md)] transition-shadow">
+                  <Link key={cleanId} href={`/user/${user.username}/applied-internships/${cleanId}`} className="plasma-card flex items-center gap-3 p-3 hover:shadow-[var(--shadow-lg)] transition-shadow">
                     <div className="h-9 w-9 rounded-[var(--radius-sm)] bg-[var(--surface-2)] flex items-center justify-center text-xs font-bold text-[var(--text-2)] shrink-0">?</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[var(--text)] truncate">{applicationNames.get(cleanId) ?? "Internship"}</p>

@@ -25,7 +25,7 @@ const fmt = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numer
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <section className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{title}</h3>
+            <h3 className="text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)]">{title}</h3>
             {children}
         </section>
     );
@@ -89,12 +89,12 @@ export function ApplicantDrawer({ companyId, applicationId, onClose, onChanged }
                 <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40" />
                 <Dialog.Content
                     aria-describedby={undefined}
-                    className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-[var(--surface)] shadow-2xl focus:outline-none"
+                    className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-[var(--surface)] shadow-[var(--shadow-lg)] focus:outline-none"
                 >
                     <div className="flex items-start gap-3 border-b border-[var(--border)] p-4">
                         <Avatar src={d?.student?.profilePicture} name={d?.student?.name ?? "?"} size="lg" />
                         <div className="min-w-0 flex-1">
-                            <Dialog.Title className="truncate text-base font-bold text-[var(--text)]">{d?.student?.name ?? "Applicant"}</Dialog.Title>
+                            <Dialog.Title className="truncate text-base font-bold text-[var(--heading)]">{d?.student?.name ?? "Applicant"}</Dialog.Title>
                             <p className="truncate text-xs text-[var(--text-3)]">{[d?.student?.email, d?.student?.phone, d?.student?.city].filter(Boolean).join(" · ")}</p>
                             {d && <p className="mt-1 text-xs text-[var(--text-2)]">For {d.internship?.name}</p>}
                         </div>

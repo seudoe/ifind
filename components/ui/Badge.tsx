@@ -7,9 +7,9 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<string, string> = {
-  default:   "bg-[var(--primary-bg)] text-[var(--primary)]",
+  default:   "bg-[var(--primary-bg)] text-[var(--heading)]",
   secondary: "bg-[var(--surface-2)] text-[var(--text-2)]",
-  success:   "bg-green-50 text-green-700",
+  success:   "bg-[var(--mint-bg)] text-[var(--mint-ink)]",
   warning:   "bg-amber-50 text-amber-700",
   danger:    "bg-red-50 text-red-700",
   outline:   "border border-[var(--border)] text-[var(--text-2)] bg-transparent",
@@ -19,7 +19,7 @@ export function Badge({ children, variant = "default", className }: BadgeProps) 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-[var(--radius-sm)] px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-[var(--radius-xl)] px-2 py-0.5 text-[10.5px] font-semibold",
         variantClasses[variant],
         className
       )}

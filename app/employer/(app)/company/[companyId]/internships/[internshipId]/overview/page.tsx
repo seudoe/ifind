@@ -59,7 +59,7 @@ export default async function InternshipOverviewPage({ params }: { params: Promi
         <div className="max-w-3xl space-y-5">
             {i.status !== "draft" && (
                 <div className="plasma-card p-4 space-y-1">
-                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">Moderation</p>
+                    <p className="text-xs font-medium font-mono uppercase tracking-[0.07em] text-[var(--text-3)]">Moderation</p>
                     <p className="text-sm text-[var(--text)]">{MOD_TEXT[m.status]}</p>
                     {m.rejectionReason && <p className="text-sm text-[var(--danger)]">Reason: {m.rejectionReason}</p>}
                 </div>

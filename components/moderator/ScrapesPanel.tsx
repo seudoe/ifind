@@ -139,7 +139,7 @@ export function ScrapesPanel() {
                                 { label: "Errors", value: sel.errors, color: COLORS.slate },
                             ]}
                         />
-                        <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)] mt-5 mb-3">Top triggered rules</h3>
+                        <h3 className="text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mt-5 mb-3">Top triggered rules</h3>
                         <HBars rows={rules} color={COLORS.amber} />
                     </Card>
                     <Card title="Per day">
@@ -173,7 +173,7 @@ export function ScrapesPanel() {
 
             {/* Run list */}
             <section>
-                <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Scrape runs</h2>
+                <h2 className="text-sm font-semibold text-[var(--heading)] mb-3">Scrape runs</h2>
                 <div className="flex flex-col gap-3">
                     {!loading && view.length === 0 && <p className="text-sm text-[var(--text-3)]">No runs in this period.</p>}
                     {view.map(({ run, sources }) => (

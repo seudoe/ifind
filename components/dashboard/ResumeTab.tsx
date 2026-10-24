@@ -474,7 +474,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             {/* Confirmation Modal */}
             {showConfirmModal && pendingData && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+                    <div className="bg-[var(--surface)] rounded-2xl shadow-[var(--shadow-lg)] max-w-sm w-full p-6 space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="h-11 w-11 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                                 <ShieldAlert className="h-5 w-5 text-red-600" />
@@ -664,7 +664,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 px-1">
                                 <div className="h-2.5 w-2.5 rounded-full bg-gray-400" />
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                <span className="text-xs font-semibold text-gray-500 font-mono uppercase tracking-[0.07em]">
                                     Current data
                                 </span>
                             </div>
@@ -676,7 +676,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 px-1">
                                 <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                                <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">
+                                <span className="text-xs font-semibold text-green-600 font-mono uppercase tracking-[0.07em]">
                                     New data
                                 </span>
                                 <Badge
@@ -696,7 +696,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
             {/* Current Resume Preview Card */}
             {hasResume && !isComparing ? (
-                <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+                <div className="bg-[var(--surface)] rounded-xl border border-gray-200 p-5 space-y-4">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
@@ -948,7 +948,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                             {/* Summary */}
                             {analysis.summary && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                                <div className="bg-[var(--surface)] rounded-xl border border-gray-200 p-5">
                                     <div className="flex items-start gap-3">
                                         <div className="h-9 w-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
                                             <FileText className="h-4 w-4 text-indigo-600" />
@@ -967,7 +967,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                     onClick={() => setActiveAnalysisTab("overview")}
                                     className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                                         activeAnalysisTab === "overview"
-                                            ? "bg-white text-indigo-700 shadow-sm"
+                                            ? "bg-[var(--surface)] text-indigo-700 shadow-sm"
                                             : "text-gray-600 hover:text-gray-900"
                                     }`}
                                 >
@@ -977,7 +977,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                     onClick={() => setActiveAnalysisTab("details")}
                                     className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                                         activeAnalysisTab === "details"
-                                            ? "bg-white text-indigo-700 shadow-sm"
+                                            ? "bg-[var(--surface)] text-indigo-700 shadow-sm"
                                             : "text-gray-600 hover:text-gray-900"
                                     }`}
                                 >
@@ -1009,7 +1009,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="p-6">
                                                 <ul className="space-y-3">
                                                     {analysis.strengths.map((strength, idx) => (
-                                                        <li key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                                                        <li key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-[var(--shadow-lg)] transition-shadow">
                                                             <div className="mt-0.5">
                                                                 <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                                                             </div>
@@ -1042,7 +1042,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="p-6">
                                                 <ul className="space-y-3">
                                                     {analysis.weaknesses.map((weakness, idx) => (
-                                                        <li key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                                                        <li key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-amber-100 hover:shadow-[var(--shadow-lg)] transition-shadow">
                                                             <div className="mt-0.5">
                                                                 <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
                                                             </div>
@@ -1075,7 +1075,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                             <div className="p-6">
                                                 <div className="space-y-3">
                                                     {analysis.recommendations.map((rec, idx) => (
-                                                        <div key={idx} className="flex items-start gap-3 bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                                                        <div key={idx} className="flex items-start gap-3 bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-[var(--shadow-lg)] transition-shadow">
                                                             <div className="flex-shrink-0 w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
                                                                 <span className="font-bold text-blue-700 text-sm">{idx + 1}</span>
                                                             </div>
@@ -1096,7 +1096,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                 <div className="space-y-6">
                                     {/* Extracted Skills */}
                                     {extractedSkills?.length > 0 && (
-                                        <div className="bg-white rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
+                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
                                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-200">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
@@ -1122,7 +1122,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                                     {extractedSkills.map((skill, idx) => (
                                                         <div
                                                             key={idx}
-                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-md transition-all ${getProficiencyColor(skill.proficiency)}`}
+                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-[var(--shadow-lg)] transition-all ${getProficiencyColor(skill.proficiency)}`}
                                                         >
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="font-semibold text-sm truncate">{skill.name}</p>
@@ -1140,7 +1140,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                                     {/* Missing Skills */}
                                     {analysis.missingSkills?.length > 0 && (
-                                        <div className="bg-white rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
+                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
                                             <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-orange-200">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -1161,7 +1161,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                                     {analysis.missingSkills.map((skill, idx) => (
                                                         <div
                                                             key={idx}
-                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-md transition-all ${getImportanceColor(skill.importance)}`}
+                                                            className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 hover:shadow-[var(--shadow-lg)] transition-all ${getImportanceColor(skill.importance)}`}
                                                         >
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="font-semibold text-sm truncate">{skill.skill}</p>
@@ -1179,7 +1179,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                                     {/* Keyword Matches */}
                                     {analysis.keywordMatches?.length > 0 && (
-                                        <div className="bg-white rounded-2xl border-2 border-cyan-200 shadow-sm overflow-hidden">
+                                        <div className="bg-[var(--surface)] rounded-2xl border-2 border-cyan-200 shadow-sm overflow-hidden">
                                             <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-cyan-200">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-cyan-100 rounded-lg">
@@ -1203,7 +1203,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                                         .map((kw, idx) => (
                                                             <div
                                                                 key={idx}
-                                                                className="flex items-center gap-2 bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-xl px-4 py-2 hover:shadow-md transition-all hover:scale-105"
+                                                                className="flex items-center gap-2 bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-xl px-4 py-2 hover:shadow-[var(--shadow-lg)] transition-all hover:scale-105"
                                                             >
                                                                 <span className="text-sm font-semibold text-cyan-900">{kw.keyword}</span>
                                                                 <Badge variant="secondary" className="text-xs bg-cyan-100 text-cyan-700 border-cyan-200 font-bold">
@@ -1255,7 +1255,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             {hasResume && localResume?.parsedData && (
                 <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 rounded-xl border border-purple-200 p-6">
                     <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-[var(--shadow-lg)]">
                             <Target className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1268,7 +1268,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             <Link href={`/user/${username}/internship-match`}>
                                 <Button
                                     size="sm"
-                                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md"
+                                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-[var(--shadow-lg)]"
                                 >
                                     <Target className="h-3.5 w-3.5 mr-1.5" />
                                     Go to Internship Match
@@ -1319,13 +1319,13 @@ function ScoreCard({
     const baseColor = getScoreColor(score);
     
     return (
-        <div className={`relative rounded-xl border-2 p-5 transition-all hover:scale-105 hover:shadow-lg ${baseColor}`}>
+        <div className={`relative rounded-xl border-2 p-5 transition-all hover:scale-105 hover:shadow-[var(--shadow-lg)] ${baseColor}`}>
             <div className="flex flex-col h-full">
                 <div className="flex items-center gap-2 mb-3">
                     <div className="opacity-70">
                         {icon}
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-wider opacity-75">{label}</span>
+                    <span className="text-xs font-semibold font-mono uppercase tracking-[0.07em] opacity-75">{label}</span>
                 </div>
                 <div className="flex-1 flex flex-col justify-end">
                     <div className="mb-1">
@@ -1795,7 +1795,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <div className="bg-white rounded-lg p-4 space-y-3 border border-gray-100 shadow-sm">
+        <div className="bg-[var(--surface)] rounded-lg p-4 space-y-3 border border-gray-100 shadow-sm">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
                 {icon}
                 {title}

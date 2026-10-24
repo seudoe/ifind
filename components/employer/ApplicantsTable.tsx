@@ -165,7 +165,7 @@ export function ApplicantsTable({ companyId, internshipId }: Props) {
             ) : (
                 <div className="plasma-card overflow-x-auto">
                     <table className="w-full min-w-[760px] text-sm">
-                        <thead className="text-left text-xs uppercase tracking-wide text-[var(--text-3)]">
+                        <thead className="text-left text-xs font-mono uppercase tracking-[0.07em] text-[var(--text-3)]">
                             <tr>
                                 <th className="w-10 px-3 py-3">
                                     <input type="checkbox" aria-label="Select all" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(items.map((i) => i._id)))} />

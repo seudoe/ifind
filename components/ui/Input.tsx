@@ -15,7 +15,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-xs font-medium text-[var(--text-2)] uppercase tracking-wide">
+          <label htmlFor={inputId} className="label">
             {label}
           </label>
         )}
@@ -29,13 +29,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              "w-full rounded-[var(--radius-sm)] border bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]",
+              "w-full rounded-[var(--radius-sm)] border bg-[var(--surface)] px-3 py-2.5 text-[13.5px] text-[var(--text)]",
               "placeholder:text-[var(--text-3)]",
               "transition-all duration-[var(--transition)]",
-              "focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)]",
+              "focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_var(--primary-bg)]",
               "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--surface-2)]",
               error
-                ? "border-[var(--danger)] focus:ring-[var(--danger)]"
+                ? "border-[var(--danger)] focus:shadow-[0_0_0_3px_var(--primary-bg)]"
                 : "border-[var(--border)] hover:border-[var(--border-2)]",
               leftIcon && "pl-9",
               rightIcon && "pr-9",

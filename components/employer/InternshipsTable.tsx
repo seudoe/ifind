@@ -40,7 +40,7 @@ export function InternshipsTable({ companyId }: { companyId: string }) {
     return (
         <div className="max-w-5xl space-y-5">
             <div className="flex items-center justify-between gap-3">
-                <h1 className="text-lg font-bold text-[var(--text)]">Internships</h1>
+                <h1 className="text-lg font-bold text-[var(--heading)]">Internships</h1>
                 <Link href={`/employer/company/${companyId}/post-new-internship`}>
                     <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> New internship</Button>
                 </Link>
@@ -74,7 +74,7 @@ export function InternshipsTable({ companyId }: { companyId: string }) {
             ) : (
                 <div className="plasma-card overflow-x-auto">
                     <table className="w-full min-w-[640px] text-sm">
-                        <thead className="text-left text-xs uppercase tracking-wide text-[var(--text-3)]">
+                        <thead className="text-left text-xs font-mono uppercase tracking-[0.07em] text-[var(--text-3)]">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Title</th>
                                 <th className="px-4 py-3 font-medium">Status</th>

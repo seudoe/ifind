@@ -14,7 +14,7 @@ import { COMPANY_SIZES, COMPANY_TYPES } from "@/types/employer";
 
 export const controlCls =
     "w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] hover:border-[var(--border-2)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]";
-const labelCls = "text-xs font-medium text-[var(--text-2)] uppercase tracking-wide";
+const labelCls = "text-xs font-medium text-[var(--text-2)] font-mono uppercase tracking-[0.07em]";
 
 type FieldName = FieldPath<CompanyInput>;
 
@@ -134,7 +134,7 @@ export function CompanyForm({ mode, initial, onSubmit }: Props) {
 
             {show(0) && (
                 <section className="plasma-card p-5 space-y-4">
-                    {!create && <h2 className="font-semibold text-[var(--text)]">Identity</h2>}
+                    {!create && <h2 className="font-semibold text-[var(--heading)]">Identity</h2>}
                     <Input label="Company name" {...register("name")} error={e(errors.name)} maxLength={120} />
                     <Input label="Legal name (optional)" {...register("legalName")} error={e(errors.legalName)} />
                     <Input label="Tagline (optional)" {...register("tagline")} error={e(errors.tagline)} maxLength={120} />
@@ -149,7 +149,7 @@ export function CompanyForm({ mode, initial, onSubmit }: Props) {
 
             {show(1) && (
                 <section className="plasma-card p-5 space-y-4">
-                    {!create && <h2 className="font-semibold text-[var(--text)]">Classification</h2>}
+                    {!create && <h2 className="font-semibold text-[var(--heading)]">Classification</h2>}
                     <Input label="Industry" placeholder="e.g. Software, Fintech" {...register("industry")} error={e(errors.industry)} />
                     <Field label="Company type" error={e(errors.companyType)}>
                         <select className={cn(controlCls, "capitalize")} {...register("companyType")}>
@@ -167,7 +167,7 @@ export function CompanyForm({ mode, initial, onSubmit }: Props) {
 
             {show(2) && (
                 <section className="plasma-card p-5 space-y-4">
-                    {!create && <h2 className="font-semibold text-[var(--text)]">Location & contact</h2>}
+                    {!create && <h2 className="font-semibold text-[var(--heading)]">Location & contact</h2>}
                     <Input label="Address line 1 (optional)" {...register("headquarters.line1")} />
                     <Input label="Address line 2 (optional)" {...register("headquarters.line2")} />
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -184,7 +184,7 @@ export function CompanyForm({ mode, initial, onSubmit }: Props) {
 
             {show(3) && (
                 <section className="plasma-card p-5 space-y-4">
-                    {!create && <h2 className="font-semibold text-[var(--text)]">Socials & extras</h2>}
+                    {!create && <h2 className="font-semibold text-[var(--heading)]">Socials & extras</h2>}
                     <div className="grid gap-4 sm:grid-cols-2">
                         <Input label="LinkedIn" placeholder="https://linkedin.com/company/…" {...register("socials.linkedin")} error={e(errors.socials?.linkedin)} />
                         <Input label="Twitter / X" {...register("socials.twitter")} error={e(errors.socials?.twitter)} />
@@ -211,7 +211,7 @@ export function CompanyForm({ mode, initial, onSubmit }: Props) {
                 ];
                 return (
                     <section className="plasma-card p-5">
-                        <h2 className="font-semibold text-[var(--text)] mb-3">Review</h2>
+                        <h2 className="font-semibold text-[var(--heading)] mb-3">Review</h2>
                         <dl className="grid gap-2 sm:grid-cols-2 text-sm">
                             {rows.map(([k, val]) => (
                                 <div key={k}><dt className="text-xs text-[var(--text-3)]">{k}</dt><dd className="text-[var(--text)] break-words">{val}</dd></div>

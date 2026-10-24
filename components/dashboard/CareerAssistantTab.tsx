@@ -298,7 +298,7 @@ export function CareerAssistantTab() {
               <button
                 key={tool.id}
                 onClick={() => handleToolSelect(tool.id)}
-                className="p-6 bg-white rounded-lg border hover:border-blue-300 hover:shadow-md transition-all text-left group"
+                className="p-6 bg-[var(--surface)] rounded-lg border hover:border-blue-300 hover:shadow-[var(--shadow-lg)] transition-all text-left group"
               >
                 <div className={`w-12 h-12 bg-${tool.color}-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                   <Icon className={`h-6 w-6 text-${tool.color}-600`} />
@@ -346,7 +346,7 @@ export function CareerAssistantTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Form */}
-        <div className="bg-white p-6 rounded-lg border">
+        <div className="bg-[var(--surface)] p-6 rounded-lg border">
           <h3 className="font-semibold text-gray-900 mb-4">Input</h3>
           
           {activeTool === 'rewriter' && (
@@ -629,7 +629,7 @@ export function CareerAssistantTab() {
         </div>
 
         {/* Results */}
-        <div className="bg-white p-6 rounded-lg border min-h-[400px]">
+        <div className="bg-[var(--surface)] p-6 rounded-lg border min-h-[400px]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900">Results</h3>
             {result && (

@@ -14,7 +14,7 @@ function Row({ icon: Icon, label, children }: { icon: typeof Info; label: string
     <div className="flex gap-3">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-3)]" />
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">{label}</p>
+        <p className="text-xs font-medium font-mono uppercase tracking-[0.07em] text-[var(--text-3)]">{label}</p>
         <div className="text-sm text-[var(--text)] break-words">{children}</div>
       </div>
     </div>
@@ -37,7 +37,7 @@ export function EventDetailModal({ event, onClose }: { event: EventItem | null; 
                 {event.mode && <Badge variant="outline">{MODE_LABELS[event.mode]}</Badge>}
                 <ClosingBadge event={event} />
               </div>
-              <Dialog.Title className="text-lg font-bold text-[var(--text)] leading-snug">{event.title}</Dialog.Title>
+              <Dialog.Title className="text-lg font-bold text-[var(--heading)] leading-snug">{event.title}</Dialog.Title>
               {event.organiser && <Dialog.Description className="mt-0.5 text-sm text-[var(--text-2)]">by {event.organiser}</Dialog.Description>}
             </div>
 
@@ -60,7 +60,7 @@ export function EventDetailModal({ event, onClose }: { event: EventItem | null; 
 
             {event.note && (
               <div className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
-                <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]"><Info className="h-3.5 w-3.5" /> Note</p>
+                <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)]"><Info className="h-3.5 w-3.5" /> Note</p>
                 <p className="text-sm text-[var(--text-2)] whitespace-pre-line">{event.note}</p>
               </div>
             )}

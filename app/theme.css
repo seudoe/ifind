@@ -1,0 +1,131 @@
+/* =====================================================================
+   iFind THEME — the single place to change colours, radii, type and shadows.
+
+   Every component reads these tokens (var(--surface), text-[var(--primary)], ...) and the
+   Tailwind colour scales (text-gray-900, bg-red-50, ...) are remapped onto them in
+   theme-palette.css, so editing a value here re-themes the whole app.
+
+   :root                      -> LIGHT theme
+   :root[data-theme="dark"]   -> DARK theme
+   The ThemeProvider sets data-theme on <html> from the saved choice (light | dark | system).
+
+   Design language: navy / violet / cream, 2-4px corners, 2px structural rules, 1px hairlines,
+   mono UPPERCASE chrome + Inter content. Violet is the only action colour.
+   ===================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg:         #f2efe6;   /* page canvas (warm cream) */
+  --surface:    #ffffff;   /* cards, inputs, sidebars */
+  --surface-2:  #f1f5f9;   /* hover, chips, subtle fills */
+  --surface-3:  #e9e6dc;   /* skeletons, tracks */
+
+  /* Borders */
+  --border:     #e2e8f0;   /* 1px hairlines */
+  --border-2:   #cbd5e1;
+  --rule:       #172554;   /* 2px structural rules (header / sidebar / page title) */
+
+  /* Brand */
+  --navy:       #172554;   /* brand badge, dark panels */
+  --primary:    #6d5ae6;   /* electric violet: the ONLY action colour */
+  --primary-dk: #5848c2;   /* hover */
+  --primary-bg: #efecfd;   /* tint: hover bg, selected, focus ring */
+  --on-primary: #ffffff;
+
+  /* Text */
+  --heading:    #172554;
+  --text:       #1e293b;
+  --text-2:     #333f4e;
+  --text-3:     #64748b;
+  --text-inv:   #ffffff;
+
+  /* Status */
+  --success:    #10b981;
+  --warning:    #d97706;
+  --danger:     #dc2626;
+  --mint-bg:    #d1fae5;
+  --mint-ink:   #047857;
+
+  /* Decorative accent chips (initials / logos), rotated by name hash */
+  --accent-1: #6366f1; --accent-2: #6d5ae6; --accent-3: #10b981; --accent-4: #f5316b; --accent-5: #1d9bf0;
+  --accent-6: #f5a623; --accent-7: #0dd4b8; --accent-8: #ff6b4a; --accent-9: #84cc16; --accent-10: #d946ef;
+
+  /* Landing page */
+  --landing-grad: linear-gradient(180deg, #e0ecff 0%, #eef2ff 35%, #f2efe6 75%);
+  --sphere-violet: rgba(109, 90, 230, 0.4);
+  --sphere-blue:   rgba(96, 165, 250, 0.35);
+  --sphere-green:  rgba(16, 185, 129, 0.32);
+  --sphere-navy:   rgba(23, 37, 84, 0.22);
+  --overlay: rgba(11, 16, 32, 0.5);
+
+  /* Shadows */
+  --shadow-sm:     0 1px 2px rgba(23, 37, 84, 0.05);
+  --shadow:        0 8px 24px rgba(23, 37, 84, 0.08);
+  --shadow-md:     0 8px 24px rgba(23, 37, 84, 0.08);
+  --shadow-lg:     0 20px 50px rgba(23, 37, 84, 0.12);
+  --shadow-violet: 0 10px 28px rgba(109, 90, 230, 0.16);
+
+  /* Geometry — almost-square corners (also drives Tailwind rounded-*) */
+  --radius-xs:  2px;
+  --radius-sm:  2px;   /* inputs, buttons, sidebar links, logos */
+  --radius:     3px;   /* cards, panels, list rows */
+  --radius-md:  3px;
+  --radius-lg:  3px;
+  --radius-xl:  4px;   /* badges, chips */
+  --radius-2xl: 6px;
+  --radius-3xl: 10px;
+
+  /* Type (--font-inter / --font-jetbrains are injected by next/font in app/layout.tsx) */
+  --font-sans: var(--font-inter), "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Motion */
+  --transition:    150ms ease;
+  --transition-md: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:         #0b1020;
+  --surface:    #121a36;
+  --surface-2:  #182246;
+  --surface-3:  #212c58;
+
+  --border:     #26305a;
+  --border-2:   #36427a;
+  --rule:       #4a5699;
+
+  --navy:       #1b2866;
+  --primary:    #7f6df0;
+  --primary-dk: #9384f5;   /* hover is lighter on dark */
+  --primary-bg: #221d4d;
+  --on-primary: #ffffff;
+
+  --heading:    #eef0ff;
+  --text:       #e6e9f7;
+  --text-2:     #b8c0e0;
+  --text-3:     #8d97c4;
+  --text-inv:   #0b1020;
+
+  --success:    #34d399;
+  --warning:    #fbbf24;
+  --danger:     #f87171;
+  --mint-bg:    #0f3d33;
+  --mint-ink:   #6ee7b7;
+
+  --landing-grad: linear-gradient(180deg, #0f1733 0%, #0d1430 35%, #0b1020 75%);
+  --sphere-violet: rgba(127, 109, 240, 0.28);
+  --sphere-blue:   rgba(96, 165, 250, 0.16);
+  --sphere-green:  rgba(16, 185, 129, 0.16);
+  --sphere-navy:   rgba(99, 118, 220, 0.18);
+  --overlay: rgba(0, 0, 0, 0.65);
+
+  --shadow-sm:     0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow:        0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-md:     0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg:     0 20px 50px rgba(0, 0, 0, 0.55);
+  --shadow-violet: 0 10px 28px rgba(127, 109, 240, 0.25);
+}

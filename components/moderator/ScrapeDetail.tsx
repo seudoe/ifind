@@ -111,7 +111,7 @@ export function ScrapeDetail() {
             </div>
 
             <section>
-                <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Sources</h2>
+                <h2 className="text-sm font-semibold text-[var(--heading)] mb-3">Sources</h2>
                 <div className="flex flex-col gap-3">
                     {run.sources.map((s) => <SourceCard key={s.id} s={s} />)}
                 </div>

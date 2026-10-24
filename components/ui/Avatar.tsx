@@ -24,7 +24,7 @@ export function Avatar({ src, name, size = "md", className }: AvatarProps) {
       <img
         src={src}
         alt={name}
-        className={cn("rounded-full object-cover shrink-0", sizeClasses[size], className)}
+        className={cn("rounded-[var(--radius-sm)] object-cover shrink-0", sizeClasses[size], className)}
       />
     );
   }
@@ -32,7 +32,7 @@ export function Avatar({ src, name, size = "md", className }: AvatarProps) {
   return (
     <div
       className={cn(
-        "rounded-full bg-[var(--primary)] text-white font-semibold",
+        "rounded-[var(--radius-sm)] bg-[var(--navy)] text-white font-bold",
         "flex items-center justify-center shrink-0",
         sizeClasses[size],
         className

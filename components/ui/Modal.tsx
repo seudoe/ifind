@@ -33,21 +33,21 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-200" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-xs transition-opacity duration-200" />
         <Dialog.Content
           className={cn(
             "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-            "w-full max-h-[90vh] overflow-y-auto bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-2xl p-6",
+            "w-full max-h-[90vh] overflow-y-auto bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-lg)] p-6",
             "focus:outline-none transition-all duration-200",
             sizeClasses[size],
             className
           )}
         >
           {(title || description) && (
-            <div className="flex items-start justify-between pb-4 border-b border-[var(--border)] mb-4">
+            <div className="flex items-start justify-between pb-4 border-b-2 border-[var(--rule)] mb-4">
               <div>
                 {title && (
-                  <Dialog.Title className="text-base font-bold text-[var(--text)]">
+                  <Dialog.Title className="text-base font-bold text-[var(--heading)]">
                     {title}
                   </Dialog.Title>
                 )}

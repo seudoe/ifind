@@ -1,46 +1,6 @@
 @import "tailwindcss";
-
-/* ── KDE Plasma Design Tokens ────────────────────────────────────────────── */
-:root {
-  /* Surfaces — layered like Plasma panels */
-  --bg:         #f4f5f7;
-  --surface:    #ffffff;
-  --surface-2:  #f0f1f3;
-  --surface-3:  #e8eaed;
-
-  /* Borders — subtle, structural */
-  --border:     #dde0e6;
-  --border-2:   #c8ccd4;
-
-  /* Accent — Breeze blue */
-  --primary:    #3daee9;
-  --primary-dk: #2795d4;
-  --primary-bg: #eaf5fc;
-
-  /* Text */
-  --text:       #1e2128;
-  --text-2:     #545a6b;
-  --text-3:     #8b93a5;
-  --text-inv:   #ffffff;
-
-  /* Status */
-  --success:    #27ae60;
-  --warning:    #f39c12;
-  --danger:     #e74c3c;
-
-  /* Shadows — soft, elevation-communicating */
-  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow:     0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
-
-  /* Geometry */
-  --radius:     10px;
-  --radius-sm:  6px;
-  --radius-lg:  14px;
-
-  /* Motion */
-  --transition: 180ms ease-out;
-}
+@import "./theme.css";          /* semantic tokens: light + dark (edit there to re-theme) */
+@import "./theme-palette.css";  /* generated: Tailwind colour scales -> theme */
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -50,45 +10,84 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-geist-sans), "Inter", "Segoe UI", system-ui, sans-serif;
-  font-size: 16px; /* Increased base font size from default 14px */
+  font-family: var(--font-sans);
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Scrollbars — thin, KDE-style ────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+h1, h2, h3, h4 { color: var(--heading); }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+::selection { background: var(--primary-bg); color: var(--heading); }
+
+/* ── Scrollbars — invisible until the scrollable area is hovered ─────────── */
+html, * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+html:hover, *:hover, *:active { scrollbar-color: var(--border-2) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-2);
-  border-radius: 99px;
-  transition: background var(--transition);
+  background: transparent;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background var(--transition-md);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
-
-/* ── Selection ───────────────────────────────────────────────────────────── */
-::selection { background: var(--primary); color: var(--text-inv); }
+*:hover::-webkit-scrollbar-thumb { background: var(--border-2); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary) !important; background-clip: padding-box; }
 
 /* ── Utility: line clamp ─────────────────────────────────────────────────── */
 .line-clamp-1 { overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; }
 .line-clamp-2 { overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
 .line-clamp-3 { overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; }
 
-/* ── Plasma card effect ──────────────────────────────────────────────────── */
+/* ── Chrome label: mono / uppercase / tracked ────────────────────────────── */
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
 .plasma-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+  transition: box-shadow var(--transition-md), border-color var(--transition-md), transform var(--transition-md);
 }
-.plasma-card:hover {
-  box-shadow: var(--shadow);
-  border-color: var(--border-2);
+.plasma-card:hover { border-color: var(--border-2); }
+a.plasma-card:hover, button.plasma-card:hover, .plasma-card.hoverable:hover, .plasma-card[role="button"]:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-violet);
+  transform: translateY(-2px);
 }
 
-/* ── Plasma glass panel ──────────────────────────────────────────────────── */
-.plasma-glass {
-  backdrop-filter: blur(10px) saturate(1.2);
-  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+.plasma-glass { backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); }
+
+/* ── Entrance motion ─────────────────────────────────────────────────────── */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .plasma-card { animation: fadeInUp 0.45s var(--transition-md) both; }
 }
+
+/* ── Page-title bar: "01 / TITLE" with the 2px structural rule ───────────── */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 22px; padding-bottom: 14px; border-bottom: 2px solid var(--rule);
+}
+.page-header .path   { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-2); }
+.page-header .status { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--success); }
+
+/* ── Brand badge ─────────────────────────────────────────────────────────── */
+.logo-badge {
+  display: inline-flex; align-items: center; line-height: 1; font-weight: 700;
+  background: var(--navy); color: #fff; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
+  padding: 5px 9px; font-size: 13px;
+}
+.logo-badge-i { color: var(--primary); }
+.logo-badge-md { padding: 7px 12px; font-size: 16px; }
+.logo-badge-lg { padding: 10px 16px; font-size: 22px; }

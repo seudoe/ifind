@@ -34,7 +34,7 @@ export function ProfileSkeleton() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <Skeleton className="h-16 w-16 rounded-full" />
+        <Skeleton className="h-16 w-16 rounded-[var(--radius-sm)]" />
         <div className="space-y-2">
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-4 w-28" />

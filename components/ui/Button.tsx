@@ -9,21 +9,21 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<string, string> = {
   primary:
-    "bg-[var(--primary)] text-white border border-[var(--primary)] hover:bg-[var(--primary-dk)] hover:border-[var(--primary-dk)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-1",
+    "bg-[var(--primary)] text-[var(--on-primary)] border border-[var(--primary)] hover:bg-[var(--primary-dk)] hover:border-[var(--primary-dk)]",
   secondary:
-    "bg-[var(--surface-2)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--surface-3)] hover:border-[var(--border-2)] focus:ring-2 focus:ring-[var(--border-2)]",
+    "bg-[var(--surface)] text-[var(--heading)] border border-[var(--border)] hover:bg-[var(--primary-bg)] hover:border-[var(--primary)] hover:text-[var(--primary)]",
   outline:
-    "bg-transparent text-[var(--primary)] border border-[var(--primary)] hover:bg-[var(--primary-bg)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-1",
+    "bg-transparent text-[var(--primary)] border border-[var(--primary)] hover:bg-[var(--primary-bg)]",
   ghost:
-    "bg-transparent text-[var(--text-2)] border border-transparent hover:bg-[var(--surface-2)] hover:text-[var(--text)] focus:ring-2 focus:ring-[var(--border-2)]",
+    "bg-transparent text-[var(--text-2)] border border-transparent hover:bg-[var(--surface-2)] hover:text-[var(--heading)]",
   danger:
-    "bg-[var(--danger)] text-white border border-[var(--danger)] hover:opacity-90 focus:ring-2 focus:ring-[var(--danger)] focus:ring-offset-1",
+    "bg-[var(--danger)] text-[var(--on-primary)] border border-[var(--danger)] hover:opacity-90",
 };
 
 const sizeClasses: Record<string, string> = {
-  sm: "px-3 py-1.5 text-xs",
-  md: "px-4 py-2 text-sm",
-  lg: "px-5 py-2.5 text-sm",
+  sm: "px-3 py-1.5 text-[10.5px]",
+  md: "px-4 py-2 text-[11px]",
+  lg: "px-5 py-3 text-xs",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] font-medium",
+        "inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] font-mono font-bold uppercase tracking-[0.05em]",
         "transition-all duration-[var(--transition)] ease-out",
         "active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed",
         "focus:outline-none",

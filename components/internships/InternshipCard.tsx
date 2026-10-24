@@ -82,7 +82,7 @@ export function InternshipCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
+              <h3 className="text-sm font-semibold text-[var(--heading)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
                 {internship.name}
               </h3>
               <p className="text-xs text-[var(--text-3)]">{internship.company} · via {sourceLabel(internship.source)}</p>
@@ -147,7 +147,7 @@ export function InternshipCard({
               <CompanyLogo internship={internship} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors line-clamp-2 leading-snug">
+              <h3 className="text-sm font-semibold text-[var(--heading)] group-hover:text-[var(--primary)] transition-colors line-clamp-2 leading-snug">
                 {internship.name}
               </h3>
               <p className="text-xs text-[var(--text-3)] mt-0.5">{internship.company} · via {sourceLabel(internship.source)}</p>

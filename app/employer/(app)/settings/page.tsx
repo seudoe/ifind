@@ -82,7 +82,7 @@ export default function SettingsPage() {
 
     return (
         <main className="flex-1 min-w-0 p-4 md:p-8 max-w-xl space-y-6">
-            <h1 className="text-lg font-bold text-[var(--text)]">Settings</h1>
+            <h1 className="text-lg font-bold text-[var(--heading)]">Settings</h1>
             {loadError ? (
                 <p className="text-sm text-[var(--danger)]">{loadError}</p>
             ) : !me ? (
@@ -90,7 +90,7 @@ export default function SettingsPage() {
             ) : (
                 <>
                     <form onSubmit={savePassword} className="plasma-card p-5 space-y-4">
-                        <h2 className="font-semibold text-[var(--text)]">{me.hasPassword ? "Change password" : "Set a password"}</h2>
+                        <h2 className="font-semibold text-[var(--heading)]">{me.hasPassword ? "Change password" : "Set a password"}</h2>
                         {!me.hasPassword && <p className="text-xs text-[var(--text-3)]">You signed up with LinkedIn. Set a password to also sign in with your email.</p>}
                         {me.hasPassword && (
                             <Input label="Current password" type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
@@ -100,7 +100,7 @@ export default function SettingsPage() {
                     </form>
 
                     <div className="plasma-card p-5 space-y-3">
-                        <h2 className="font-semibold text-[var(--text)]">LinkedIn</h2>
+                        <h2 className="font-semibold text-[var(--heading)]">LinkedIn</h2>
                         {me.linkedinLinked ? (
                             <>
                                 <p className="text-sm text-[var(--text-2)]">Your LinkedIn account is linked.</p>

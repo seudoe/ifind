@@ -129,7 +129,7 @@ export function InternshipDetailModal({
         {/* Header */}
         <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-sm font-bold text-[var(--text)]">Internship Details</h3>
+            <h3 className="text-sm font-bold text-[var(--heading)]">Internship Details</h3>
             <p className="text-[10px] text-[var(--text-3)]">{internship.company}</p>
           </div>
           <button
@@ -274,7 +274,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
           <CompanyLogo internship={internship} />
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-[var(--text)] leading-snug">{internship.name}</h2>
+          <h2 className="text-lg font-bold text-[var(--heading)] leading-snug">{internship.name}</h2>
           <div className="flex items-center justify-between gap-2 mt-1">
             <div className="flex items-center gap-1.5 text-sm text-[var(--text-2)] font-medium">
               <Building2 className="h-4 w-4 text-[var(--text-3)]" />
@@ -343,7 +343,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
 
       {/* Summary */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
+        <h3 className="text-xs font-bold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">
           About the Internship
         </h3>
         <p className="text-sm text-[var(--text-2)] leading-relaxed whitespace-pre-wrap">
@@ -354,7 +354,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
       {/* Responsibilities */}
       {internship.responsibilities && internship.responsibilities.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
+          <h3 className="text-xs font-bold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">
             Key Responsibilities
           </h3>
           <ul className="space-y-2">
@@ -371,7 +371,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
       {/* Skills Required */}
       {internship.skills && internship.skills.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
+          <h3 className="text-xs font-bold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">
             Skills Required
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -389,7 +389,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
         (internship.field && internship.field.length > 0) ||
         internship.experienceRequired) && (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
+          <h3 className="text-xs font-bold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">
             Eligibility & Requirements
           </h3>
           <div className="bg-[var(--surface-2)] rounded-[var(--radius-sm)] p-3.5 space-y-2.5 border border-[var(--border)] text-xs text-[var(--text-2)]">
@@ -422,7 +422,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
       {/* Perks */}
       {internship.perks && internship.perks.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
+          <h3 className="text-xs font-bold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">
             Perks & Benefits
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -469,7 +469,7 @@ function StatCard({
     <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] p-3 text-center sm:text-left">
       <div className="flex items-center justify-center sm:justify-start gap-1.5 mb-1">
         {icon}
-        <span className="text-[10px] text-[var(--text-3)] uppercase tracking-wider font-semibold">
+        <span className="text-[10px] text-[var(--text-3)] font-mono uppercase tracking-[0.07em] font-semibold">
           {label}
         </span>
       </div>

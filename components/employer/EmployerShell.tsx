@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Briefcase, Building2, LogOut, Menu, Settings, UserCircle, X, type LucideIcon } from "lucide-react";
+import { Bell, Building2, LogOut, Settings, UserCircle, type LucideIcon } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { Logo } from "@/components/ui/Logo";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { cn } from "@/lib/utils";
 
 const NAV: { label: string; href: string; icon: LucideIcon }[] = [
@@ -24,15 +26,7 @@ interface Props {
 export function EmployerShell({ name, picture, unread: initialUnread, children }: Props) {
     const pathname = usePathname();
     const router = useRouter();
-    // Drawer is open only for the path it was opened on, so navigating closes it
-    const [openAt, setOpenAt] = useState<string | null>(null);
-    const open = openAt === pathname;
-    const setOpen = (v: boolean) => setOpenAt(v ? pathname : null);
     const [unread, setUnread] = useState(initialUnread);
-
-    // Inside a company the global sidebar collapses to icons (expands on hover, desktop only)
-    const collapsed = pathname.startsWith("/employer/company/");
-    const labelCls = collapsed ? "md:opacity-0 md:group-hover:opacity-100" : "";
 
     // Refresh the bell count on navigation and every 60 s
     useEffect(() => {
@@ -51,97 +45,97 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
         router.push("/employer/login");
     };
 
+    const badge = unread > 0 && (
+        <span className="ml-auto min-w-5 h-5 px-1.5 rounded-[var(--radius-xl)] bg-[var(--danger)] text-white text-[11px] leading-5 text-center">
+            {unread > 99 ? "99+" : unread}
+        </span>
+    );
+
     return (
         <div className="flex min-h-screen bg-[var(--bg)]">
-            {/* Structural spacer: keeps content clear of the fixed sidebar */}
-            <div className={cn("hidden md:block shrink-0 transition-[width] duration-300", collapsed ? "w-16" : "w-56")} />
-
-            {open && <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setOpen(false)} />}
-
-            <aside
-                className={cn(
-                    "group fixed inset-y-0 left-0 z-50 flex w-56 flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface)] py-5 transition-[width,transform] duration-300",
-                    open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-                    collapsed && "md:w-16 md:hover:w-56 md:hover:shadow-[var(--shadow-lg)]",
-                )}
-            >
-                <div className="flex w-56 flex-col gap-6 px-3">
-                    <div className="flex items-center justify-between px-1">
-                        <Link href="/employer/companies" className="flex items-center gap-2.5" title="iFind for Employers">
-                            <div className="h-8 w-8 shrink-0 rounded-[var(--radius-sm)] bg-[var(--primary)] flex items-center justify-center">
-                                <Briefcase className="h-4 w-4 text-white" />
-                            </div>
-                            <span className={cn("whitespace-nowrap text-base font-bold text-[var(--text)] transition-opacity duration-300", labelCls)}>
-                                i<span className="text-[var(--primary)]">Find</span>
-                            </span>
-                        </Link>
-                        <button className="md:hidden p-1 text-[var(--text-3)]" aria-label="Close menu" onClick={() => setOpen(false)}>
-                            <X className="h-5 w-5" />
-                        </button>
+            {/* ── Sidebar (md and up) — always expanded, never collapses ─────────── */}
+            <aside className="hidden md:flex fixed inset-y-0 left-0 z-40 w-56 flex-col justify-between border-r-2 border-[var(--rule)] bg-[var(--surface)]">
+                <div className="flex flex-col">
+                    <div className="h-14 px-4 flex items-center border-b-2 border-[var(--rule)]">
+                        <Link href="/employer/companies" title="iFind for Employers" aria-label="iFind for Employers"><Logo size="md" /></Link>
                     </div>
+                    <p className="label px-4 pt-4 pb-3 !text-[10px] !text-[var(--text-2)]">Employer portal</p>
 
-                    <div className="flex items-center gap-3 px-1">
-                        <Avatar src={picture} name={name} size="md" />
-                        <div className={cn("min-w-0 transition-opacity duration-300", labelCls)}>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-3)]">Employer</p>
-                            <p className="truncate text-sm font-medium text-[var(--text)]">{name}</p>
-                        </div>
-                    </div>
-
-                    <nav className="flex flex-col gap-1">
+                    <nav className="flex flex-col gap-0.5 px-3">
                         {NAV.map(({ label, href, icon: Icon }) => {
                             const active = pathname === href;
                             return (
                                 <Link
                                     key={href}
                                     href={href}
-                                    title={label}
-                                    aria-label={label}
                                     className={cn(
-                                        "relative flex items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2.5 text-sm font-medium transition-colors",
+                                        "relative flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 text-[13.5px] transition-colors",
                                         active
-                                            ? "bg-[var(--primary-bg)] text-[var(--primary)]"
-                                            : "text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
+                                            ? "bg-[var(--primary)] text-white font-semibold"
+                                            : "font-medium text-[var(--text)] hover:bg-[var(--primary-bg)] hover:text-[var(--heading)]",
                                     )}
                                 >
-                                    <Icon size={20} className="shrink-0" />
-                                    <span className={cn("whitespace-nowrap transition-opacity duration-300", labelCls)}>{label}</span>
-                                    {href === "/employer/notifications" && unread > 0 && (
-                                        <span className="absolute left-6 top-1 min-w-4 h-4 px-1 rounded-full bg-[var(--danger)] text-white text-[10px] leading-4 text-center">
-                                            {unread > 99 ? "99+" : unread}
-                                        </span>
-                                    )}
+                                    <Icon className="h-4 w-4 shrink-0" />
+                                    {label}
+                                    {href === "/employer/notifications" && badge}
                                 </Link>
                             );
                         })}
                     </nav>
                 </div>
 
-                <div className="w-56 px-3">
+                <div className="border-t border-[var(--border)] p-3 space-y-3">
+                    <div className="flex items-center gap-2 px-1">
+                        <Avatar src={picture} name={name} size="sm" />
+                        <span className="truncate text-sm font-medium text-[var(--text)]">{name}</span>
+                    </div>
+                    <ThemeSwitcher />
                     <button
                         onClick={logout}
-                        title="Log out"
-                        aria-label="Log out"
-                        className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-2.5 py-2.5 text-sm font-medium text-[var(--text-3)] transition-colors hover:bg-red-50 hover:text-[var(--danger)]"
+                        className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--text)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)]"
                     >
-                        <LogOut size={20} className="shrink-0" />
-                        <span className={cn("whitespace-nowrap transition-opacity duration-300", labelCls)}>Log out</span>
+                        <LogOut className="h-3.5 w-3.5" /> Log out
                     </button>
                 </div>
             </aside>
 
-            <div className="flex min-w-0 flex-1 flex-col">
-                {/* Mobile top bar */}
-                <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 md:hidden">
-                    <button aria-label="Open menu" onClick={() => setOpen(true)} className="p-1 text-[var(--text-2)]">
-                        <Menu className="h-5 w-5" />
-                    </button>
-                    <span className="text-sm font-bold text-[var(--text)]">
-                        i<span className="text-[var(--primary)]">Find</span> <span className="text-xs font-normal text-[var(--text-3)]">Employers</span>
-                    </span>
+            <div className="flex min-w-0 flex-1 flex-col md:pl-56">
+                {/* ── Top bar (small screens) ─────────────────────────────────────── */}
+                <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b-2 border-[var(--rule)] bg-[var(--surface)] px-4 md:hidden">
+                    <Link href="/employer/companies" aria-label="iFind for Employers"><Logo size="md" /></Link>
+                    <div className="flex items-center gap-3">
+                        <ThemeSwitcher compact className="w-28" />
+                        <button onClick={logout} aria-label="Log out" className="p-1.5 text-[var(--text-3)] hover:text-[var(--danger)]"><LogOut className="h-4 w-4" /></button>
+                    </div>
                 </header>
-                <div className="flex min-w-0 flex-1">{children}</div>
+
+                <div className="flex min-w-0 flex-1 flex-col md:flex-row pb-16 md:pb-0">{children}</div>
             </div>
+
+            {/* ── Bottom tab bar (small screens) — tabs stay visible ──────────────── */}
+            <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 h-14 flex border-t-2 border-[var(--rule)] bg-[var(--surface)]">
+                {NAV.map(({ label, href, icon: Icon }) => {
+                    const active = pathname === href;
+                    return (
+                        <Link
+                            key={href}
+                            href={href}
+                            className={cn(
+                                "relative flex-1 flex flex-col items-center justify-center gap-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em] transition-colors",
+                                active ? "text-[var(--primary)] bg-[var(--primary-bg)]" : "text-[var(--text-3)]",
+                            )}
+                        >
+                            <Icon className="h-5 w-5" />
+                            {label}
+                            {href === "/employer/notifications" && unread > 0 && (
+                                <span className="absolute top-1.5 left-1/2 ml-2 min-w-4 h-4 px-1 rounded-[var(--radius-xl)] bg-[var(--danger)] text-white text-[10px] leading-4 text-center">
+                                    {unread > 99 ? "99+" : unread}
+                                </span>
+                            )}
+                        </Link>
+                    );
+                })}
+            </nav>
         </div>
     );
 }

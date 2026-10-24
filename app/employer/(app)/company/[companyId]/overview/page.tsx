@@ -38,7 +38,7 @@ export default async function CompanyOverviewPage({ params }: { params: Promise<
         <div className="max-w-4xl space-y-6">
             <div>
                 <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-lg font-bold text-[var(--text)]">{company.name}</h1>
+                    <h1 className="text-lg font-bold text-[var(--heading)]">{company.name}</h1>
                     <VerificationBadge status={v?.status ?? "unverified"} />
                 </div>
                 {company.tagline && <p className="text-sm text-[var(--text-2)] mt-0.5">{company.tagline}</p>}

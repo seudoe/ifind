@@ -29,33 +29,26 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[var(--surface)] border-b border-[var(--border)]">
-      {/* Subtle background texture */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[var(--primary-bg)] opacity-60 translate-x-1/3 -translate-y-1/4" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[var(--primary-bg)] opacity-40 -translate-x-1/4 translate-y-1/4" />
-        {/* Dot grid */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1.5" fill="var(--text)" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dots)" />
-        </svg>
+    <section className="relative overflow-hidden border-b-2 border-[var(--rule)]" style={{ background: "var(--landing-grad)" }}>
+      {/* Decorative spheres — colours come from the theme tokens */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden>
+        <div className="absolute -top-20 -left-24 w-80 h-80 rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-violet), transparent 70%)" }} />
+        <div className="absolute top-36 -right-36 w-[420px] h-[420px] rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-blue), transparent 70%)" }} />
+        <div className="absolute bottom-14 left-[6%] w-44 h-44 rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-green), transparent 70%)" }} />
+        <div className="absolute -bottom-28 right-[10%] w-64 h-64 rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-navy), transparent 70%)" }} />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <div className="max-w-3xl mx-auto text-center">
 
           {/* Status badge */}
-          <div className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] mb-6">
+          <div className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--primary)] mb-6">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
             50,000+ active internships right now
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold text-[var(--text)] leading-tight tracking-tight mb-4">
+          <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-extrabold text-[var(--heading)] leading-[1.18] tracking-tight mb-4">
             Find Internships That{" "}
             <span className="text-[var(--primary)]">Match Your Skills</span>
           </h1>

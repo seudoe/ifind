@@ -232,7 +232,7 @@ export function ResumeChatTab() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] bg-white rounded-lg border overflow-hidden">
+    <div className="flex h-[calc(100vh-12rem)] bg-[var(--surface)] rounded-lg border overflow-hidden">
       {/* Sidebar */}
       {showSidebar && (
         <div className="w-64 border-r flex flex-col bg-gray-50">
@@ -397,7 +397,7 @@ export function ResumeChatTab() {
                           <p className="text-xs font-medium text-gray-600 mb-2">Sources:</p>
                           <div className="space-y-2">
                             {message.sources.map((source, idx) => (
-                              <div key={idx} className="text-xs bg-white bg-opacity-50 rounded p-2">
+                              <div key={idx} className="text-xs bg-[var(--surface)] bg-opacity-50 rounded p-2">
                                 <p className="text-gray-700 line-clamp-2">{source.text}</p>
                                 <p className="text-gray-500 mt-1">
                                   Relevance: {Math.round(source.relevanceScore * 100)}%

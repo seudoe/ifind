@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { Logo } from "@/components/ui/Logo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -183,10 +184,8 @@ export function AuthShell({
 
             <div className="w-full max-w-sm">
                 <div className="text-center mb-7">
-                    <div className="inline-flex h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--primary)] items-center justify-center shadow-sm mb-3">
-                        {icon}
-                    </div>
-                    <h1 className="text-lg font-bold text-[var(--text)]">
+                    <div className="inline-flex mb-3"><Logo size="lg" /></div>
+                    <h1 className="text-lg font-bold text-[var(--heading)]">
                         {heading}
                     </h1>
                     <p className="text-sm text-[var(--text-3)] mt-1">{sub}</p>

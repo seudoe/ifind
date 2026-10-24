@@ -16,7 +16,7 @@ export default async function ModeratorPendingPage() {
                     <div className="inline-flex h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--primary)] items-center justify-center shadow-sm mb-3">
                         <Shield className="h-4.5 w-4.5 text-white" />
                     </div>
-                    <h1 className="text-lg font-bold text-[var(--text)]">
+                    <h1 className="text-lg font-bold text-[var(--heading)]">
                         Account Pending
                     </h1>
                     <p className="text-sm text-[var(--text-3)] mt-1">

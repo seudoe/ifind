@@ -73,7 +73,7 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[200px_1fr]">
           <aside className="h-fit plasma-card p-4 lg:sticky lg:top-20">
-            <h2 className="mb-3 text-sm font-semibold text-[var(--text)]">Quick links</h2>
+            <h2 className="mb-3 text-sm font-semibold text-[var(--heading)]">Quick links</h2>
             <nav className="grid grid-cols-2 gap-x-3 gap-y-1 lg:block">
               {QUICK_LINKS.map(([id, label]) => <a key={id} href={`#${id}`} className="block rounded-[var(--radius-sm)] px-2 py-1.5 text-xs text-[var(--text-2)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary)]">{label}</a>)}
             </nav>
@@ -251,7 +251,7 @@ function ProfileHeader({ user, education, missing, onEditClick }: { user: User; 
       </div>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <h1 className="truncate text-lg font-bold text-[var(--text)]">{name}</h1>
+          <h1 className="truncate text-lg font-bold text-[var(--heading)]">{name}</h1>
           <Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} />
         </div>
         <p className="mt-1 text-sm font-medium text-[var(--text-2)]">{education}</p>
@@ -295,7 +295,7 @@ function ProfileHeader({ user, education, missing, onEditClick }: { user: User; 
   );
 }
 
-function Panel({ id, icon, title, add, onEditClick, children }: { id: string; icon: React.ReactNode; title: string; add?: boolean; onEditClick?: () => void; children: React.ReactNode }) { return <section id={id} className="plasma-card scroll-mt-20 p-5"><div className="mb-4 flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="text-[var(--primary)]">{icon}</span><h2 className="text-sm font-semibold text-[var(--text)]">{title}</h2><Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} /></div>{add && <button type="button" onClick={onEditClick} className="text-xs font-semibold text-[var(--primary)]">Add</button>}</div>{children}</section>; }
+function Panel({ id, icon, title, add, onEditClick, children }: { id: string; icon: React.ReactNode; title: string; add?: boolean; onEditClick?: () => void; children: React.ReactNode }) { return <section id={id} className="plasma-card scroll-mt-20 p-5"><div className="mb-4 flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="text-[var(--primary)]">{icon}</span><h2 className="text-sm font-semibold text-[var(--heading)]">{title}</h2><Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} /></div>{add && <button type="button" onClick={onEditClick} className="text-xs font-semibold text-[var(--primary)]">Add</button>}</div>{children}</section>; }
 function Detail({ label, value, accent }: { label: string; value: string; accent?: boolean }) { return <div><p className="text-xs text-[var(--text-3)]">{label}</p><p className={`mt-1 text-sm font-medium ${accent ? "text-[var(--primary)]" : "text-[var(--text-2)]"}`}>{value}</p></div>; }
 function Empty({ text }: { text: string }) { return <p className="text-xs leading-5 text-[var(--text-3)]">{text}</p>; }
 function Accomplishment({ title, entries, onEditClick }: { title: string; entries: string[]; onEditClick?: () => void }) { return <div className="py-3 first:pt-0 last:pb-0"><div className="flex items-center justify-between"><p className="text-sm font-medium text-[var(--text)]">{title}</p><button type="button" onClick={onEditClick} className="text-xs font-semibold text-[var(--primary)]">{entries.length ? "Edit" : "Add"}</button></div>{entries.length ? <div className="mt-2 space-y-1">{entries.map((entry) => <p key={entry} className="text-xs text-[var(--text-2)]">{entry}</p>)}</div> : <p className="mt-1 text-xs text-[var(--text-3)]">Add relevant {title.toLowerCase()}.</p>}</div>; }
@@ -717,7 +717,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
         {/* Header */}
         <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-sm font-bold text-[var(--text)]">{getSectionTitle()}</h3>
+            <h3 className="text-sm font-bold text-[var(--heading)]">{getSectionTitle()}</h3>
             <p className="text-[10px] text-[var(--text-3)]">Modify current details on your profile</p>
           </div>
           <button
@@ -744,10 +744,10 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                       <img
                         src={profilePicture}
                         alt={name || user.name}
-                        className="h-20 w-20 rounded-full object-cover border-2 border-[var(--primary)] shadow-sm shrink-0"
+                        className="h-20 w-20 rounded-[var(--radius-sm)] object-cover border-2 border-[var(--primary)] shadow-sm shrink-0"
                       />
                     ) : (
-                      <div className="h-20 w-20 rounded-full bg-[var(--primary)] text-white font-bold text-xl border-2 border-[var(--border)] shadow-sm flex items-center justify-center shrink-0 uppercase select-none">
+                      <div className="h-20 w-20 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white font-bold text-xl border-2 border-[var(--border)] shadow-sm flex items-center justify-center shrink-0 uppercase select-none">
                         {getInitials(name || user.name) || <UserRound className="h-9 w-9 text-white/90" />}
                       </div>
                     )}
@@ -755,7 +755,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                       type="button"
                       disabled={uploadingPhoto}
                       onClick={() => photoInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[var(--primary)] text-white shadow-md hover:scale-105 transition-transform"
+                      className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[var(--primary)] text-white shadow-[var(--shadow-lg)] hover:scale-105 transition-transform"
                       title="Change photo"
                     >
                       <Camera className="h-3.5 w-3.5" />
@@ -925,7 +925,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   <button type="button" onClick={() => handleRemoveListItem("education", idx)} className="absolute top-2.5 right-2.5 p-1 rounded text-red-500 hover:bg-red-50 transition-colors">
                     <Trash2 className="h-4 w-4" />
                   </button>
-                  <h4 className="font-semibold text-xs text-[var(--text)]">Education Entry #{idx + 1}</h4>
+                  <h4 className="font-semibold text-xs text-[var(--heading)]">Education Entry #{idx + 1}</h4>
                   
                   <FormField label="Institution/School" required>
                     <input type="text" value={edu.institution} onChange={e => {
@@ -1008,7 +1008,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                     <Trash2 className="h-4 w-4" />
                   </button>
 
-                  <h4 className="font-semibold text-xs text-[var(--text)]">Skill Group #{groupIdx + 1}</h4>
+                  <h4 className="font-semibold text-xs text-[var(--heading)]">Skill Group #{groupIdx + 1}</h4>
 
                   <FormField label="Group Name / Field" required>
                     <input type="text" placeholder="e.g. Frontend or Languages" value={group.field} onChange={e => {
@@ -1038,7 +1038,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   {/* Nested Tools */}
                   <div className="space-y-2 border-t border-[var(--border)] pt-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Skills / Tools in this Group</label>
+                      <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Skills / Tools in this Group</label>
                       <button type="button" onClick={() => handleAddTool(groupIdx)} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                         <Plus className="h-3 w-3" /> Add Skill Tag
                       </button>
@@ -1169,7 +1169,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   {/* Responsibilities list */}
                   <div className="space-y-2 border-t border-[var(--border)] pt-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Responsibilities</label>
+                      <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Responsibilities</label>
                       <button type="button" onClick={() => handleAddNestedString(section, idx, "responsibilities")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                         <Plus className="h-3 w-3" /> Add Responsibility
                       </button>
@@ -1189,7 +1189,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   {/* Achievements list */}
                   <div className="space-y-2 border-t border-[var(--border)] pt-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Achievements</label>
+                      <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Achievements</label>
                       <button type="button" onClick={() => handleAddNestedString(section, idx, "achievements")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                         <Plus className="h-3 w-3" /> Add Achievement
                       </button>
@@ -1293,7 +1293,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   {/* Project description list */}
                   <div className="space-y-2 border-t border-[var(--border)] pt-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Project Description Lines</label>
+                      <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Project Description Lines</label>
                       <button type="button" onClick={() => handleAddNestedString("projects", idx, "description")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                         <Plus className="h-3 w-3" /> Add Line
                       </button>
@@ -1313,7 +1313,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   {/* Project metrics list */}
                   <div className="space-y-2 border-t border-[var(--border)] pt-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Impact & Metrics</label>
+                      <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Impact & Metrics</label>
                       <button type="button" onClick={() => handleAddNestedString("projects", idx, "metrics")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                         <Plus className="h-3 w-3" /> Add Metric
                       </button>
@@ -1333,7 +1333,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   {/* Project technical challenges list */}
                   <div className="space-y-2 border-t border-[var(--border)] pt-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Technical Challenges</label>
+                      <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Technical Challenges</label>
                       <button type="button" onClick={() => handleAddNestedString("projects", idx, "technicalChallenges")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                         <Plus className="h-3 w-3" /> Add Challenge
                       </button>
@@ -1479,7 +1479,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                     {/* Nested Impact List */}
                     <div className="space-y-2 border-t border-[var(--border)] pt-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider">Key Impact Lines</label>
+                        <label className="text-[10px] font-bold text-[var(--text-3)] font-mono uppercase tracking-[0.07em]">Key Impact Lines</label>
                         <button type="button" onClick={() => handleAddNestedString("affiliations", idx, "impact")} className="text-[10px] text-[var(--primary)] font-semibold inline-flex items-center gap-0.5 hover:underline">
                           <Plus className="h-3 w-3" /> Add Impact Line
                         </button>

@@ -38,7 +38,7 @@ export default function NotificationsPage() {
     return (
         <main className="flex-1 min-w-0 p-4 md:p-8 max-w-2xl">
             <div className="flex items-center justify-between mb-6">
-                <h1 className="text-lg font-bold text-[var(--text)]">Notifications</h1>
+                <h1 className="text-lg font-bold text-[var(--heading)]">Notifications</h1>
                 {hasUnread && (
                     <Button variant="secondary" size="sm" className="gap-1.5" onClick={() => mark({ all: true })}>
                         <CheckCheck className="h-4 w-4" /> Mark all read

@@ -10,7 +10,7 @@ import { Modal } from "@/components/ui/Modal";
 import type { EmployerSummary } from "@/types/moderator";
 
 const LIMIT = 20;
-const TH = "py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide whitespace-nowrap";
+const TH = "py-2.5 px-4 text-xs font-semibold text-[var(--text-2)] font-mono uppercase tracking-[0.07em] whitespace-nowrap";
 const INPUT =
     "px-3 py-2 text-sm rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-colors";
 
@@ -27,7 +27,7 @@ interface Detail {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <section className="mb-5">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)] mb-2">{title}</h4>
+            <h4 className="text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">{title}</h4>
             {children}
         </section>
     );

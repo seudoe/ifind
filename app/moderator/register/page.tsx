@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/ui/Logo";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -70,10 +71,8 @@ export default function ModeratorRegisterPage() {
 
             <div className="w-full max-w-sm">
                 <div className="text-center mb-7">
-                    <div className="inline-flex h-10 w-10 rounded-[var(--radius-sm)] bg-[var(--primary)] items-center justify-center shadow-sm mb-3">
-                        <Shield className="h-4.5 w-4.5 text-white" />
-                    </div>
-                    <h1 className="text-lg font-bold text-[var(--text)]">
+                    <div className="inline-flex mb-3"><Logo size="lg" /></div>
+                    <h1 className="text-lg font-bold text-[var(--heading)]">
                         Become a Moderator
                     </h1>
                     <p className="text-sm text-[var(--text-3)] mt-1">

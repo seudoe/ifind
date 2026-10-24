@@ -64,7 +64,7 @@ export function FeaturedInternships() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-7">
           <div>
-            <h2 className="text-xl font-bold text-[var(--text)]">Featured Internships</h2>
+            <h2 className="text-xl font-bold text-[var(--heading)]">Featured Internships</h2>
             <p className="text-sm text-[var(--text-2)] mt-1">Handpicked opportunities at top startups</p>
           </div>
           <Link
@@ -92,7 +92,7 @@ export function FeaturedInternships() {
 
               {/* Info */}
               <div>
-                <h3 className="text-sm font-semibold text-[var(--text)] line-clamp-2 leading-snug">
+                <h3 className="text-sm font-semibold text-[var(--heading)] line-clamp-2 leading-snug">
                   {item.title}
                 </h3>
                 <p className="text-xs text-[var(--text-3)] mt-0.5">{item.company}</p>

@@ -182,7 +182,7 @@ export function JobMatchTab() {
           </button>
         </div>
 
-        <form onSubmit={handleCreateJobDescription} className="space-y-6 bg-white p-6 rounded-lg border">
+        <form onSubmit={handleCreateJobDescription} className="space-y-6 bg-[var(--surface)] p-6 rounded-lg border">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Internship Title *
@@ -323,25 +323,25 @@ export function JobMatchTab() {
 
         {/* Score Breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
             <p className="text-sm text-gray-600 mb-1">Skills Match</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.skillsMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.skillsMatch.score}%
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
             <p className="text-sm text-gray-600 mb-1">Experience</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.experienceMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.experienceMatch.score}%
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
             <p className="text-sm text-gray-600 mb-1">Education</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.educationMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.educationMatch.score}%
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
+          <div className="bg-[var(--surface)] p-4 rounded-lg border">
             <p className="text-sm text-gray-600 mb-1">Keywords</p>
             <p className={`text-2xl font-bold ${getScoreColor(selectedMatch.matchDetails.keywordsMatch.score).split(' ')[0]}`}>
               {selectedMatch.matchDetails.keywordsMatch.score}%
@@ -351,7 +351,7 @@ export function JobMatchTab() {
 
         {/* AI Analysis */}
         {selectedMatch.aiAnalysis && (
-          <div className="bg-white p-6 rounded-lg border">
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-blue-600" />
               AI Analysis
@@ -361,7 +361,7 @@ export function JobMatchTab() {
         )}
 
         {/* Skills Analysis */}
-        <div className="bg-white p-6 rounded-lg border space-y-4">
+        <div className="bg-[var(--surface)] p-6 rounded-lg border space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Skills Analysis</h3>
           
           {selectedMatch.matchDetails.skillsMatch.matchingSkills.length > 0 && (
@@ -403,7 +403,7 @@ export function JobMatchTab() {
 
         {/* Strengths */}
         {selectedMatch.strengthsForRole.length > 0 && (
-          <div className="bg-white p-6 rounded-lg border">
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Target className="h-5 w-5 text-green-600" />
               Your Strengths for This Role
@@ -421,7 +421,7 @@ export function JobMatchTab() {
 
         {/* Gaps to Address */}
         {selectedMatch.gapsToAddress.length > 0 && (
-          <div className="bg-white p-6 rounded-lg border">
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-orange-600" />
               Areas to Improve
@@ -439,7 +439,7 @@ export function JobMatchTab() {
 
         {/* Recommendations */}
         {selectedMatch.recommendations.length > 0 && (
-          <div className="bg-white p-6 rounded-lg border">
+          <div className="bg-[var(--surface)] p-6 rounded-lg border">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
             <ul className="space-y-3">
               {selectedMatch.recommendations.map((rec, idx) => (
@@ -500,7 +500,7 @@ export function JobMatchTab() {
                 setSelectedMatch(match);
                 setStep('results');
               }}
-              className="bg-white p-6 rounded-lg border hover:border-blue-300 cursor-pointer transition-all"
+              className="bg-[var(--surface)] p-6 rounded-lg border hover:border-blue-300 cursor-pointer transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>

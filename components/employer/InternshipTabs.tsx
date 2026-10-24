@@ -36,7 +36,7 @@ export function InternshipTabs({ basePath, name, status, moderationStatus, appli
                 >
                     <ChevronLeft className="h-3.5 w-3.5" /> Back
                 </Link>
-                <h1 className="text-lg font-bold text-[var(--text)] mr-1">{name}</h1>
+                <h1 className="text-lg font-bold text-[var(--heading)] mr-1">{name}</h1>
                 <StatusPill status={status} />
                 {status !== "draft" && <ModerationPill status={moderationStatus} />}
                 <Badge variant="outline">{applicantCount} applicant{applicantCount === 1 ? "" : "s"}</Badge>

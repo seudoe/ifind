@@ -91,7 +91,7 @@ export function VectorizationProgressBar() {
   if (hidden || status === "idle") return null;
 
   return (
-    <div className="fixed bottom-24 right-6 w-72 bg-white border border-gray-200 rounded-lg shadow-md p-3 z-40 flex flex-col gap-2 animate-in slide-in-from-bottom-3">
+    <div className="fixed bottom-24 right-6 w-72 bg-[var(--surface)] border border-gray-200 rounded-lg shadow-[var(--shadow-lg)] p-3 z-40 flex flex-col gap-2 animate-in slide-in-from-bottom-3">
       <div className="flex items-center gap-2">
         {status === "processing" && (
           <Loader2 className="w-4 h-4 text-blue-500 animate-spin shrink-0" />

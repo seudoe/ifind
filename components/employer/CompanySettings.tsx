@@ -51,7 +51,7 @@ export function CompanySettings({ companyId, initial, verification, isOwner }: P
     return (
         <div className="max-w-2xl space-y-6">
             <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-[var(--text)]">Company settings</h1>
+                <h1 className="text-lg font-bold text-[var(--heading)]">Company settings</h1>
                 <VerificationBadge status={verification?.status ?? "unverified"} />
             </div>
 

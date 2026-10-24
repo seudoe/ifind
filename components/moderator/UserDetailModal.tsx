@@ -48,7 +48,7 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("en-IN"
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <section className="mb-5">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)] mb-2">{title}</h4>
+            <h4 className="text-xs font-semibold font-mono uppercase tracking-[0.07em] text-[var(--text-3)] mb-2">{title}</h4>
             {children}
         </section>
     );
