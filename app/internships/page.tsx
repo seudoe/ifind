@@ -32,7 +32,7 @@ export default async function PublicInternshipsPage({ searchParams }: { searchPa
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container-page py-8">
       <div className="page-header" style={{ position: "static" }}>
         <h1 className="path !m-0">Internships</h1>
         <span className="status">● {total.toLocaleString("en-IN")} open now</span>

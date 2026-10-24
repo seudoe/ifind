@@ -23,7 +23,7 @@ export function Navbar({ active }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-40 bg-[var(--surface)] border-b-2 border-[var(--rule)] plasma-glass">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container-page">
         <div className="flex items-center h-14 gap-6">
 
           {/* Logo */}

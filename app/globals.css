@@ -105,3 +105,8 @@ a.plasma-card:hover, button.plasma-card:hover, .plasma-card.hoverable:hover, .pl
 }
 .pill:hover { background: var(--primary-bg); border-color: var(--primary); }
 .pill:active { transform: scale(.95); }
+
+/* ── Page container: ONE content width for header, sections and footer of every public page ── */
+.container-page { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1rem; }
+@media (min-width: 640px)  { .container-page { padding-inline: 1.5rem; } }
+@media (min-width: 1024px) { .container-page { padding-inline: 2rem; } }

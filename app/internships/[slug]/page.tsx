@@ -53,7 +53,7 @@ export default async function PublicInternshipPage({ params }: { params: Params 
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container-page py-8">
       <Link href="/internships" className="inline-flex items-center gap-1.5 label hover:text-[var(--primary)] mb-5">
         <ArrowLeft className="h-3.5 w-3.5" /> All internships
       </Link>

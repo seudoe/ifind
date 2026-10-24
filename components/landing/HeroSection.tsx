@@ -53,7 +53,7 @@ export function HeroSection({ stats, categories, latest }: Props) {
         <div className="absolute -bottom-28 right-[10%] w-64 h-64 rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-navy), transparent 70%)" }} />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative container-page">
         {/* ── Two-column hero ─────────────────────────────────────────────── */}
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-12 items-center pt-12 pb-6 lg:pt-16">
           <div>
@@ -83,7 +83,7 @@ export function HeroSection({ stats, categories, latest }: Props) {
           </div>
 
           {/* Visual: graduate cut-out on a brand panel, with the newest real listing floating over it */}
-          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div className="relative w-full">
             <div className="relative aspect-[4/4.3] overflow-hidden rounded-[24px] shadow-[var(--shadow-lg)]" style={{ background: "linear-gradient(160deg, var(--primary) 0%, var(--navy) 100%)" }}>
               <Image src="/hero-graduate.png" alt="Smiling graduate holding a laptop" fill priority sizes="(min-width: 1024px) 480px, 90vw" className="object-cover object-top" />
             </div>
@@ -105,7 +105,7 @@ export function HeroSection({ stats, categories, latest }: Props) {
         </div>
 
         {/* ── Search + chips ───────────────────────────────────────────────── */}
-        <div className="max-w-3xl mx-auto text-center py-8">
+        <div className="text-center py-8">
           <HeroSearch />
           <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
             <span className="label">Popular:</span>

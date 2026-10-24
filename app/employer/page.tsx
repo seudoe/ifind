@@ -22,7 +22,7 @@ export default function EmployerLandingPage() {
 
       {/* Navbar */}
       <header className="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="container-page h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-[var(--radius-sm)] bg-[var(--primary)] flex items-center justify-center">
               <Briefcase className="h-4 w-4 text-white" />
@@ -54,7 +54,7 @@ export default function EmployerLandingPage() {
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full bg-[var(--primary-bg)] opacity-50 -translate-x-1/3 -translate-y-1/3" />
           </div>
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="relative container-page py-20 lg:py-28">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] mb-6">
                 <GraduationCap className="h-3.5 w-3.5" />
@@ -87,7 +87,7 @@ export default function EmployerLandingPage() {
 
         {/* Features */}
         <section className="py-14">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container-page">
             <div className="mb-8">
               <h2 className="text-xl font-bold text-[var(--heading)]">Why employers choose iFind</h2>
             </div>
@@ -107,7 +107,7 @@ export default function EmployerLandingPage() {
 
         {/* How it works */}
         <section className="py-14 bg-[var(--surface)] border-t border-b border-[var(--border)]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container-page">
             <div className="mb-10 text-center">
               <h2 className="text-xl font-bold text-[var(--heading)]">Get started in 3 steps</h2>
             </div>
@@ -132,7 +132,7 @@ export default function EmployerLandingPage() {
 
         {/* Student portal CTA */}
         <section className="py-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 plasma-card p-6">
+          <div className="container-page flex flex-col sm:flex-row items-center justify-between gap-4 plasma-card p-6">
             <div>
               <p className="text-sm font-semibold text-[var(--text)]">Looking for an internship yourself?</p>
               <p className="text-xs text-[var(--text-3)] mt-0.5">Browse 50,000+ internships on the student portal.</p>

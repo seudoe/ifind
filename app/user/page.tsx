@@ -26,7 +26,7 @@ export default async function StudentLandingPage() {
 
         {data.featured.length > 0 && (
           <section id="categories" className="py-12 bg-[var(--bg)]">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="container-page">
               <div className="flex items-end justify-between gap-4 pb-3 mb-6 border-b-2 border-[var(--rule)]">
                 <div>
                   <h2 className="text-xl font-bold text-[var(--heading)]">Latest internships</h2>
@@ -43,7 +43,7 @@ export default async function StudentLandingPage() {
 
         {data.topCompanies.length > 0 && (
           <section className="py-8 border-y border-[var(--border)] bg-[var(--surface)]">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="container-page text-center">
               <p className="label mb-4">Most listings from</p>
               <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2">
                 {data.topCompanies.map((c) => (
@@ -57,7 +57,7 @@ export default async function StudentLandingPage() {
         <HowItWorks />
 
         <section className="py-10 bg-[var(--surface)] border-t-2 border-[var(--rule)]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="container-page flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <p className="text-sm font-bold text-[var(--heading)]">Are you an employer?</p>
               <p className="text-xs text-[var(--text-3)] mt-0.5">Post internships and find the right candidates.</p>
