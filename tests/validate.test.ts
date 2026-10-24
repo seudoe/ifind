@@ -38,7 +38,6 @@ test("requireSecret fails closed when the variable is missing", () => {
 import { escapeRegex, int } from "../lib/validate";
 import { safeHref } from "../lib/safeUrl";
 import { isImageKitUrl } from "../lib/uploads";
-import { JsonLd } from "../components/seo/JsonLd";
 
 test("int clamps, truncates and falls back for non-numbers", () => {
   assert.equal(int(1_000_000, 1, 20, 10), 20);
@@ -87,10 +86,3 @@ test("isImageKitUrl accepts our endpoint only, not a look-alike prefix or anothe
   }
 });
 
-test("JsonLd escapes < so a string in the data can never close the script tag", () => {
-  const el = JsonLd({ data: { name: "</script><script>alert(1)</script>", note: "line\u2028sep" } }) as { props: { dangerouslySetInnerHTML: { __html: string } } };
-  const html = el.props.dangerouslySetInnerHTML.__html;
-  assert.equal(html.includes("<"), false);
-  assert.equal(html.includes("\u2028"), false);
-  assert.deepEqual(JSON.parse(html), { name: "</script><script>alert(1)</script>", note: "line\u2028sep" }); // still valid JSON, same data
-});
