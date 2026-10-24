@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { cn, getInternshipId } from "@/lib/utils";
 import { addressTerms } from "@/lib/address";
 import { track } from "@/lib/analytics/track";
+import { internshipSlug } from "@/lib/slug";
 import type { Internship, User } from "@/types";
 
 interface BrowseTabProps {
@@ -17,6 +18,8 @@ interface BrowseTabProps {
   user?: User;
   mobileFilterOpen?: boolean;
   setMobileFilterOpen?: (open: boolean) => void;
+  /** Internship to show opened straight away (from /browse/<slug>). */
+  openInternshipId?: string | null;
 }
 
 export function BrowseTab({
@@ -24,6 +27,7 @@ export function BrowseTab({
   user,
   mobileFilterOpen: externalMobileFilterOpen,
   setMobileFilterOpen: externalSetMobileFilterOpen,
+  openInternshipId = null,
 }: BrowseTabProps) {
   const [query, setQuery] = useState("");
   const [internalMobileFilterOpen, setInternalMobileFilterOpen] = useState(false);
@@ -34,7 +38,29 @@ export function BrowseTab({
   const [page, setPage] = useState(1);
   const pageSize = 15;
 
-  const [selectedInternship, setSelectedInternship] = useState<Internship | null>(null);
+  // The open internship is tracked by id so a deep link works even when it is not in the loaded feed
+  const [selectedId, setSelectedId] = useState<string | null>(openInternshipId);
+  const [fetched, setFetched] = useState<Internship | null>(null);
+  const selectedInternship = selectedId
+    ? internships.find((i) => getInternshipId(i) === selectedId) ?? (fetched && getInternshipId(fetched) === selectedId ? fetched : null)
+    : null;
+
+  useEffect(() => {
+    if (!selectedId || internships.some((i) => getInternshipId(i) === selectedId)) return;
+    let cancelled = false;
+    fetch(`/api/internships/${selectedId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (!cancelled && j?.data) setFetched(j.data as Internship); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [selectedId, internships]);
+
+  // Keep the address bar shareable: /browse/<slug> while open, /browse when closed
+  const basePath = user?.username ? `/user/${user.username}/browse` : null;
+  const setSelectedInternship = (internship: Internship | null) => {
+    setSelectedId(internship ? getInternshipId(internship) : null);
+    if (basePath) window.history.replaceState(null, "", internship ? `${basePath}/${internshipSlug(internship)}` : basePath);
+  };
 
   // Synchronized state for instant updates when saved or applied
   const [appliedIds, setAppliedIds] = useState<Set<string>>(

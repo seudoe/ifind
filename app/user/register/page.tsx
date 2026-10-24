@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
 import { AuthShell, GoogleButton } from "@/app/user/login/page";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
+import { resolveNext } from "@/lib/authRedirect";
 
 const schema = z.object({
     name: z.string().min(2, "At least 2 characters"),
@@ -59,7 +60,7 @@ export default function UserRegisterPage() {
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || "Registration failed");
             toast.success("Account created! Welcome to iFind 🎉");
-            router.push(`/user/${data.username}/overview`);
+            router.push(resolveNext(new URLSearchParams(window.location.search).get("next"), data.username));
         } catch (err) {
             toast.error(
                 err instanceof Error ? err.message : "Registration failed",

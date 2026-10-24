@@ -1,3 +1,4 @@
+import { resolveNext } from "@/lib/authRedirect";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
@@ -325,12 +326,13 @@ export async function GET(request: NextRequest) {
     const token = signToken(session, user.tokenVersion ?? 0);
     const cookie = authCookie(token);
 
-    const redirectUrl = new URL(`/user/${user.username}/overview`, origin);
+    const redirectUrl = new URL(resolveNext(request.cookies.get("linkedin_oauth_next")?.value, user.username), origin);
     const response = NextResponse.redirect(redirectUrl);
 
     response.cookies.set(cookie.name, cookie.value, cookie.options);
     response.cookies.delete("linkedin_oauth_state");
     response.cookies.delete("linkedin_oauth_intent");
+    response.cookies.delete("linkedin_oauth_next");
 
     after(() => sendServerEvent(request, isNew ? "sign_up" : "login", { user_type: "student" }));
     return response;

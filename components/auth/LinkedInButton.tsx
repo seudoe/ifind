@@ -1,10 +1,17 @@
 "use client";
 
 import React from "react";
+import { safeNextPath } from "@/lib/authRedirect";
 
 export function LinkedInButton({ text = "Continue with LinkedIn", as }: { text?: string; as?: "employer" | "employer-link" }) {
   const handleLinkedInAuth = () => {
-    window.location.href = as ? `/api/auth/linkedin?as=${as}` : "/api/auth/linkedin";
+    if (as) {
+      window.location.href = `/api/auth/linkedin?as=${as}`;
+      return;
+    }
+    // Student sign-in: carry the visitor's destination (e.g. the internship they wanted to apply to) through OAuth
+    const next = safeNextPath(new URLSearchParams(window.location.search).get("next"));
+    window.location.href = next ? `/api/auth/linkedin?next=${encodeURIComponent(next)}` : "/api/auth/linkedin";
   };
 
   return (

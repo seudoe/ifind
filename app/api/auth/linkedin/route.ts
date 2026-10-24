@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeNextPath } from "@/lib/authRedirect";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,20 @@ export async function GET(request: NextRequest) {
     maxAge: 60 * 10,
     path: "/",
   });
+
+  // Where to send a student after sign-in (validated; only same-site /user/... paths are kept)
+  const next = intent === "student" ? safeNextPath(request.nextUrl.searchParams.get("next")) : null;
+  if (next) {
+    response.cookies.set("linkedin_oauth_next", next, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 10,
+      path: "/",
+    });
+  } else {
+    response.cookies.delete("linkedin_oauth_next");
+  }
 
   return response;
 }

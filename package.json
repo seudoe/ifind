@@ -10,7 +10,7 @@
     "test:gemini": "tsx tests/test-gemini-integration.ts",
     "test:usage": "tsx --test tests/usage.test.ts",
     "test:events": "tsx --test tests/events.test.ts",
-    "test:security": "tsx --test tests/validate.test.ts tests/auth-security.test.ts tests/secrets.test.ts",
+    "test:security": "tsx --test tests/validate.test.ts tests/auth-security.test.ts tests/secrets.test.ts tests/authRedirect.test.ts",
     "test:e2e": "tsx --test tests/security.e2e.test.ts",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "test:analytics": "tsx --test tests/analytics.test.ts",

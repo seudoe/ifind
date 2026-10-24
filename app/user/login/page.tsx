@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
+import { NextLink } from "@/components/auth/NextLink";
+import { resolveNext } from "@/lib/authRedirect";
 
 const schema = z.object({
     identifier: z.string().min(1, "Email or username is required"),
@@ -68,8 +70,8 @@ function UserLoginForm() {
       } else {
         toast.success("Welcome back!");
       }
-      // Redirect to user's overview — middleware will handle auth guard
-      router.push(`/user/${json.data?.username ?? "me"}/overview`);
+      // Back to where the visitor was heading (e.g. the internship they tried to apply to), else the dashboard
+      router.push(resolveNext(new URLSearchParams(window.location.search).get("next"), json.data?.username ?? "me"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid credentials");
     }
@@ -196,12 +198,12 @@ export function AuthShell({
                 <div className="flex items-center justify-between mt-5 text-sm text-[var(--text-3)]">
                     <span>
                         {switchText}{" "}
-                        <Link
+                        <NextLink
                             href={switchLink}
                             className="text-[var(--primary)] font-medium hover:underline"
                         >
                             {switchLabel}
-                        </Link>
+                        </NextLink>
                     </span>
                     <Link
                         href={portalHref}
