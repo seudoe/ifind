@@ -94,3 +94,14 @@ a.plasma-card:hover, button.plasma-card:hover, .plasma-card.hoverable:hover, .pl
 .logo-badge-i { color: var(--primary); }
 .logo-badge-md { padding: 7px 12px; font-size: 16px; }
 .logo-badge-lg { padding: 10px 16px; font-size: 22px; }
+
+/* ── Pill: small mono chip used for links and filters ────────────────────── */
+.pill {
+  display: inline-flex; align-items: center;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-xl);
+  color: var(--heading); background: var(--surface); cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.pill:hover { background: var(--primary-bg); border-color: var(--primary); }
+.pill:active { transform: scale(.95); }

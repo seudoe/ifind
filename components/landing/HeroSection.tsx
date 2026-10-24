@@ -1,32 +1,47 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Search, MapPin, ArrowRight, Zap } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { MapPin, Search, Star, User, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { HeroSearch } from "@/components/landing/HeroSearch";
+import { StipendBadge } from "@/components/internships/StipendBadge";
+import { formatAddresses } from "@/lib/address";
+import { internshipSlug } from "@/lib/slug";
+import { cn } from "@/lib/utils";
+import type { Internship } from "@/types";
+
+const FEATURES = [
+  { icon: Search, label: "Personalized matching" },
+  { icon: Zap, label: "Startups & established companies" },
+  { icon: User, label: "Build your profile once" },
+  { icon: Star, label: "Kickstart your career" },
+];
 
 const POPULAR = ["React Developer", "Data Science", "UI/UX Design", "Marketing", "Finance", "Machine Learning"];
 
-const CATEGORY_PILLS = [
-  { label: "Technology",  emoji: "💻" },
-  { label: "Design",      emoji: "🎨" },
-  { label: "Marketing",   emoji: "📣" },
-  { label: "Finance",     emoji: "📊" },
-  { label: "Operations",  emoji: "⚙️" },
-  { label: "Content",     emoji: "✍️" },
-];
+const ACCENTS = ["var(--accent-1)", "var(--accent-2)", "var(--accent-3)", "var(--accent-4)", "var(--accent-5)", "var(--accent-6)"];
 
-export function HeroSection() {
-  const router = useRouter();
-  const [role, setRole]         = useState("");
-  const [location, setLocation] = useState("");
+interface Props {
+  stats: { internships: number; students: number; companies: number; applications: number };
+  categories: { label: string; code: string; count: number }[];
+  latest?: Internship;
+}
 
-  const handleSearch = () => {
-    const p = new URLSearchParams();
-    if (role) p.set("q", role);
-    if (location) p.set("location", location);
-    router.push(`/dashboard?tab=internships&${p.toString()}`);
-  };
+const fmt = (n: number) => n.toLocaleString("en-IN");
+
+/** Landing hero: copy + live latest listing on the left/right, then search, category chips and real platform numbers. */
+export function HeroSection({ stats, categories, latest }: Props) {
+  const location = latest
+    ? latest.isRemote
+      ? "Work from Home"
+      : formatAddresses(latest.address, ["city", "state"]) || "India"
+    : "";
+
+  const STATS = [
+    { value: stats.internships, label: "Active internships" },
+    { value: stats.companies, label: "Hiring companies" },
+    { value: stats.students, label: "Students on iFind" },
+    { value: stats.applications, label: "Applications sent" },
+  ];
 
   return (
     <section className="relative overflow-hidden border-b-2 border-[var(--rule)]" style={{ background: "var(--landing-grad)" }}>
@@ -38,83 +53,90 @@ export function HeroSection() {
         <div className="absolute -bottom-28 right-[10%] w-64 h-64 rounded-full blur-[2px]" style={{ background: "radial-gradient(circle at 35% 35%, var(--sphere-navy), transparent 70%)" }} />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="max-w-3xl mx-auto text-center">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* ── Two-column hero ─────────────────────────────────────────────── */}
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-12 items-center pt-12 pb-6 lg:pt-16">
+          <div>
+            <p className="font-mono text-[12px] font-bold uppercase tracking-[0.07em] text-[var(--primary)] mb-3.5">From campus to career</p>
+            <h1 className="text-4xl sm:text-[42px] font-extrabold leading-[1.18] text-[var(--heading)] mb-4">
+              Your skills.<br />
+              Real <span className="text-[var(--primary)]">opportunities.</span><br />
+              A brighter future.
+            </h1>
+            <p className="text-[15px] leading-[1.7] text-[var(--text-2)] max-w-md mb-7">
+              Upload your resume once and iFind matches you with internships that fit your skills, interests and goals — browse them freely, sign in only when you apply.
+            </p>
 
-          {/* Status badge */}
-          <div className="inline-flex items-center gap-2 bg-[var(--primary-bg)] border border-[var(--primary)]/20 rounded-[var(--radius-sm)] px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--primary)] mb-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
-            50,000+ active internships right now
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7">
+              {FEATURES.map(({ icon: Icon, label }) => (
+                <div key={label} className="flex flex-col gap-2 text-[11.5px] font-semibold leading-snug text-[var(--text)]">
+                  <span className="h-10 w-10 rounded-[10px] bg-[var(--primary-bg)] text-[var(--primary)] flex items-center justify-center"><Icon className="h-4 w-4" /></span>
+                  {label}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2.5">
+              <Link href="/internships"><Button size="lg">Browse internships →</Button></Link>
+              <Link href="/user/register"><Button size="lg" variant="secondary">Create account</Button></Link>
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-extrabold text-[var(--heading)] leading-[1.18] tracking-tight mb-4">
-            Find Internships That{" "}
-            <span className="text-[var(--primary)]">Match Your Skills</span>
-          </h1>
-          <p className="text-base sm:text-lg text-[var(--text-2)] leading-relaxed mb-8 max-w-2xl mx-auto">
-            India&apos;s smartest internship platform. Upload your resume once —
-            our AI matches you with roles at top companies tailored to your actual profile.
-          </p>
-
-          {/* Search card */}
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow)] p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
-            <div className="flex items-center gap-2 flex-1 px-3">
-              <Search className="h-4 w-4 text-[var(--text-3)] shrink-0" />
-              <input
-                type="text"
-                placeholder="Role, skill, or company..."
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 text-sm text-[var(--text)] placeholder:text-[var(--text-3)] outline-none bg-transparent py-2"
-              />
+          {/* Visual: graduate cut-out on a brand panel, with the newest real listing floating over it */}
+          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+            <div className="relative aspect-[4/4.3] overflow-hidden rounded-[24px] shadow-[var(--shadow-lg)]" style={{ background: "linear-gradient(160deg, var(--primary) 0%, var(--navy) 100%)" }}>
+              <Image src="/hero-graduate.png" alt="Smiling graduate holding a laptop" fill priority sizes="(min-width: 1024px) 480px, 90vw" className="object-cover object-top" />
             </div>
-            <div className="hidden sm:block w-px bg-[var(--border)] self-stretch" />
-            <div className="flex items-center gap-2 flex-1 px-3">
-              <MapPin className="h-4 w-4 text-[var(--text-3)] shrink-0" />
-              <input
-                type="text"
-                placeholder="City or Work from Home"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 text-sm text-[var(--text)] placeholder:text-[var(--text-3)] outline-none bg-transparent py-2"
-              />
-            </div>
-            <Button onClick={handleSearch} size="md" className="shrink-0 gap-2 px-5">
-              Search <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-
-          {/* Popular searches */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-            <span className="text-xs text-[var(--text-3)]">Popular:</span>
-            {POPULAR.map((term) => (
-              <button
-                key={term}
-                onClick={() => { setRole(term); handleSearch(); }}
-                className="text-xs bg-[var(--surface-2)] border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary)] rounded-[var(--radius-sm)] px-2.5 py-1 transition-all duration-[var(--transition)] text-[var(--text-2)]"
+            {latest && (
+              <Link
+                href={`/internships/${internshipSlug(latest)}`}
+                className="absolute -left-2 sm:-left-6 bottom-8 max-w-[260px] rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-3.5 shadow-[var(--shadow-lg)] hover:border-[var(--primary)] transition-colors"
               >
-                {term}
-              </button>
+                <span className="label !text-[10px] !text-[var(--success)]">● Newly listed</span>
+                <p className="text-[13px] font-bold leading-snug text-[var(--heading)] mt-1 line-clamp-2">{latest.name}</p>
+                <p className="text-[11.5px] text-[var(--text-3)] truncate">{latest.company}</p>
+                <div className="flex items-center gap-2 mt-1.5 text-[11px] text-[var(--text)]">
+                  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{location}</span>
+                  <StipendBadge stipend={latest.stipend} className="text-[11px]" />
+                </div>
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* ── Search + chips ───────────────────────────────────────────────── */}
+        <div className="max-w-3xl mx-auto text-center py-8">
+          <HeroSearch />
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <span className="label">Popular:</span>
+            {POPULAR.map((term) => (
+              <Link key={term} href={`/internships?q=${encodeURIComponent(term)}`} className="pill">{term}</Link>
             ))}
           </div>
-
-          {/* Category quick-links */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
-            {CATEGORY_PILLS.map(({ label, emoji }) => (
-              <a
-                key={label}
-                href={`/dashboard?tab=internships&category=${encodeURIComponent(label)}`}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--primary)] hover:bg-[var(--primary-bg)] hover:text-[var(--primary)] transition-all duration-[var(--transition)]"
+          <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5">
+            {categories.map((c, i) => (
+              <Link
+                key={c.label}
+                href={`/internships?category=${encodeURIComponent(c.label)}`}
+                className="inline-flex items-center gap-2 rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-[12.5px] font-medium text-[var(--text)] hover:border-[var(--primary)] hover:shadow-[var(--shadow-violet)] transition-all"
               >
-                <span>{emoji}</span>
-                {label}
-              </a>
+                <span className="h-[18px] w-[18px] rounded-[4px] text-white text-[8px] font-bold flex items-center justify-center" style={{ background: ACCENTS[i % ACCENTS.length] }}>{c.code}</span>
+                {c.label}
+                <span className={cn("font-mono text-[10.5px] text-[var(--text-3)]")}>{fmt(c.count)}</span>
+              </Link>
             ))}
           </div>
         </div>
+
+        {/* ── Real platform numbers ───────────────────────────────────────── */}
+        <dl className="grid grid-cols-2 lg:grid-cols-4 gap-y-6 border-t-2 border-[var(--rule)] pt-7 pb-10">
+          {STATS.map((s) => (
+            <div key={s.label} className="text-center">
+              <dd className="text-[28px] font-extrabold text-[var(--heading)] leading-none">{fmt(s.value)}</dd>
+              <dt className="text-[12px] text-[var(--text-2)] mt-1.5">{s.label}</dt>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

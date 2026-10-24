@@ -3,10 +3,10 @@ import { GitBranch, ExternalLink } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 
 const STUDENT_LINKS = [
-  { label: "Browse Internships", href: "/dashboard?tab=internships" },
-  { label: "My Dashboard",       href: "/dashboard?tab=overview" },
-  { label: "Resume",             href: "/dashboard?tab=resume" },
-  { label: "Saved",              href: "/dashboard?tab=saved" },
+  { label: "Browse Internships", href: "/internships" },
+  { label: "Log in",             href: "/user/login" },
+  { label: "Create account",     href: "/user/register" },
+  { label: "Employer portal",    href: "/employer" },
 ];
 
 const COMPANY_LINKS = [

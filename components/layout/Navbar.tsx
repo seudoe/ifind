@@ -9,7 +9,7 @@ import { Logo } from "@/components/ui/Logo";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 const NAV_LINKS = [
-  { href: "/user#categories", label: "Internships", icon: Search },
+  { href: "/internships", label: "Internships", icon: Search },
   { href: "/user#how-it-works", label: "How it works", icon: BookOpen },
 ];
 

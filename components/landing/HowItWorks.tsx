@@ -28,7 +28,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="py-14 bg-[var(--bg)]">
+    <section id="how-it-works" className="py-14 bg-[var(--bg)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h2 className="text-xl font-bold text-[var(--heading)]">How iFind Works</h2>
@@ -56,7 +56,7 @@ export function HowItWorks() {
         </div>
 
         <div className="text-center mt-10">
-          <Link href="/register">
+          <Link href="/user/register">
             <Button size="lg" className="px-8">Get Started Free</Button>
           </Link>
         </div>
