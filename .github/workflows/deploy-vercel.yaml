@@ -18,7 +18,7 @@ env:
   VERCEL_CLI_VERSION: 64.5.0
 
 jobs:
-  # Canary: account seudoe deploys first. ifind, maharaj, usen, sam-wlh-ds only start if it succeeds.
+  # Canary: account seudoe deploys first. ifind, maharaj, usen, sam-wlh-ds, vedrp only start if it succeeds.
   deploy-canary:
     name: Deploy account seudoe (canary)
     runs-on: ubuntu-latest
@@ -67,6 +67,10 @@ jobs:
             token_secret: VERCEL_TOKEN_SAM
             org_secret: VERCEL_ORG_ID_SAM
             project_secret: VERCEL_PROJECT_ID_SAM
+          - target: vedrp
+            token_secret: VERCEL_TOKEN_VEDRP
+            org_secret: VERCEL_ORG_ID_VEDRP
+            project_secret: VERCEL_PROJECT_ID_VEDRP
 
     env:
       VERCEL_TOKEN: ${{ secrets[matrix.token_secret] }}
