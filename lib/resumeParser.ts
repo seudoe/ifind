@@ -371,12 +371,3 @@ export async function parseResumeWithBestAI(
         "AI extractor is currently unavailable. Please try again later.",
     );
 }
-
-// ─── Helper: get current month string "YYYY-MM" ──────────────────────────────
-
-export function getCurrentMonthYear(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
-export const AI_EXTRACTION_MONTHLY_LIMIT = 3;

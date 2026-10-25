@@ -18,7 +18,7 @@ Every provider call is recorded with its token counts and estimated cost; the to
 
 | Path | Limit |
 |---|---|
-| Paid resume extractor (GPT-4o / Gemini) | 3 per month per LinkedIn-verified user, taken atomically before the call; falls back to the free extractor when the site budget is spent |
+| Paid resume extractor (GPT-4o / Gemini) | LinkedIn-verified users only, charged against the daily AI credits (`resume-parse`); falls back to the free extractor when the site budget is spent |
 | Resume uploads | 30 per hour per user, 5 MB, PDF bytes checked |
 | Profile saves (trigger the vectoriser) | 60 per hour per user |
 | Chat sessions | 30 created per hour, 200 held per user |

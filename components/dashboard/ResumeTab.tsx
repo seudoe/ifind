@@ -127,13 +127,6 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const isLinkedInConnected = Boolean(
         user.linkedinId || user.linkedinDetails,
     );
-    const currentMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
-    const aiUsedThisMonth =
-        user.aiExtractionMonthYear === currentMonth
-            ? (user.aiExtractionUsedThisMonth ?? 0)
-            : 0;
-    const AI_LIMIT = 3;
-    const aiRemaining = Math.max(0, AI_LIMIT - aiUsedThisMonth);
 
     const handleFile = async (file: File) => {
         if (file.type !== "application/pdf") {
@@ -436,11 +429,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                             LinkedIn Verified — Best extractor available
                         </p>
                         <p className="text-xs text-blue-700">
-                            You can use the high-accuracy AI extractor{" "}
-                            <span className="font-medium">
-                                {aiRemaining} of {AI_LIMIT} times
-                            </span>{" "}
-                            this month, plus unlimited low-accuracy extractions.
+                            Resumes are read with the high-accuracy AI extractor. Each extraction uses your daily AI credits.
                         </p>
                     </div>
                 </div>
@@ -449,12 +438,12 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     <Link2 className="h-5 w-5 text-[var(--text-3)] shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0 space-y-1">
                         <p className="text-sm font-semibold text-[var(--text)]">
-                            Low-accuracy extractor (unlimited)
+                            Standard extractor
                         </p>
                         <p className="text-xs text-[var(--text-3)]">
                             {isLinkedInConnected
-                                ? "Your LinkedIn account is connected but not verified. Verify it to unlock 3 high-accuracy AI extractions per month."
-                                : "Connect and verify your LinkedIn account to unlock 3 high-accuracy AI extractions per month."}
+                                ? "Your LinkedIn account is connected but not verified. Verify it to unlock the high-accuracy AI extractor."
+                                : "Connect and verify your LinkedIn account to unlock the high-accuracy AI extractor."}
                         </p>
                         {!isLinkedInVerified && (
                             <a
@@ -577,7 +566,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                 Extracting data from resume with AI…
                             </p>
                             <p className="text-xs text-gray-400">
-                                {isLinkedInVerified && aiRemaining > 0
+                                {isLinkedInVerified
                                     ? "OpenAI → Gemini (High accuracy)"
                                     : "HuggingFace (Low accuracy)"}
                             </p>

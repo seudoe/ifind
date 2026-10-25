@@ -76,8 +76,6 @@ export interface IUser extends Document {
     bannedReason?: string | null;
     bannedBy?: mongoose.Types.ObjectId | null;
     bannedAt?: Date | null;
-    aiExtractionUsedThisMonth?: number;
-    aiExtractionMonthYear?: string | null;
     dailyCreditLimit?: number | null;
     lastLoginAt?: Date | null;
     loginCount?: number;
@@ -211,8 +209,6 @@ const UserSchema = new Schema<IUser>(
             default: null,
         },
         bannedAt: { type: Date, default: null },
-        aiExtractionUsedThisMonth: { type: Number, default: 0 },
-        aiExtractionMonthYear: { type: String, default: null }, // format: "YYYY-MM"
         dailyCreditLimit: { type: Number, default: null }, // moderator override of the daily credit pool; null = site default
         lastLoginAt: { type: Date, default: null },
         loginCount: { type: Number, default: 0 },

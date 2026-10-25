@@ -1,4 +1,4 @@
-import { aiExtractionsUsed, paidAiAllowed, releaseAiExtraction, reserveAiExtraction } from "@/lib/aiExtractionQuota";
+import { paidAiAllowed } from "@/lib/aiExtractionQuota";
 import { isImageKitUrl } from "@/lib/uploads";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
@@ -7,8 +7,6 @@ import User from "@/models/User";
 import {
     parseResumeWithHF,
     parseResumeWithBestAI,
-    getCurrentMonthYear,
-    AI_EXTRACTION_MONTHLY_LIMIT,
 } from "@/lib/resumeParser";
 import { withBilling } from "@/lib/usage/withBilling";
 
@@ -51,15 +49,12 @@ async function handlePost() {
 
         const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
 
-        // Determine extractor based on LinkedIn verification + monthly quota
+        // Determine extractor based on LinkedIn verification (credits are charged by withBilling)
         const isLinkedInVerified =
             user.linkedinDetails?.email_verified === true;
-        const currentMonth = getCurrentMonthYear();
 
         const canUseAI =
-            isLinkedInVerified &&
-            (await paidAiAllowed()) &&
-            (await reserveAiExtraction(session.userId, currentMonth, AI_EXTRACTION_MONTHLY_LIMIT));
+            isLinkedInVerified && (await paidAiAllowed());
 
         let parsedData;
         let extractorUsed: "ai" | "hf";
@@ -68,7 +63,6 @@ async function handlePost() {
             try {
                 parsedData = await parseResumeWithBestAI(pdfBuffer);
             } catch (error) {
-                await releaseAiExtraction(session.userId);
                 throw error;
             }
             extractorUsed = "ai";
@@ -92,8 +86,6 @@ async function handlePost() {
             message: "Resume re-extracted successfully",
             data: parsedData,
             extractorUsed,
-            aiUsedThisMonth: await aiExtractionsUsed(session.userId),
-            aiMonthlyLimit: AI_EXTRACTION_MONTHLY_LIMIT,
         });
     } catch (err) {
         console.error("[resume/reextract POST]", err);

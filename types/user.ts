@@ -58,9 +58,6 @@ export interface User {
         deletedAt?: string;
     };
 
-    // resume extraction quota
-    aiExtractionUsedThisMonth?: number;
-    aiExtractionMonthYear?: string | null;
 }
 
 // OLD -----------------

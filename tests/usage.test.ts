@@ -310,23 +310,6 @@ describe("credit pool (in-memory MongoDB)", () => {
       assert.equal((await quota.getDaily("user", user))?.creditsUsed, 1);
     });
 
-    it("hands out exactly the monthly AI allowance to parallel requests, and a failure gives one back", async (t) => {
-      if (skip) return t.skip(skip);
-      const { reserveAiExtraction, releaseAiExtraction, aiExtractionsUsed } = await import("../lib/aiExtractionQuota");
-      const mongoose = (await import("mongoose")).default;
-      const id = new mongoose.Types.ObjectId();
-      // inserted raw: the field is missing, as on accounts created before the counter existed
-      await mongoose.connection.collection("users").insertOne({ _id: id });
-      const results = await Promise.all(Array.from({ length: 20 }, () => reserveAiExtraction(String(id), "2026-10", 3)));
-      assert.equal(results.filter(Boolean).length, 3, "parallel requests got more than the allowance");
-      assert.equal(await aiExtractionsUsed(String(id)), 3);
-      assert.equal(await reserveAiExtraction(String(id), "2026-10", 3), false);
-      await releaseAiExtraction(String(id));
-      assert.equal(await reserveAiExtraction(String(id), "2026-10", 3), true);
-      assert.equal(await reserveAiExtraction(String(id), "2026-11", 3), true, "a new month starts a fresh allowance");
-      assert.equal(await aiExtractionsUsed(String(id)), 1);
-    });
-
     it("the paid extractor is not used once the site budget is spent", async (t) => {
       if (skip) return t.skip(skip);
       const { UsageSettings, clearUsageSettingsCache } = await setup();
