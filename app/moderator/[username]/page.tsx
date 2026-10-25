@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
-export default function ModeratorPanelPage({
+export default async function ModeratorPanelPage({
     params,
 }: {
-    params: { username: string };
+    params: Promise<{ username: string }>;
 }) {
-    redirect(`/moderator/${params.username}/internships`);
+    const { username } = await params;
+    redirect(`/moderator/${username}/internships`);
 }

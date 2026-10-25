@@ -74,6 +74,13 @@ export function proxy(request: NextRequest) {
             );
         }
 
+        // Links built without a name (notifications use "me") show the part of the email before the @
+        const segments = pathname.split("/");
+        if (segments[2] === "me" && session.email) {
+            segments[2] = encodeURIComponent(session.email.split("@")[0]);
+            return NextResponse.redirect(new URL(segments.join("/") + request.nextUrl.search, request.url));
+        }
+
         // Optional: Ensure the URL username matches the logged in user's username
         // const usernameInUrl = pathname.split('/')[2];
         // if (usernameInUrl !== session.username) {
