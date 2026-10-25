@@ -15,6 +15,7 @@ import {
     LogOut,
     AlertTriangle,
     BarChart3,
+    ScanSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
@@ -22,7 +23,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import type { ModeratorSession } from "@/types/moderator";
 
-type Tab = "internships" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "moderators";
+type Tab = "internships" | "analyze" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "moderators";
 
 // ── Nav definition (grouped) ──────────────────────────────────────────────
 const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeof Users }[] }[] = [
@@ -30,6 +31,7 @@ const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeo
         label: "Content",
         links: [
             { tab: "internships", label: "Internships", icon: ListChecks },
+            { tab: "analyze", label: "Analyze", icon: ScanSearch },
             { tab: "events", label: "Events", icon: Trophy },
         ],
     },
@@ -78,6 +80,7 @@ export function ModeratorShell({
 
     const TAB_TITLES: Record<string, string> = {
         internships: "Internship Queue",
+        analyze: "Analyze Internship",
         events: "Hackathons & Contests",
         scrapes: "Scrapes",
         usage: "AI Usage",

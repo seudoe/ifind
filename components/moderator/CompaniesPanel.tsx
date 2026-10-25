@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, SearchX } from "lucide-react";
+import { Loader2, ScanSearch, SearchX } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -65,6 +66,28 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
             <dt className="text-xs text-[var(--text-3)]">{label}</dt>
             <dd className="text-sm text-[var(--text)] break-words">{value || "—"}</dd>
         </div>
+    );
+}
+
+type CompanyInternship = Detail["internships"][number];
+
+/** Quick look at one of the company's internships, with a jump to the moderator Analyze tab. */
+function InternshipPopup({ internship, onClose }: { internship: CompanyInternship | null; onClose: () => void }) {
+    const router = useRouter();
+    const username = useParams()?.username as string | undefined;
+    if (!internship) return null;
+    return (
+        <Modal open onClose={onClose} title={internship.name} description="Employer-posted internship" size="sm">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 mb-5">
+                <Field label="Listing status" value={internship.status} />
+                <Field label="Moderation" value={(internship.moderation?.status ?? "—").replace(/_/g, " ")} />
+                <Field label="Visible to students" value={internship.isActive === false || internship.bannedByCompany ? (internship.bannedByCompany ? "No — pulled with the company" : "No") : "Yes"} />
+                <Field label="Created" value={when(internship.createdAt)} />
+            </dl>
+            <Button className="w-full" onClick={() => router.push(`/moderator/${username ?? "me"}/analyze?kind=employer&id=${internship._id}`)}>
+                <ScanSearch className="h-3.5 w-3.5" /> Open in analyze
+            </Button>
+        </Modal>
     );
 }
 
@@ -133,6 +156,7 @@ export function CompaniesPanel() {
     const [reloadKey, setReloadKey] = useState(0);
     const [selected, setSelected] = useState<CompanyRow | null>(null);
     const [detail, setDetail] = useState<{ id: string; data: Detail } | null>(null);
+    const [openInternship, setOpenInternship] = useState<CompanyInternship | null>(null);
 
     const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
@@ -348,12 +372,18 @@ export function CompaniesPanel() {
                             ) : (
                                 <ul className="divide-y divide-[var(--border)] border border-[var(--border)] rounded-[var(--radius-sm)] max-h-56 overflow-y-auto">
                                     {d.internships.map((i) => (
-                                        <li key={i._id} className="px-3 py-2 flex items-center gap-2 text-sm">
-                                            <span className="text-[var(--text)] truncate">{i.name}</span>
-                                            <span className="ml-auto flex items-center gap-1.5 shrink-0">
-                                                {i.bannedByCompany && <Badge variant="danger">pulled</Badge>}
-                                                <Badge variant="default">{i.status}</Badge>
-                                            </span>
+                                        <li key={i._id}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpenInternship(i)}
+                                                className="w-full px-3 py-2 flex items-center gap-2 text-sm text-left hover:bg-[var(--primary-bg)] transition-colors"
+                                            >
+                                                <span className="text-[var(--text)] truncate">{i.name}</span>
+                                                <span className="ml-auto flex items-center gap-1.5 shrink-0">
+                                                    {i.bannedByCompany && <Badge variant="danger">pulled</Badge>}
+                                                    <Badge variant="default">{i.status}</Badge>
+                                                </span>
+                                            </button>
                                         </li>
                                     ))}
                                 </ul>
@@ -379,6 +409,7 @@ export function CompaniesPanel() {
                     </>
                 )}
             </Modal>
+            <InternshipPopup internship={openInternship} onClose={() => setOpenInternship(null)} />
         </div>
     );
 }

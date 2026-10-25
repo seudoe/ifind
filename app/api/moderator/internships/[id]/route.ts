@@ -87,6 +87,27 @@ export async function PATCH(
             return NextResponse.json({ success: true }, { status: 200 });
         }
 
+        // Already-published scraped listings (Analyze tab): approve re-activates, reject pulls it from students.
+        // The vector stays in the graph until the next rebuild, but search results are filtered by isActive.
+        if (body.source === "live") {
+            const live = await Internship.findById(id).select("_id moderation");
+            if (!live) return NextResponse.json({ success: false, error: "Internship not found" }, { status: 404 });
+            const approved = action === "approve";
+            await Internship.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                        isActive: approved,
+                        "moderation.status": approved ? "manually_approved" : "manually_rejected",
+                        "moderation.reviewedBy": session.moderatorId,
+                        "moderation.reviewedAt": new Date(),
+                        "moderation.rejectionReason": approved ? null : rejectionReason.trim(),
+                    },
+                },
+            );
+            return NextResponse.json({ success: true }, { status: 200 });
+        }
+
         // 404 if internship not found
         // The moderator queue lives in staging; approved listings are moved out of it.
         const internship = await StagedInternship.findById(id);
