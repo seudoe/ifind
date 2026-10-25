@@ -61,6 +61,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
         await notifyCompany({
             companyId: access.company._id,
             type: "company_member_added",
+            priority: "normal", // the person added is emailed (personal notification above); the team just sees it
             title: `${target.name} joined the team`,
             body: `Added as ${role} by ${access.employer.name}.`,
             link: `/employer/company/${String(access.company._id)}/team`,
@@ -153,6 +154,7 @@ export async function DELETE(request: NextRequest, { params }: Ctx) {
         await notifyCompany({
             companyId: access.company._id,
             type: "company_member_removed",
+            priority: "normal",
             title: self ? `${person?.name ?? "A teammate"} left the team` : `${person?.name ?? "A teammate"} was removed from the team`,
             body: self ? undefined : `Removed by ${access.employer.name}.`,
             link: `/employer/company/${String(access.company._id)}/team`,

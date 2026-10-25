@@ -1,4 +1,5 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
+import { NOTIFICATION_PRIORITIES, type NotificationPriority } from "@/lib/email/priority";
 import { NOTIFICATION_TYPES, RECIPIENT_TYPES, type NotificationType, type RecipientType } from "@/types/employer";
 
 export interface INotification extends Document {
@@ -9,6 +10,10 @@ export interface INotification extends Document {
     body?: string | null;
     link?: string | null;
     companyId?: mongoose.Types.ObjectId | null;
+    /** critical = also emailed; normal = inbox only (see lib/email/priority.ts). */
+    priority: NotificationPriority;
+    /** When the email for a critical notification was accepted by Brevo; null if not sent. */
+    emailedAt?: Date | null;
     readAt?: Date | null;
     createdAt: Date;
     updatedAt: Date;
@@ -31,6 +36,8 @@ function makeSchema() {
             body: { type: String, default: null },
             link: { type: String, default: null },
             companyId: { type: Schema.Types.ObjectId, ref: "Company", default: null },
+            priority: { type: String, enum: NOTIFICATION_PRIORITIES, default: "normal" },
+            emailedAt: { type: Date, default: null },
             readAt: { type: Date, default: null },
         },
         { timestamps: true },
@@ -72,6 +79,8 @@ export interface ICompanyNotification extends Document {
     title: string;
     body?: string | null;
     link?: string | null;
+    priority: NotificationPriority;
+    emailedAt?: Date | null;
     /** Who triggered it, when it was a person (employer teammate / moderator). */
     actor?: { kind: "employer" | "moderator" | "student" | "system"; id?: mongoose.Types.ObjectId | null; name?: string | null } | null;
     readBy: { employerId: mongoose.Types.ObjectId; at: Date }[];
@@ -88,6 +97,8 @@ const CompanyNotificationSchema = new Schema<ICompanyNotification>(
         title: { type: String, required: true, trim: true },
         body: { type: String, default: null },
         link: { type: String, default: null },
+        priority: { type: String, enum: NOTIFICATION_PRIORITIES, default: "normal" },
+        emailedAt: { type: Date, default: null },
         actor: {
             type: new Schema(
                 {

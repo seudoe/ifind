@@ -64,6 +64,7 @@ export default function NotificationsPage() {
                                     <span className={cn("pill !cursor-default !normal-case", n.scope === "company" && "!bg-[var(--primary-bg)]")}>
                                         {n.scope === "company" ? `Team · ${n.companyName ?? "company"}` : "Just you"}
                                     </span>
+                                    {n.priority === "critical" && <span className="pill !cursor-default !border-[var(--warning)] !text-[var(--warning)]">Important · emailed</span>}
                                     {n.actorName && <span className="text-[11px] text-[var(--text-3)]">by {n.actorName}</span>}
                                 </div>
                                 <p className="text-sm font-medium text-[var(--text)]">{n.title}</p>

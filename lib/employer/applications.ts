@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { criticalApplicationStatus } from "@/lib/email/priority";
 import { notify, notifyCompany } from "@/lib/employer/notify";
 import Application, { type IApplication } from "@/models/Application";
 import Company from "@/models/Company";
@@ -197,6 +198,7 @@ async function syncStudent(applicationId: Id, to: ApplicationStatus) {
             recipientType: "student",
             recipientIds: [a.studentId],
             type: "application_status",
+            priority: criticalApplicationStatus(to) ? "critical" : "normal", // good news / next steps are emailed, a rejection waits in the inbox
             title: `${msg}: ${internship?.name ?? "an internship"}`,
             body: internship?.company ? `${internship.company} updated your application.` : undefined,
             link: user?.username ? `/user/${user.username}/applied-internships/${a.internshipId}` : undefined,

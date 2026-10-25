@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
             link: n.link ?? null,
             companyId: n.companyId ? String(n.companyId) : null,
             scope: "personal",
+            priority: n.priority,
             readAt: n.readAt?.toISOString() ?? null,
             createdAt: n.createdAt.toISOString(),
         }));

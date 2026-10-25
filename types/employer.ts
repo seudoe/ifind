@@ -250,6 +250,8 @@ export interface AppNotification {
     companyId?: string | null;
     /** "company" = shared by every member of companyId (notifications.company); "personal" = addressed to this person. */
     scope?: "personal" | "company";
+    /** critical notifications were also emailed. */
+    priority?: "critical" | "normal";
     companyName?: string | null;
     /** Who caused it (a teammate's name, a moderator, ...), when known. */
     actorName?: string | null;

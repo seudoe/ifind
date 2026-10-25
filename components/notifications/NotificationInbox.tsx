@@ -53,6 +53,7 @@ export function NotificationInbox({ endpoint, onChange }: { endpoint: string; on
                     {items.map((n) => {
                         const content = (
                             <>
+                                {n.priority === "critical" && <span className="pill !cursor-default !border-[var(--warning)] !text-[var(--warning)] mb-1">Important · emailed</span>}
                                 <p className="text-sm font-medium text-[var(--text)]">{n.title}</p>
                                 {n.body && <p className="text-xs text-[var(--text-2)] mt-0.5">{n.body}</p>}
                                 <p className="text-[11px] text-[var(--text-3)] mt-1">{new Date(n.createdAt).toLocaleString()}</p>
