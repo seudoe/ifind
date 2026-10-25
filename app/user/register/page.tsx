@@ -71,13 +71,10 @@ export default function UserRegisterPage() {
   return (
     <AuthShell
       heading="Create your account"
-      sub="Join 2M+ students finding internships"
-      icon={<GraduationCap className="h-4.5 w-4.5 text-white" />}
+      sub="Free for students. Browse first, apply when you are ready."
       switchText="Already have an account?"
       switchLink="/user/login"
       switchLabel="Sign in"
-      portalLabel="Employer portal"
-      portalHref="/employer/register"
     >
       <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-3">
         <Input label="Full Name"  placeholder="Rahul Sharma"    {...register("name")}     error={errors.name?.message}     autoComplete="name" />
@@ -147,15 +144,6 @@ export default function UserRegisterPage() {
                 >
                     Create Account <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
-
-                <p className="text-xs text-[var(--text-3)] text-center">
-                    <Link
-                        href="/moderator/register"
-                        className="text-[var(--primary)] hover:underline"
-                    >
-                        Register as a moderator
-                    </Link>
-                </p>
             </form>
 
             <div className="space-y-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Logo } from "@/components/ui/Logo";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -49,19 +49,18 @@ export default function EmployerRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4 py-10">
-      <Link href="/employer" className="fixed top-4 left-4 text-sm text-[var(--text-3)] hover:text-[var(--text)] transition-colors">
-        ← Employer portal
-      </Link>
-
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-7">
-          <div className="inline-flex mb-3"><Logo size="lg" /></div>
-          <h1 className="text-lg font-bold text-[var(--heading)]">Create employer account</h1>
-          <p className="text-sm text-[var(--text-3)] mt-1">Start hiring top student talent</p>
-        </div>
-
-        <div className="plasma-card p-6">
+    <AuthLayout
+      variant="employer"
+      heading="Create employer account"
+      sub="Start hiring top student talent"
+      back={{ href: "/employer", label: "Employer portal" }}
+      footer={
+        <span>
+          Already registered? <Link href="/employer/login" className="text-[var(--primary)] font-medium hover:underline">Sign in</Link>
+        </span>
+      }
+    >
+      <div className="plasma-card p-6">
           <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-3">
             <Input label="Your Name"        placeholder="Jane Doe"            {...register("name")} error={errors.name?.message} autoComplete="name" />
             <Input label="Designation (optional)" placeholder="HR Manager"     {...register("designation")} error={errors.designation?.message} />
@@ -108,12 +107,6 @@ export default function EmployerRegisterPage() {
             <Link href="#" className="text-[var(--primary)] hover:underline">Privacy Policy</Link>.
           </p>
         </div>
-
-        <div className="flex items-center justify-between mt-5 text-sm text-[var(--text-3)]">
-          <span>Already registered? <Link href="/employer/login" className="text-[var(--primary)] font-medium hover:underline">Sign in</Link></span>
-          <Link href="/user/register" className="text-xs hover:text-[var(--primary)] transition-colors">Student portal →</Link>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }

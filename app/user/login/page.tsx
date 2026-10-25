@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { NextLink } from "@/components/auth/NextLink";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { resolveNext } from "@/lib/authRedirect";
 
 const schema = z.object({
@@ -81,12 +82,9 @@ function UserLoginForm() {
     <AuthShell
       heading="Sign in to iFind"
       sub="Find your next internship"
-      icon={<GraduationCap className="h-4.5 w-4.5 text-white" />}
       switchText="Don't have an account?"
       switchLink="/user/register"
       switchLabel="Register free"
-      portalLabel="Employer portal"
-      portalHref="/employer/login"
     >
       <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
         <Input
@@ -122,15 +120,6 @@ function UserLoginForm() {
                     Sign In <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
 
-                <p className="text-xs text-[var(--text-3)] text-center">
-                    Are you a moderator?{" "}
-                    <Link
-                        href="/moderator/login"
-                        className="text-[var(--primary)] hover:underline"
-                    >
-                        Sign in here
-                    </Link>
-                </p>
             </form>
 
             <div className="space-y-3">
@@ -157,63 +146,34 @@ function UserLoginForm() {
 export function AuthShell({
     heading,
     sub,
-    icon,
     switchText,
     switchLink,
     switchLabel,
-    portalLabel,
-    portalHref,
     children,
 }: {
     heading: string;
     sub: string;
-    icon: React.ReactNode;
     switchText: string;
     switchLink: string;
     switchLabel: string;
-    portalLabel: string;
-    portalHref: string;
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
-            <Link
-                href="/"
-                className="fixed top-4 left-4 text-sm text-[var(--text-3)] hover:text-[var(--text)] transition-colors"
-            >
-                ← iFind
-            </Link>
-
-            <div className="w-full max-w-sm">
-                <div className="text-center mb-7">
-                    <div className="inline-flex mb-3"><Logo size="lg" /></div>
-                    <h1 className="text-lg font-bold text-[var(--heading)]">
-                        {heading}
-                    </h1>
-                    <p className="text-sm text-[var(--text-3)] mt-1">{sub}</p>
-                </div>
-
-                <div className="plasma-card p-6 space-y-4">{children}</div>
-
-                <div className="flex items-center justify-between mt-5 text-sm text-[var(--text-3)]">
-                    <span>
-                        {switchText}{" "}
-                        <NextLink
-                            href={switchLink}
-                            className="text-[var(--primary)] font-medium hover:underline"
-                        >
-                            {switchLabel}
-                        </NextLink>
-                    </span>
-                    <Link
-                        href={portalHref}
-                        className="text-xs hover:text-[var(--primary)] transition-colors"
-                    >
-                        {portalLabel} →
-                    </Link>
-                </div>
-            </div>
-        </div>
+        <AuthLayout
+            variant="student"
+            heading={heading}
+            sub={sub}
+            footer={
+                <span>
+                    {switchText}{" "}
+                    <NextLink href={switchLink} className="text-[var(--primary)] font-medium hover:underline">
+                        {switchLabel}
+                    </NextLink>
+                </span>
+            }
+        >
+            <div className="plasma-card p-6 space-y-4">{children}</div>
+        </AuthLayout>
     );
 }
 

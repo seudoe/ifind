@@ -1,6 +1,6 @@
 "use client";
 
-import { Logo } from "@/components/ui/Logo";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -61,26 +61,18 @@ export default function ModeratorRegisterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
-            <Link
-                href="/"
-                className="fixed top-4 left-4 text-sm text-[var(--text-3)] hover:text-[var(--text)] transition-colors"
-            >
-                ← iFind
-            </Link>
-
-            <div className="w-full max-w-sm">
-                <div className="text-center mb-7">
-                    <div className="inline-flex mb-3"><Logo size="lg" /></div>
-                    <h1 className="text-lg font-bold text-[var(--heading)]">
-                        Become a Moderator
-                    </h1>
-                    <p className="text-sm text-[var(--text-3)] mt-1">
-                        Register for the iFind moderator panel
-                    </p>
-                </div>
-
-                <div className="plasma-card p-6 space-y-4">
+        <AuthLayout
+      variant="moderator"
+      heading="Become a Moderator"
+      sub="Register for the iFind moderator panel"
+      back={{ href: "/", label: "iFind" }}
+      footer={
+        <span>
+          Already have an account? <Link href="/moderator/login" className="text-[var(--primary)] font-medium hover:underline">Sign in</Link>
+        </span>
+      }
+    >
+      <div className="plasma-card p-6 space-y-4">
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-3"
@@ -169,25 +161,6 @@ export default function ModeratorRegisterPage() {
                         </Button>
                     </form>
                 </div>
-
-                <div className="flex items-center justify-between mt-5 text-sm text-[var(--text-3)]">
-                    <span>
-                        Already have an account?{" "}
-                        <Link
-                            href="/moderator/login"
-                            className="text-[var(--primary)] font-medium hover:underline"
-                        >
-                            Sign in
-                        </Link>
-                    </span>
-                    <Link
-                        href="/user/login"
-                        className="text-xs hover:text-[var(--primary)] transition-colors"
-                    >
-                        Student portal →
-                    </Link>
-                </div>
-            </div>
-        </div>
-    );
+    </AuthLayout>
+  );
 }

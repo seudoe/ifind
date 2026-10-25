@@ -1,6 +1,6 @@
 "use client";
 
-import { Logo } from "@/components/ui/Logo";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,19 +48,18 @@ export default function EmployerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
-      <Link href="/employer" className="fixed top-4 left-4 text-sm text-[var(--text-3)] hover:text-[var(--text)] transition-colors">
-        ← Employer portal
-      </Link>
-
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-7">
-          <div className="inline-flex mb-3"><Logo size="lg" /></div>
-          <h1 className="text-lg font-bold text-[var(--heading)]">Employer sign in</h1>
-          <p className="text-sm text-[var(--text-3)] mt-1">Access your hiring dashboard</p>
-        </div>
-
-        <div className="plasma-card p-6">
+    <AuthLayout
+      variant="employer"
+      heading="Employer sign in"
+      sub="Access your hiring dashboard"
+      back={{ href: "/employer", label: "Employer portal" }}
+      footer={
+        <span>
+          No account? <Link href="/employer/register" className="text-[var(--primary)] font-medium hover:underline">Register</Link>
+        </span>
+      }
+    >
+      <div className="plasma-card p-6">
           <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
             <Input
               label="Email"
@@ -95,12 +94,6 @@ export default function EmployerLoginPage() {
           </div>
           <LinkedInButton as="employer" />
         </div>
-
-        <div className="flex items-center justify-between mt-5 text-sm text-[var(--text-3)]">
-          <span>No account? <Link href="/employer/register" className="text-[var(--primary)] font-medium hover:underline">Register</Link></span>
-          <Link href="/user/login" className="text-xs hover:text-[var(--primary)] transition-colors">Student portal →</Link>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }
