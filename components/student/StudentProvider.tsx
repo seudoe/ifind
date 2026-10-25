@@ -51,3 +51,8 @@ export function useStudent(): StudentState {
   if (!ctx) throw new Error("useStudent must be used inside StudentProvider");
   return ctx;
 }
+
+/** Like useStudent, but null outside the student area (components shared with other layouts). */
+export function useOptionalStudent(): StudentState | null {
+  return useContext(StudentContext);
+}

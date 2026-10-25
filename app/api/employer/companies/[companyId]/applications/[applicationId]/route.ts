@@ -40,7 +40,14 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
             success: true,
             data: {
                 application: o,
-                student: student && { name: student.name, email: student.email, phone: student.phone ?? null, city: student.city ?? null, profilePicture: student.profilePicture ?? null },
+                // What the student confirmed when applying wins over their current profile (which may have changed since)
+                student: student && {
+                    name: app.applicantSnapshot?.name ?? student.name,
+                    email: app.applicantSnapshot?.email ?? student.email,
+                    phone: (app.applicantSnapshot ? app.applicantSnapshot.phone : student.phone) ?? null,
+                    city: (app.applicantSnapshot ? app.applicantSnapshot.city : student.city) ?? null,
+                    profilePicture: student.profilePicture ?? null,
+                },
                 internship: internship && { name: internship.name, screeningQuestions: JSON.parse(JSON.stringify(internship.screeningQuestions ?? [])) },
             },
         });

@@ -8,6 +8,17 @@ export interface IApplication extends Document {
     status: ApplicationStatus;
     statusHistory: { status: ApplicationStatus; changedBy?: mongoose.Types.ObjectId | null; changedAt: Date; note?: string | null }[];
     resumeSnapshot: { url?: string | null; parsedData?: unknown; skills: string[] };
+    /** The details the student confirmed (and possibly edited) in the apply pop-up; what the employer sees for this application. */
+    applicantSnapshot?: {
+        name: string;
+        email: string;
+        phone?: string | null;
+        city?: string | null;
+        state?: string | null;
+        skills: string[];
+        /** True when the student also saved their edits to their profile. */
+        profileUpdated: boolean;
+    } | null;
     coverLetter?: string | null;
     answers: { questionId: mongoose.Types.ObjectId; answer: unknown }[];
     matchScore?: number | null;
@@ -48,6 +59,22 @@ const ApplicationSchema = new Schema<IApplication>(
                 { _id: false },
             ),
             default: () => ({ skills: [] }),
+        },
+        // Optional: applications created before the apply pop-up existed have none (readers fall back to the user + resumeSnapshot)
+        applicantSnapshot: {
+            type: new Schema(
+                {
+                    name: { type: String, required: true, trim: true, maxlength: 100 },
+                    email: { type: String, required: true, trim: true },
+                    phone: { type: String, default: null, trim: true, maxlength: 30 },
+                    city: { type: String, default: null, trim: true, maxlength: 100 },
+                    state: { type: String, default: null, trim: true, maxlength: 100 },
+                    skills: { type: [String], default: [] },
+                    profileUpdated: { type: Boolean, default: false },
+                },
+                { _id: false },
+            ),
+            default: null,
         },
         coverLetter: { type: String, default: null, maxlength: 5000 },
         answers: {

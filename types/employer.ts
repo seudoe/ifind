@@ -209,6 +209,8 @@ export interface EmployerApplication {
     status: ApplicationStatus;
     statusHistory: StatusHistoryEntry[];
     resumeSnapshot: { url?: string | null; parsedData?: unknown; skills: string[] };
+    /** Details the student confirmed when applying; absent on applications made before the apply pop-up. */
+    applicantSnapshot?: { name: string; email: string; phone?: string | null; city?: string | null; state?: string | null; skills: string[]; profileUpdated: boolean } | null;
     coverLetter?: string | null;
     answers: { questionId: string; answer: unknown }[];
     matchScore?: number | null;

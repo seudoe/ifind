@@ -41,7 +41,13 @@ export function buildResumeSnapshot(user: Pick<IUser, "skills" | "resume">) {
 export async function createApplication(
     internship: Pick<IPlatformInternship, "_id" | "companyId" | "name" | "skills" | "maxApplications" | "status">,
     user: IUser,
-    extra: { coverLetter?: string; answers?: IApplication["answers"]; note?: string } = {},
+    extra: {
+        coverLetter?: string;
+        answers?: IApplication["answers"];
+        note?: string;
+        /** What the student confirmed in the apply pop-up; anything omitted falls back to their profile. */
+        applicant?: { name?: string; phone?: string | null; city?: string | null; state?: string | null; skills?: string[]; profileUpdated?: boolean };
+    } = {},
 ) {
     if (internship.status !== "published") throw new Error("This internship is not accepting applications");
     if (internship.maxApplications) {
@@ -49,6 +55,16 @@ export async function createApplication(
         if (n >= internship.maxApplications) throw new Error("This internship reached its maximum applications");
     }
     const snapshot = buildResumeSnapshot(user);
+    const a = extra.applicant ?? {};
+    const applicantSnapshot = {
+        name: a.name || user.name,
+        email: user.email,
+        phone: a.phone === undefined ? user.phone ?? null : a.phone,
+        city: a.city === undefined ? user.city ?? null : a.city,
+        state: a.state === undefined ? user.state ?? null : a.state,
+        skills: a.skills ?? snapshot.skills,
+        profileUpdated: a.profileUpdated === true,
+    };
     const doc = await Application.create({
         internshipId: internship._id,
         companyId: internship.companyId,
@@ -56,9 +72,10 @@ export async function createApplication(
         status: "applied",
         statusHistory: [{ status: "applied", changedBy: null, changedAt: new Date(), note: extra.note ?? null }],
         resumeSnapshot: snapshot,
+        applicantSnapshot,
         coverLetter: extra.coverLetter ?? null,
         answers: extra.answers ?? [],
-        matchScore: computeMatchScore(snapshot.skills, internship.skills ?? []),
+        matchScore: computeMatchScore(applicantSnapshot.skills, internship.skills ?? []),
     });
 
     const company = await Company.findById(internship.companyId).select("members").lean();
@@ -67,7 +84,7 @@ export async function createApplication(
         recipientIds: (company?.members ?? []).map((m) => m.employerId),
         type: "new_application",
         title: `New application for "${internship.name}"`,
-        body: `${user.name} applied.`,
+        body: `${applicantSnapshot.name} applied.`,
         link: `/employer/company/${internship.companyId}/internships/${internship._id}/applicants`,
         companyId: internship.companyId,
     });
@@ -102,7 +119,7 @@ export async function listApplicants(o: ListOptions) {
             { $match: match },
             { $lookup: { from: "users", localField: "studentId", foreignField: "_id", as: "student", pipeline: [{ $project: { name: 1, email: 1, profilePicture: 1 } }] } },
             { $unwind: { path: "$student", preserveNullAndEmptyArrays: true } },
-            ...(rx ? [{ $match: { $or: [{ "student.name": rx }, { "student.email": rx }, { "resumeSnapshot.skills": rx }] } }] : []),
+            ...(rx ? [{ $match: { $or: [{ "student.name": rx }, { "applicantSnapshot.name": rx }, { "student.email": rx }, { "resumeSnapshot.skills": rx }, { "applicantSnapshot.skills": rx }] } }] : []),
             { $sort: sort },
             { $limit: 500 },
             { $lookup: { from: "internships.this-platform", localField: "internshipId", foreignField: "_id", as: "internship", pipeline: [{ $project: { name: 1 } }] } },
@@ -116,10 +133,10 @@ export async function listApplicants(o: ListOptions) {
         internshipId: String(r.internshipId),
         internshipName: r.internship?.name,
         studentId: String(r.studentId),
-        studentName: r.student?.name ?? "Unknown student",
+        studentName: r.applicantSnapshot?.name ?? r.student?.name ?? "Unknown student",
         studentEmail: r.student?.email,
         studentPicture: r.student?.profilePicture ?? null,
-        skills: r.resumeSnapshot?.skills ?? [],
+        skills: r.applicantSnapshot?.skills ?? r.resumeSnapshot?.skills ?? [],
         matchScore: r.matchScore ?? null,
         status: r.status,
         rating: r.rating ?? null,

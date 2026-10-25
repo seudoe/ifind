@@ -165,8 +165,8 @@ export function ApplicantDrawer({ companyId, applicationId, onClose, onChanged }
                                             <ExternalLink className="h-4 w-4" /> Open resume
                                         </a>
                                     ) : <p className="text-sm text-[var(--text-3)]">No resume file.</p>}
-                                    {app.resumeSnapshot.skills.length > 0 && (
-                                        <div className="flex flex-wrap gap-1.5">{app.resumeSnapshot.skills.map((s) => <Badge key={s} variant="secondary">{s}</Badge>)}</div>
+                                    {(app.applicantSnapshot?.skills ?? app.resumeSnapshot.skills).length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5">{(app.applicantSnapshot?.skills ?? app.resumeSnapshot.skills).map((s) => <Badge key={s} variant="secondary">{s}</Badge>)}</div>
                                     )}
                                     {parsed?.summary && <p className="text-sm text-[var(--text-2)]">{parsed.summary}</p>}
                                     {!!parsed?.education?.length && (

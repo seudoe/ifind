@@ -8,6 +8,7 @@ import { validateAnswers } from "@/lib/employer/screening";
 import { visibleToStudentsFilter } from "@/lib/employer/visibility";
 import PlatformInternship from "@/models/PlatformInternship";
 import User from "@/models/User";
+import { str, strList } from "@/lib/validate";
 
 export const runtime = "nodejs";
 
@@ -53,8 +54,24 @@ export async function POST(req: NextRequest, { params }: Ctx) {
         const checked = validateAnswers(platform.screeningQuestions, body.answers);
         if ("error" in checked) return fail(checked.error, 400);
 
+        // Details the student confirmed (and maybe edited) in the apply pop-up; each field is optional and capped
+        let applicant: NonNullable<Parameters<typeof createApplication>[2]>["applicant"];
+        if (body.applicant !== undefined) {
+            const a = body.applicant;
+            if (!a || typeof a !== "object" || Array.isArray(a)) return fail("Invalid applicant details", 400);
+            const text = (key: string, max: number) => (a[key] === undefined ? undefined : a[key] === null || a[key] === "" ? null : str(a[key], max) ?? "invalid");
+            const name = a.name === undefined ? undefined : str(a.name, 100);
+            const phone = text("phone", 30), city = text("city", 100), state = text("state", 100);
+            const skills = a.skills === undefined ? undefined : strList(a.skills, 60, 80);
+            if (name === "" || (a.name !== undefined && name === undefined) || phone === "invalid" || city === "invalid" || state === "invalid" || (a.skills !== undefined && !skills)) {
+                return fail("Check your details: a field is invalid or too long", 400);
+            }
+            applicant = { name, phone, city, state, skills, profileUpdated: a.profileUpdated === true };
+        }
+
         try {
             await createApplication(platform, user, {
+                applicant,
                 coverLetter: coverLetter || undefined,
                 answers: checked.answers.map((a) => ({ questionId: new mongoose.Types.ObjectId(a.questionId), answer: a.answer })),
             });
