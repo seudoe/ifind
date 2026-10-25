@@ -35,7 +35,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ kin
 
         return NextResponse.json({
             success: true,
-            data: { ...doc, kind, hasVectors, company, applicationCount: applications },
+            // `company` on the document is the company NAME; the Company record goes under its own key
+            data: { ...doc, kind, hasVectors, companyRecord: company, applicationCount: applications },
             pipelineConfigured: Boolean(internscraperUrl()),
         });
     } catch (error) {

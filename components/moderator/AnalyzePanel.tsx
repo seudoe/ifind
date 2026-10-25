@@ -29,7 +29,7 @@ interface Row {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- the stored document is shown as-is, field by field */
-type Doc = Record<string, any> & { _id: string; kind: AnalyzeKind; hasVectors: boolean; company?: any; applicationCount?: number | null };
+type Doc = Record<string, any> & { _id: string; kind: AnalyzeKind; hasVectors: boolean; companyRecord?: any; applicationCount?: number | null };
 
 const statusVariant = (s?: string) =>
     s?.includes("approved") ? "success" : s?.includes("rejected") ? "danger" : s === "pending_review" ? "warning" : "secondary";
@@ -249,12 +249,12 @@ function Detail({ row, onBack, onChanged }: { row: { kind: AnalyzeKind; id: stri
                 )}
             </Section>
 
-            {doc.company && (
+            {doc.companyRecord && (
                 <Section title="Company">
                     <Facts>
-                        <Fact k="Name" v={doc.company.name} />
-                        <Fact k="Verification" v={<Badge variant={doc.company.verification?.status === "verified" ? "success" : "warning"}>{doc.company.verification?.status ?? "unverified"}</Badge>} />
-                        <Fact k="Active" v={doc.company.isActive === false ? "no" : "yes"} />
+                        <Fact k="Name" v={doc.companyRecord.name} />
+                        <Fact k="Verification" v={<Badge variant={doc.companyRecord.verification?.status === "verified" ? "success" : "warning"}>{doc.companyRecord.verification?.status ?? "unverified"}</Badge>} />
+                        <Fact k="Active" v={doc.companyRecord.isActive === false ? "no" : "yes"} />
                     </Facts>
                 </Section>
             )}
