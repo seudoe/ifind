@@ -16,7 +16,11 @@ export const APPLICATION_STATUSES = [
 export const NOTIFICATION_TYPES = [
     "new_application", "application_withdrawn", "internship_approved", "internship_rejected",
     "internship_deadline", "application_status", "company_verification", "company_member_added", "system",
+    "internship_pending_review", "internship_status", "internship_closed", "application_submitted",
+    "company_restriction", "company_member_removed", "company_member_role",
+    "account_security", "account_status", "welcome", "moderator_pending", "moderator_status", "resume_updated",
 ] as const;
+/** Personal inboxes: one document per person. Company-wide events live in notifications.company (see CompanyNotification). */
 export const RECIPIENT_TYPES = ["student", "employer", "moderator"] as const;
 
 export type CompanyType = (typeof COMPANY_TYPES)[number];
@@ -244,6 +248,11 @@ export interface AppNotification {
     body?: string | null;
     link?: string | null;
     companyId?: string | null;
+    /** "company" = shared by every member of companyId (notifications.company); "personal" = addressed to this person. */
+    scope?: "personal" | "company";
+    companyName?: string | null;
+    /** Who caused it (a teammate's name, a moderator, ...), when known. */
+    actorName?: string | null;
     readAt?: string | null;
     createdAt: string;
 }

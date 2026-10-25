@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireCompanyRole, type CompanyAccess } from "@/lib/employer/access";
-import { notify } from "@/lib/employer/notify";
+import { notify, notifyCompany } from "@/lib/employer/notify";
 import { memberSchema, zodMessage } from "@/lib/employer/validation";
 import Employer from "@/models/Employer";
 import { MEMBER_ROLES, ROLE_RANK } from "@/types/employer";
@@ -58,6 +58,14 @@ export async function POST(request: NextRequest, { params }: Ctx) {
             link: `/employer/company/${String(access.company._id)}/overview`,
             companyId: access.company._id,
         });
+        await notifyCompany({
+            companyId: access.company._id,
+            type: "company_member_added",
+            title: `${target.name} joined the team`,
+            body: `Added as ${role} by ${access.employer.name}.`,
+            link: `/employer/company/${String(access.company._id)}/team`,
+            actor: { kind: "employer", id: access.employer._id, name: access.employer.name },
+        });
         return NextResponse.json({ success: true }, { status: 201 });
     } catch (error) {
         console.error("[employer/members POST]", error);
@@ -80,8 +88,29 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         if ((member.role === "owner" || role === "owner") && access.role !== "owner") return fail("Only owners can change owner roles", 403);
         if (member.role === "owner" && role !== "owner" && ownerCount(access) <= 1) return fail("A company needs at least one owner", 400);
 
+        const before = member.role;
         member.role = role;
         await access.company.save();
+        if (before !== role) {
+            const person = await Employer.findById(body.employerId).select("name").lean();
+            await notify({
+                recipientType: "employer",
+                recipientIds: [body.employerId],
+                type: "company_member_role",
+                title: `Your role at ${access.company.name} changed`,
+                body: `${access.employer.name} changed it from ${before} to ${role}.`,
+                link: `/employer/company/${String(access.company._id)}/overview`,
+                companyId: access.company._id,
+            });
+            await notifyCompany({
+                companyId: access.company._id,
+                type: "company_member_role",
+                title: `${person?.name ?? "A teammate"} is now ${role}`,
+                body: `Role changed from ${before} by ${access.employer.name}.`,
+                link: `/employer/company/${String(access.company._id)}/team`,
+                actor: { kind: "employer", id: access.employer._id, name: access.employer.name },
+            });
+        }
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("[employer/members PATCH]", error);
@@ -109,6 +138,26 @@ export async function DELETE(request: NextRequest, { params }: Ctx) {
 
         access.company.members = access.company.members.filter((m) => !m.employerId.equals(id)) as typeof access.company.members;
         await access.company.save();
+
+        const person = await Employer.findById(id).select("name").lean();
+        if (!self) {
+            await notify({
+                recipientType: "employer",
+                recipientIds: [id],
+                type: "company_member_removed",
+                title: `You were removed from ${access.company.name}`,
+                body: `${access.employer.name} removed you from the team.`,
+                companyId: access.company._id,
+            });
+        }
+        await notifyCompany({
+            companyId: access.company._id,
+            type: "company_member_removed",
+            title: self ? `${person?.name ?? "A teammate"} left the team` : `${person?.name ?? "A teammate"} was removed from the team`,
+            body: self ? undefined : `Removed by ${access.employer.name}.`,
+            link: `/employer/company/${String(access.company._id)}/team`,
+            actor: { kind: "employer", id: access.employer._id, name: access.employer.name },
+        });
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("[employer/members DELETE]", error);

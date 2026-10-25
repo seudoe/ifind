@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notify } from "@/lib/employer/notify";
 import { connectDB } from "@/lib/db";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
 import Employer from "@/models/Employer";
@@ -20,6 +21,14 @@ export async function DELETE() {
             return NextResponse.json({ success: false, error: "Set a password first: LinkedIn is your only way to sign in" }, { status: 400 });
         }
         await Employer.updateOne({ _id: employer._id }, { $unset: { linkedinId: "" }, $set: { linkedinDetails: null } });
+        await notify({
+            recipientType: "employer",
+            recipientIds: [employer._id],
+            type: "account_security",
+            title: "LinkedIn was unlinked from your account",
+            body: "You can still sign in with your password.",
+            link: "/employer/settings",
+        });
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("[employer/account/linkedin]", error);

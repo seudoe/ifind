@@ -2,6 +2,7 @@ import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { isResponse, postingBlocked, requireCompanyRole } from "@/lib/employer/access";
+import { notifyPublishOutcome, notifyStatusChange } from "@/lib/employer/internshipEvents";
 import { loadInternship, resetModeration, runModeration, STATUS_TRANSITIONS, toInternshipDTO } from "@/lib/employer/internships";
 import { internshipPublishSchema, zodMessage } from "@/lib/employer/validation";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -72,7 +73,10 @@ export async function POST(req: NextRequest, { params }: Ctx) {
             } // resuming from pause keeps the existing moderation result
             await doc.save();
             // A first publish counts as "posted"; resuming a paused listing does not.
-            if (wasDraft) after(() => sendServerEvent(req, "internship_posted", { user_type: "employer" }));
+            if (wasDraft) {
+                after(() => sendServerEvent(req, "internship_posted", { user_type: "employer" }));
+                await notifyPublishOutcome(doc, access.employer.name, access.employer._id);
+            }
             return NextResponse.json({ success: true, data: toInternshipDTO(doc) });
         }
 
@@ -82,6 +86,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
         doc.status = t.to;
         if (t.to === "closed") doc.closedAt = new Date();
         await doc.save();
+        await notifyStatusChange(doc, action, access.employer.name, access.employer._id);
         return NextResponse.json({ success: true, data: toInternshipDTO(doc) });
     } catch (error) {
         console.error("[employer/internship action]", error);

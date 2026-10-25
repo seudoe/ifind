@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { notify } from "@/lib/employer/notify";
+import { notifyCompany } from "@/lib/employer/notify";
 import { toStudentInternship } from "@/lib/employer/visibility";
 import Application from "@/models/Application";
 import Company from "@/models/Company";
@@ -83,19 +83,17 @@ export async function withdrawApplication(userId: string, internshipId: string):
     { _id: oid(userId), "appliedInternships.internshipId": oid(internshipId) },
     { $set: { "appliedInternships.$.status": "withdrawn" } },
   );
-  const [internship, company, user] = await Promise.all([
+  const [internship, user] = await Promise.all([
     PlatformInternship.findById(internshipId).select("name").lean(),
-    Company.findById(res.companyId).select("members").lean(),
     mongoose.connection.db!.collection("users").findOne({ _id: oid(userId) }, { projection: { name: 1 } }),
   ]);
-  await notify({
-    recipientType: "employer",
-    recipientIds: (company?.members ?? []).map((m) => m.employerId),
+  await notifyCompany({
+    companyId: res.companyId,
     type: "application_withdrawn",
     title: `Application withdrawn for "${internship?.name ?? "an internship"}"`,
     body: `${user?.name ?? "A student"} withdrew their application.`,
     link: `/employer/company/${res.companyId}/internships/${internshipId}/applicants`,
-    companyId: res.companyId,
+    actor: { kind: "student", id: oid(userId), name: user?.name ?? null },
   });
   return { ok: true };
 }

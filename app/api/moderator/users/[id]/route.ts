@@ -1,4 +1,5 @@
 import { isObjectId } from "@/lib/validate";
+import { notify } from "@/lib/employer/notify";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -128,6 +129,15 @@ export async function PATCH(
             console.error("[moderator/users/[id] PATCH] could not write ban history", historyError);
         }
 
+        if (action === "unban") {
+            await notify({
+                recipientType: "student",
+                recipientIds: [id],
+                type: "account_status",
+                title: "Your account was reinstated",
+                body: "A moderator lifted the restriction on your account. Welcome back.",
+            });
+        }
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("[moderator/users/[id] PATCH]", error);

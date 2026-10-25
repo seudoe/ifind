@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { welcomeStudent } from "@/lib/employer/welcome";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, signToken } from "@/lib/auth";
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
       },
       profileCompletionScore: 20,
     });
+    await welcomeStudent(user._id, user.username);
     const session = { userId: user.id, email: user.email, username: user.username, role: "student" as const };
     const cookie = authCookie(signToken(session));
     const response = NextResponse.json({ success: true, message: "Account created", data: { username: user.username } }, { status: 201 });

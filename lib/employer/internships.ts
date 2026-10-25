@@ -1,7 +1,8 @@
 import mongoose, { type HydratedDocument } from "mongoose";
 import { NextResponse } from "next/server";
 import { primaryCity } from "@/lib/address";
-import { notify } from "@/lib/employer/notify";
+import { notifyApplicantsClosed } from "@/lib/employer/internshipEvents";
+import { notifyCompany } from "@/lib/employer/notify";
 import { stripHtml } from "@/lib/employer/sanitize";
 import type { InternshipInput } from "@/lib/employer/validation";
 import { vectorizePlatformInternships } from "@/lib/internship-vectorizer";
@@ -223,15 +224,16 @@ export async function syncAutoClose(company: ICompany) {
             { $set: { status: "closed", closedAt: now } },
         );
         if (!closed) continue;
-        await notify({
-            recipientType: "employer",
-            recipientIds: company.members.map((m) => m.employerId),
+        const why = pastDeadline ? "The application deadline passed." : "It reached its maximum number of applications.";
+        await notifyCompany({
+            companyId: company._id,
             type: "internship_deadline",
             title: `"${o.name}" was closed`,
-            body: pastDeadline ? "The application deadline passed." : "It reached its maximum number of applications.",
+            body: why,
             link: `/employer/company/${company._id}/internships/${o._id}/overview`,
-            companyId: company._id,
+            actor: { kind: "system", name: "iFind" },
         });
+        await notifyApplicantsClosed({ _id: o._id, name: o.name, company: company.name, companyId: company._id }, why);
     }
 }
 

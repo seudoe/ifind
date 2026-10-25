@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
+import { notifyCompany } from "@/lib/employer/notify";
 import Company from "@/models/Company";
 import Employer from "@/models/Employer";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -136,6 +137,17 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         } catch (e) {
             console.error("[moderator/companies/[id] PATCH] could not write history", e);
         }
+
+        await notifyCompany({
+            companyId: id,
+            type: "company_restriction",
+            title: status === "none" ? "Your company restriction was lifted" : status === "banned" ? "Your company was banned" : "Your company was restricted",
+            body: status === "none"
+                ? affected ? `${affected} listing${affected === 1 ? " was" : "s were"} restored.` : "You can post internships again."
+                : `${reason}${status === "banned" && affected ? ` (${affected} listing${affected === 1 ? "" : "s"} taken down)` : ""}`,
+            link: `/employer/company/${id}/overview`,
+            actor: { kind: "moderator", id: null, name: "iFind moderation" },
+        });
 
         return NextResponse.json({ success: true, data: { status, internshipsAffected: affected } });
     } catch (error) {

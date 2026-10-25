@@ -1,56 +1,41 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
-import { EmployerNotification as Notification } from "@/models/Notification";
-import type { AppNotification } from "@/types/employer";
+import { employerFeed, employerUnreadCount, markEmployerRead } from "@/lib/employer/notifications";
 
 export const runtime = "nodejs";
 
+/** The employer's inbox: personal notifications plus every notification of the companies they belong to. */
 export async function GET(request: NextRequest) {
     try {
         const employer = await requireEmployer();
         if (isResponse(employer)) return employer;
 
-        const mine = { recipientType: "employer" as const, recipientId: employer._id };
-        const unread = await Notification.countDocuments({ ...mine, readAt: null });
         if (request.nextUrl.searchParams.get("countOnly")) {
-            return NextResponse.json({ success: true, data: { unread } });
+            return NextResponse.json({ success: true, data: { unread: await employerUnreadCount(employer._id) } });
         }
-        const rows = await Notification.find(mine).sort({ createdAt: -1 }).limit(100).lean();
-        const items: AppNotification[] = rows.map((n) => ({
-            _id: String(n._id),
-            recipientType: n.recipientType,
-            recipientId: String(n.recipientId),
-            type: n.type,
-            title: n.title,
-            body: n.body ?? null,
-            link: n.link ?? null,
-            companyId: n.companyId ? String(n.companyId) : null,
-            readAt: n.readAt?.toISOString() ?? null,
-            createdAt: n.createdAt.toISOString(),
-        }));
-        return NextResponse.json({ success: true, data: { items, unread } });
+        return NextResponse.json({ success: true, data: await employerFeed(employer._id) });
     } catch (error) {
         console.error("[employer/notifications GET]", error);
         return NextResponse.json({ success: false, error: "Unable to load notifications" }, { status: 500 });
     }
 }
 
-/** Body: { id } marks one read, { all: true } marks all read. */
+/** Body: { id, scope: "personal" | "company" } marks one read, { all: true } marks everything read (for this person only). */
 export async function PATCH(request: NextRequest) {
     try {
         const employer = await requireEmployer();
         if (isResponse(employer)) return employer;
 
-        const body = await request.json();
-        const filter: Record<string, unknown> = { recipientType: "employer", recipientId: employer._id, readAt: null };
-        if (body.all !== true) {
-            if (typeof body.id !== "string" || !mongoose.isValidObjectId(body.id)) {
-                return NextResponse.json({ success: false, error: "id or all required" }, { status: 400 });
+        const body = await request.json().catch(() => ({}));
+        if (body.all === true) {
+            await markEmployerRead(employer._id, { all: true });
+        } else {
+            if (typeof body.id !== "string" || !mongoose.isValidObjectId(body.id) || (body.scope !== "personal" && body.scope !== "company")) {
+                return NextResponse.json({ success: false, error: "id and scope, or all, required" }, { status: 400 });
             }
-            filter._id = body.id;
+            await markEmployerRead(employer._id, { id: body.id, scope: body.scope });
         }
-        await Notification.updateMany(filter, { $set: { readAt: new Date() } });
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("[employer/notifications PATCH]", error);

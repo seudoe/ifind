@@ -4,9 +4,8 @@ import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import Internship, { StagedInternship } from "@/models/Internship";
 import { publishApprovedInternships } from "@/lib/internship-vectorizer";
-import { notify } from "@/lib/employer/notify";
+import { notifyCompany } from "@/lib/employer/notify";
 import { vectorizeIfApproved } from "@/lib/employer/internships";
-import Company from "@/models/Company";
 import PlatformInternship from "@/models/PlatformInternship";
 
 export const runtime = "nodejs";
@@ -74,15 +73,13 @@ export async function PATCH(
             await doc.save();
             if (approved) vectorizeIfApproved(doc); // vectors are written onto the document in internships.this-platform
 
-            const company = await Company.findById(doc.companyId).select("members").lean();
-            await notify({
-                recipientType: "employer",
-                recipientIds: (company?.members ?? []).map((m) => m.employerId),
+            await notifyCompany({
+                companyId: doc.companyId,
                 type: approved ? "internship_approved" : "internship_rejected",
                 title: approved ? `"${doc.name}" was approved` : `"${doc.name}" was rejected`,
-                body: approved ? "A moderator approved your listing." : `Reason: ${rejectionReason.trim()}`,
+                body: approved ? "A moderator approved your listing. It is now visible to students." : `Reason: ${rejectionReason.trim()}`,
                 link: `/employer/company/${doc.companyId}/internships/${doc._id}/overview`,
-                companyId: doc.companyId,
+                actor: { kind: "moderator", id: null, name: "iFind moderation" },
             });
             return NextResponse.json({ success: true }, { status: 200 });
         }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { notify } from "@/lib/employer/notify";
 import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -101,6 +102,16 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
             console.error("[moderator/employers/[id] PATCH] could not write ban history", e);
         }
 
+        if (action === "unban") {
+            await notify({
+                recipientType: "employer",
+                recipientIds: [id],
+                type: "account_status",
+                title: "Your employer account was reinstated",
+                body: "A moderator lifted the ban. You can post and manage internships again.",
+                link: "/employer/companies",
+            });
+        }
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("[moderator/employers/[id] PATCH]", error);

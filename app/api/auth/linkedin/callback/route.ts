@@ -1,4 +1,6 @@
 import { resolveNext } from "@/lib/authRedirect";
+import { notify } from "@/lib/employer/notify";
+import { welcomeEmployer, welcomeStudent } from "@/lib/employer/welcome";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
@@ -123,6 +125,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${origin}/employer/settings?error=${encodeURIComponent("This LinkedIn account is already linked to another employer")}`);
       }
       await Employer.updateOne({ _id: emp.employerId }, { $set: { linkedinId: profile.sub, linkedinDetails: profile } });
+      await notify({ recipientType: "employer", recipientIds: [emp.employerId], type: "account_security", title: "LinkedIn was linked to your account", body: "You can now sign in with LinkedIn too.", link: "/employer/settings" });
       const linkRes = NextResponse.redirect(`${origin}/employer/settings?linked=1`);
       linkRes.cookies.delete("linkedin_oauth_state");
       linkRes.cookies.delete("linkedin_oauth_intent");
@@ -179,6 +182,7 @@ export async function GET(request: NextRequest) {
       empResponse.cookies.set(empCookie.name, empCookie.value, empCookie.options);
       empResponse.cookies.delete("linkedin_oauth_state");
       empResponse.cookies.delete("linkedin_oauth_intent");
+      if (isNew) await welcomeEmployer(employer._id);
       after(() => sendServerEvent(request, isNew ? "sign_up" : "login", { user_type: "employer" }));
       return empResponse;
     }
@@ -334,6 +338,7 @@ export async function GET(request: NextRequest) {
     response.cookies.delete("linkedin_oauth_intent");
     response.cookies.delete("linkedin_oauth_next");
 
+    if (isNew) await welcomeStudent(user._id, user.username);
     after(() => sendServerEvent(request, isNew ? "sign_up" : "login", { user_type: "student" }));
     return response;
   } catch (error) {

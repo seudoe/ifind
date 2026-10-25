@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { notify } from "@/lib/employer/notify";
+import { notify, notifyCompany } from "@/lib/employer/notify";
 import Application, { type IApplication } from "@/models/Application";
 import Company from "@/models/Company";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -78,15 +78,13 @@ export async function createApplication(
         matchScore: computeMatchScore(applicantSnapshot.skills, internship.skills ?? []),
     });
 
-    const company = await Company.findById(internship.companyId).select("members").lean();
-    await notify({
-        recipientType: "employer",
-        recipientIds: (company?.members ?? []).map((m) => m.employerId),
+    await notifyCompany({
+        companyId: internship.companyId,
         type: "new_application",
         title: `New application for "${internship.name}"`,
         body: `${applicantSnapshot.name} applied.`,
         link: `/employer/company/${internship.companyId}/internships/${internship._id}/applicants`,
-        companyId: internship.companyId,
+        actor: { kind: "student", id: user._id as mongoose.Types.ObjectId, name: applicantSnapshot.name },
     });
     return doc;
 }

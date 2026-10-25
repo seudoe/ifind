@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { welcomeEmployer } from "@/lib/employer/welcome";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { connectDB } from "@/lib/db";
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         }
 
         const employer = await Employer.create({ name, email, designation, password: await bcrypt.hash(password, 12) });
+        await welcomeEmployer(employer._id);
         const cookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }));
         const response = NextResponse.json({ success: true, data: { employerId: employer.id } }, { status: 201 });
         response.cookies.set(cookie.name, cookie.value, cookie.options);

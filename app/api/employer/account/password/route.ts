@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { notify } from "@/lib/employer/notify";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
@@ -40,6 +41,14 @@ export async function POST(request: NextRequest) {
         // Every token issued before this moment (including a thief's) stops working; this browser gets a fresh one.
         employer.tokenVersion = (employer.tokenVersion ?? 0) + 1;
         await employer.save();
+        await notify({
+            recipientType: "employer",
+            recipientIds: [employer._id],
+            type: "account_security",
+            title: "Your password was changed",
+            body: "All other devices were signed out. If this wasn't you, contact support right away.",
+            link: "/employer/settings",
+        });
         const cookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }, employer.tokenVersion));
         const response = NextResponse.json({ success: true });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
