@@ -1,3 +1,4 @@
+import { publicOrigin } from "@/lib/publicOrigin";
 import { NextRequest, NextResponse } from "next/server";
 import { safeNextPath } from "@/lib/authRedirect";
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const origin = request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const origin = publicOrigin(request);
   const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `${origin}/api/auth/linkedin/callback`;
 
   // Generate state token for CSRF protection

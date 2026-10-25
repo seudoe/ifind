@@ -1,3 +1,4 @@
+import { publicOrigin } from "@/lib/publicOrigin";
 import { resolveNext } from "@/lib/authRedirect";
 import { notify } from "@/lib/employer/notify";
 import { welcomeEmployer, welcomeStudent } from "@/lib/employer/welcome";
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   const limited = await limitAuth(request, "oauth-callback", RULES.oauthIp);
   if (limited) return limited;
 
-  const origin = request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const origin = publicOrigin(request);
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
