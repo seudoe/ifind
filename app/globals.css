@@ -110,3 +110,37 @@ a.plasma-card:hover, button.plasma-card:hover, .plasma-card.hoverable:hover, .pl
 .container-page { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1rem; }
 @media (min-width: 640px)  { .container-page { padding-inline: 1.5rem; } }
 @media (min-width: 1024px) { .container-page { padding-inline: 2rem; } }
+
+/* ── Toasts (sonner): same surfaces, hairline border, 3px type-coloured edge, mono-free body ── */
+html [data-sonner-toaster][data-sonner-theme] {
+  --normal-bg: var(--surface);
+  --normal-text: var(--text);
+  --normal-border: var(--border);
+  --success-bg: var(--surface); --success-text: var(--text); --success-border: var(--border);
+  --error-bg:   var(--surface); --error-text:   var(--text); --error-border:   var(--border);
+  --warning-bg: var(--surface); --warning-text: var(--text); --warning-border: var(--border);
+  --info-bg:    var(--surface); --info-text:    var(--text); --info-border:    var(--border);
+  --border-radius: var(--radius);
+  font-family: var(--font-sans);
+}
+html [data-sonner-toast] {
+  --toast-accent: var(--primary);
+  border-left: 3px solid var(--toast-accent);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  padding: 14px 16px;
+}
+html [data-sonner-toast][data-type="success"] { --toast-accent: var(--success); }
+html [data-sonner-toast][data-type="error"]   { --toast-accent: var(--danger); }
+html [data-sonner-toast][data-type="warning"] { --toast-accent: var(--warning); }
+html [data-sonner-toast][data-type="info"]    { --toast-accent: var(--primary); }
+html [data-sonner-toast] [data-title] { font-weight: 700; color: var(--heading); }
+html [data-sonner-toast] [data-description] { color: var(--text-2); }
+html [data-sonner-toast] [data-icon] { color: var(--toast-accent); }
+html [data-sonner-toast] [data-close-button] {
+  background: var(--surface); color: var(--text-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+html [data-sonner-toast] [data-button] {
+  background: var(--primary); color: var(--on-primary); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px;
+}

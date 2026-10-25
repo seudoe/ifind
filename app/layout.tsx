@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,6 +22,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/components/theme/ThemeProvider";
+import { AppToaster } from "@/components/theme/AppToaster";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import { VectorizationProgressBar } from "@/components/dashboard/VectorizationProgressBar";
 
@@ -39,7 +39,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider>
           {children}
-          <Toaster position="top-right" richColors />
+          <AppToaster />
           <AnalyticsProvider />
           <VectorizationProgressBar />
         </ThemeProvider>
