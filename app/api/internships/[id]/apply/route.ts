@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { notify } from "@/lib/employer/notify";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { getSession } from "@/lib/auth";
@@ -80,6 +81,15 @@ export async function POST(req: NextRequest, { params }: Ctx) {
             return fail(err instanceof Error ? err.message : "Unable to apply", 409);
         }
         await record();
+        await notify({
+            recipientType: "student",
+            recipientIds: [uid],
+            type: "application_submitted",
+            title: `Application sent: ${platform.name}`,
+            body: `${platform.company} will review it. You will be notified when its status changes.`,
+            link: `/user/${session.username}/applied-internships/${id}`,
+            companyId: platform.companyId,
+        });
         after(() => sendServerEvent(req, "application_submitted", { user_type: "student" }));
         return NextResponse.json({ success: true }, { status: 201 });
     } catch (error) {

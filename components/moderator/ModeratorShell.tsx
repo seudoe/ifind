@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import {
     Shield,
     Users,
@@ -16,6 +17,7 @@ import {
     AlertTriangle,
     BarChart3,
     ScanSearch,
+    Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
@@ -23,10 +25,14 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import type { ModeratorSession } from "@/types/moderator";
 
-type Tab = "internships" | "analyze" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "moderators";
+type Tab = "internships" | "analyze" | "notifications" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "moderators";
 
 // ── Nav definition (grouped) ──────────────────────────────────────────────
 const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeof Users }[] }[] = [
+    {
+        label: "Inbox",
+        links: [{ tab: "notifications", label: "Notifications", icon: Bell }],
+    },
     {
         label: "Content",
         links: [
@@ -69,6 +75,24 @@ export function ModeratorShell({
     const router = useRouter();
     const params = useParams();
     const username = params?.username as string || "me";
+    const pathname = usePathname();
+
+    // Unread badge: refreshed on navigation and every 60 s
+    const [unread, setUnread] = useState(0);
+    useEffect(() => {
+        const refresh = () =>
+            fetch("/api/moderator/notifications?countOnly=1", { credentials: "include" })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((j) => j && setUnread(j.data.unread))
+                .catch(() => {});
+        refresh();
+        const t = setInterval(refresh, 60_000);
+        return () => clearInterval(t);
+    }, [pathname]);
+    const badge = (tab: Tab) =>
+        tab === "notifications" && unread > 0 ? (
+            <span className="ml-auto min-w-5 h-5 px-1.5 rounded-[var(--radius-xl)] bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>
+        ) : null;
 
     const handleLogout = async () => {
         await fetch("/api/moderator/auth/logout", {
@@ -81,6 +105,7 @@ export function ModeratorShell({
     const TAB_TITLES: Record<string, string> = {
         internships: "Internship Queue",
         analyze: "Analyze Internship",
+        notifications: "Notifications",
         events: "Hackathons & Contests",
         scrapes: "Scrapes",
         usage: "AI Usage",
@@ -123,6 +148,7 @@ export function ModeratorShell({
                                     >
                                         <Icon className="h-4 w-4" />
                                         {label}
+                                        {badge(tab)}
                                     </Link>
                                 ))}
                             </div>
@@ -204,7 +230,10 @@ export function ModeratorShell({
                                 : "text-[var(--text-3)]",
                         )}
                     >
-                        <Icon className="h-4 w-4" />
+                        <span className="relative">
+                            <Icon className="h-4 w-4" />
+                            {tab === "notifications" && unread > 0 && <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-[var(--radius-xl)] bg-[var(--danger)] text-white text-[9px] leading-4 text-center">{unread > 99 ? "99+" : unread}</span>}
+                        </span>
                         {label}
                     </Link>
                 ))}

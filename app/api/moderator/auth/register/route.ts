@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { moderatorIds, notify } from "@/lib/employer/notify";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { MAX_PASSWORD_LENGTH, passwordProblem } from "@/lib/passwords";
@@ -73,6 +74,16 @@ export async function POST(request: NextRequest) {
             password: hash,
             isVerified: false,
             role: "moderator",
+        });
+
+        // A verified moderator has to approve the newcomer before they can use the panel
+        await notify({
+            recipientType: "moderator",
+            recipientIds: await moderatorIds(),
+            type: "moderator_pending",
+            title: `${doc.name} wants to join the moderators`,
+            body: `${doc.email} registered and needs verification.`,
+            link: "/moderator/me/moderators",
         });
 
         const token = signModToken({

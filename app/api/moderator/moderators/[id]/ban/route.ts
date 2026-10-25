@@ -1,4 +1,5 @@
 import { isObjectId } from "@/lib/validate";
+import { notify } from "@/lib/employer/notify";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -90,6 +91,13 @@ export async function PATCH(
             );
         }
 
+        await notify({
+            recipientType: "moderator",
+            recipientIds: [targetId],
+            type: "moderator_status",
+            title: isCurrentlyBanned ? "Your moderator access was restored" : "Your moderator access was suspended",
+            body: isCurrentlyBanned ? `${session.name} lifted the suspension.` : reason ? `Reason: ${reason}` : undefined,
+        });
         return NextResponse.json({ success: true, isBanned: !isCurrentlyBanned }, { status: 200 });
     } catch (error) {
         console.error("[moderator/moderators/[id]/ban PATCH]", error);

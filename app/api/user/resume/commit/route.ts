@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notify } from "@/lib/employer/notify";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
@@ -53,6 +54,14 @@ export async function POST() {
       void vectorizeAndRecommendUser(session.userId, pendingParsedData);
     }
 
+    await notify({
+      recipientType: "student",
+      recipientIds: [user._id],
+      type: "resume_updated",
+      title: "Your resume was updated",
+      body: "We are re-reading it and refreshing your recommended internships.",
+      link: `/user/${user.username}/resume`,
+    });
 
     return NextResponse.json({
       success: true,

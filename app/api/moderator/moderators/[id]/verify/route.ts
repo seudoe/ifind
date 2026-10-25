@@ -1,4 +1,5 @@
 import { isObjectId } from "@/lib/validate";
+import { notify } from "@/lib/employer/notify";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
@@ -76,6 +77,14 @@ export async function PATCH(
             },
         );
 
+        await notify({
+            recipientType: "moderator",
+            recipientIds: [targetId],
+            type: "moderator_status",
+            title: "Your moderator account was verified",
+            body: `${session.name} verified you. You can now review internships and manage the platform.`,
+            link: "/moderator/me/internships",
+        });
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("[moderator/moderators/[id]/verify PATCH]", error);
