@@ -221,8 +221,6 @@ const UserSchema = new Schema<IUser>(
     { timestamps: true }
 );
 
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ username: 1 }, { unique: true });
 UserSchema.index({ linkedinId: 1 }, { unique: true, sparse: true });
 
 // Delete cached model in Next.js dev environment to ensure schema updates take effect

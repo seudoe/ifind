@@ -48,7 +48,6 @@ const ModeratorSchema = new Schema<IModerator>(
     { timestamps: true },
 );
 
-ModeratorSchema.index({ email: 1 }, { unique: true });
 
 // Delete cached model in Next.js dev environment to ensure schema updates take effect
 if (process.env.NODE_ENV !== "production" && mongoose.models.Moderator) {

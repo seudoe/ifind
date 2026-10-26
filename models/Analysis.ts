@@ -234,7 +234,6 @@ const AnalysisSchema = new Schema<IAnalysis>(
 
 // Indexes for efficient queries
 AnalysisSchema.index({ user: 1, createdAt: -1 });
-AnalysisSchema.index({ analysisStatus: 1 });
 
 // Virtual for analysis age
 AnalysisSchema.virtual('analysisAge').get(function() {
