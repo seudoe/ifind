@@ -14,6 +14,7 @@ import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 import type { ParsedResumeData, User, Skill } from "@/types";
 import { cn, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
+import { announceRecommendationRun } from "@/lib/recommendationProgress";
 
 const QUICK_LINKS = [
   ["preferences", "Preference"], ["education", "Education"], ["skills", "Key skills"],
@@ -639,6 +640,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to update details");
       toast.success("Profile section updated successfully!");
+      announceRecommendationRun();
       onSaveSuccess();
       onClose();
     } catch (err) {

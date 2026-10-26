@@ -73,6 +73,7 @@ async function handlePost() {
         }
 
         user.resume.parsedData = parsedData;
+        if (parsedData) user.vectorizationStatus = "processing";
         await user.save();
 
         // Trigger vectorization & recommendation scoring in background

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { RECOMMENDATION_RUN, RECOMMENDATIONS_UPDATED } from "@/lib/recommendationProgress";
 
 
 type Status = "idle" | "processing" | "completed" | "failed";
@@ -18,17 +19,33 @@ export function VectorizationProgressBar() {
   const sawProcessing = useRef(false);
   const announced = useRef(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fastUntil = useRef(0);
 
   useEffect(() => {
-    // Initial fetch
+    // Slow background check (a run started in another tab or before a reload); fast while a save has just announced one
     checkStatus();
+    const tick = () => {
+      checkStatus();
+      pollIntervalRef.current = setTimeout(tick, Date.now() < fastUntil.current ? 1000 : 10000);
+    };
+    pollIntervalRef.current = setTimeout(tick, 10000);
 
-    // Set up polling
-    pollIntervalRef.current = setInterval(checkStatus, 3000);
+    const onRun = () => {
+      // The save returns after the server has marked the run "processing", so one immediate check shows the card
+      fastUntil.current = Date.now() + 120_000;
+      sawProcessing.current = false;
+      announced.current = false;
+      checkStatus();
+      if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
+      pollIntervalRef.current = setTimeout(tick, 1000);
+    };
+    window.addEventListener(RECOMMENDATION_RUN, onRun);
 
     return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
+      window.removeEventListener(RECOMMENDATION_RUN, onRun);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkStatus = async () => {
@@ -37,7 +54,8 @@ export function VectorizationProgressBar() {
       
       // Stop polling if user is not authenticated
       if (res.status === 401) {
-        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
+        pollIntervalRef.current = null;
         return;
       }
       
@@ -65,15 +83,16 @@ export function VectorizationProgressBar() {
 
   useEffect(() => {
     if (status === "processing") {
-      // Simulate progress up to 90%
-      setProgress(0);
+      // The vectoriser reports no percentage: ease towards 90% and jump to 100% when it says "completed"
+      setProgress(5);
       const interval = setInterval(() => {
-        setProgress((p) => (p >= 90 ? 90 : p + Math.random() * 10));
-      }, 1000);
+        setProgress((p) => (p >= 90 ? 90 : p + (90 - p) * 0.12 + 1));
+      }, 800);
       return () => clearInterval(interval);
     } else if (status === "completed") {
       setProgress(100);
-      router.refresh(); // Refresh current route to fetch new recommendations
+      router.refresh(); // server-rendered routes
+      window.dispatchEvent(new Event(RECOMMENDATIONS_UPDATED)); // student area: reload the dashboard data (new recommendations)
       // Hide after 5 seconds
       const timeout = setTimeout(() => {
         setStatus("idle");
@@ -107,17 +126,17 @@ export function VectorizationProgressBar() {
         
         <div className="flex-1">
           <p className="text-xs font-medium text-gray-900">
-            {status === "processing" && "Updating recommendations..."}
-            {status === "completed" && "Recommendations updated!"}
+            {status === "processing" && `Updating your recommendations… ${Math.round(progress)}%`}
+            {status === "completed" && "Recommendations updated · 100%"}
             {status === "failed" && "Update failed"}
           </p>
         </div>
       </div>
 
-      {status === "processing" && (
-        <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+      {(status === "processing" || status === "completed") && (
+        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div 
-            className="h-full rounded-full transition-all duration-500 ease-out bg-blue-500"
+            className={`h-full rounded-full transition-all duration-500 ease-out ${status === "completed" ? "bg-green-500" : "bg-blue-500"}`}
             style={{ width: `${progress}%` }}
           />
         </div>

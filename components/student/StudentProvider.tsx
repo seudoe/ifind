@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Internship, User } from "@/types";
+import { RECOMMENDATIONS_UPDATED } from "@/lib/recommendationProgress";
 
 export interface StudentDashboardData {
   user: User;
@@ -41,6 +42,12 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => { mutate(); }, [mutate]);
+
+  // The progress card announces a finished recommendation run: reload the dashboard so the new list shows up
+  useEffect(() => {
+    window.addEventListener(RECOMMENDATIONS_UPDATED, mutate);
+    return () => window.removeEventListener(RECOMMENDATIONS_UPDATED, mutate);
+  }, [mutate]);
 
   const value = useMemo(() => ({ data, error, loading, mutate }), [data, error, loading, mutate]);
   return <StudentContext.Provider value={value}>{children}</StudentContext.Provider>;

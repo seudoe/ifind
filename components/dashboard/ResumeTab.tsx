@@ -47,6 +47,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate, formatPeriod } from "@/lib/utils";
+import { announceRecommendationRun } from "@/lib/recommendationProgress";
 import { toast } from "sonner";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import type { User, ParsedResumeData } from "@/types";
@@ -187,6 +188,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     parsedData: pendingParsedData,
                 });
                 toast.success("Resume uploaded & parsed successfully!");
+                announceRecommendationRun();
                 onResumeUpdate?.();
             } else if (existingParsedData) {
                 setOldData(existingParsedData);
@@ -227,6 +229,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             setOldData(null);
             setShowConfirmModal(false);
             toast.success("Resume updated!");
+            announceRecommendationRun();
             onResumeUpdate?.();
         } catch (err) {
             toast.error(
@@ -312,6 +315,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
             } else {
                 setLocalResume({ ...localResume, parsedData: extracted });
                 toast.success("Resume re-extracted successfully!");
+                announceRecommendationRun();
                 onResumeUpdate?.();
             }
         } catch (err) {
