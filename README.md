@@ -2,7 +2,7 @@
 
 Next.js 16 / React 19 / Tailwind 4 / MongoDB app with three portals: students, employers and moderators. It is the user-facing part of iFind; scraping, scam scoring, vectors and resume extraction live in the sibling services (see `../README.md` for the whole system and wiring).
 
-Public site: `https://ifind.internships.workers.dev` (a Cloudflare Worker, `../proxy-ifind`, balancing six Vercel deployments). Local: `http://localhost:3000`.
+Public site: `https://ifind.internships.workers.dev` (a Cloudflare Worker, `../proxy-ifind`, balancing six Vercel deployments). Local: `http://localhost:4000`.
 
 ## Features
 
@@ -15,7 +15,7 @@ Public site: `https://ifind.internships.workers.dev` (a Cloudflare Worker, `../p
 
 ```bash
 npm install
-npm run dev                # http://localhost:3000
+npm run dev                # http://localhost:4000 (next free port + a red warning if 4000 is taken); `dev:plain` = bare next dev
 npm run build && npm start # production build
 npm run lint
 npm run scan:secrets       # fails if a secret-looking value is committed
