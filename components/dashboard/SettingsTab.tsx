@@ -2,7 +2,7 @@
 
 import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, User, Lock, Bell, Trash2, Camera, AlertTriangle } from "lucide-react";
 import { Input }  from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -51,6 +51,36 @@ export function SettingsTab({ user }: { user: StudentUser }) {
   const [profilePicture, setProfilePicture] = useState(user.profilePicture || "");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [savingInfo, setSavingInfo] = useState(false);
+
+  // --- Email preferences ---
+  const [appUpdates, setAppUpdates] = useState(true);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  useEffect(() => {
+    fetch("/api/user/notification-prefs", { credentials: "include" })
+      .then((r) => r.json())
+      .then((j) => { if (j.success) setAppUpdates(j.data.applicationUpdates); })
+      .catch(() => {})
+      .finally(() => setPrefsLoaded(true));
+  }, []);
+  const savePrefs = async () => {
+    setSavingPrefs(true);
+    try {
+      const res = await fetch("/api/user/notification-prefs", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationUpdates: appUpdates }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error);
+      toast.success("Preferences saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save preferences");
+    } finally {
+      setSavingPrefs(false);
+    }
+  };
 
   // --- Account Deletion State ---
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -278,29 +308,27 @@ export function SettingsTab({ user }: { user: StudentUser }) {
       <Section
         icon={<Bell className="h-4 w-4" />}
         title="Notifications"
-        desc="Choose what emails you want to receive"
+        desc="Choose which emails you receive"
       >
         <div className="space-y-3">
-          {[
-            { label: "New matching internships",      sub: "Daily digest of internships that match your profile" },
-            { label: "Application status updates",    sub: "When your application status changes" },
-            { label: "Deadline reminders",            sub: "48h before a saved internship closes" },
-            { label: "Product updates & news",        sub: "Occasional updates about new iFind features" },
-          ].map(({ label, sub }) => (
-            <label key={label} className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                defaultChecked
-                className="mt-0.5 accent-[var(--primary)] h-3.5 w-3.5"
-              />
-              <div>
-                <p className="text-sm text-[var(--text)] group-hover:text-[var(--primary)] transition-colors">{label}</p>
-                <p className="text-xs text-[var(--text-3)]">{sub}</p>
-              </div>
-            </label>
-          ))}
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={appUpdates}
+              disabled={!prefsLoaded}
+              onChange={(e) => setAppUpdates(e.target.checked)}
+              className="mt-0.5 accent-[var(--primary)] h-3.5 w-3.5"
+            />
+            <div>
+              <p className="text-sm text-[var(--text)] group-hover:text-[var(--primary)] transition-colors">Application progress emails</p>
+              <p className="text-xs text-[var(--text-3)]">When an employer shortlists you, invites you to interview or makes an offer</p>
+            </div>
+          </label>
+          <p className="text-xs text-[var(--text-3)]">
+            Security, account and approval emails are always sent. Every update, including rejections, is also kept in your in-app notifications.
+          </p>
         </div>
-        <Button size="sm" className="mt-4">Save Preferences</Button>
+        <Button size="sm" className="mt-4" onClick={savePrefs} loading={savingPrefs} disabled={!prefsLoaded}>Save Preferences</Button>
       </Section>
 
       {/* ── Danger zone ───────────────────────────────────────────────── */}

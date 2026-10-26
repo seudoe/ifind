@@ -11,7 +11,7 @@ import { CompanyLogo } from "@/components/internships/CompanyLogo";
 import { StipendBadge } from "@/components/internships/StipendBadge";
 import { sourceLabel } from "@/lib/constants";
 import { formatAddresses } from "@/lib/address";
-import { cn, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
+import { cn, deadlineState, formatDuration, formatDate, getInternshipId } from "@/lib/utils";
 import { toast }   from "sonner";
 import { track }   from "@/lib/analytics/track";
 import type { Internship } from "@/types";
@@ -44,9 +44,7 @@ export function InternshipCard({
     ? "Work from Home"
     : formatAddresses(internship.address, ["city", "state"]) || formatAddresses(internship.address, ["country"]) || "India";
 
-  const deadlineSoon =
-    internship.deadlineDate &&
-    new Date(internship.deadlineDate).getTime() - Date.now() < 7 * 86400000;
+  const { passed: deadlinePassed, soon: deadlineSoon } = deadlineState(internship.deadlineDate);
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -113,8 +111,8 @@ export function InternshipCard({
         {/* Deadline */}
         {internship.deadlineDate && (
           <div className="hidden md:block text-[11px] text-right shrink-0">
-            <span className={cn(deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
-              {deadlineSoon ? "⚡ " : ""}Closes {formatDate(internship.deadlineDate)}
+            <span className={cn(deadlinePassed || deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
+              {deadlinePassed ? `Deadline passed ${formatDate(internship.deadlineDate)}` : `${deadlineSoon ? "⚡ " : ""}Closes ${formatDate(internship.deadlineDate)}`}
             </span>
           </div>
         )}
@@ -169,7 +167,9 @@ export function InternshipCard({
           {isRecommended && (
             <Badge variant="default" className="gap-1 text-[10px]"><Sparkles className="h-2.5 w-2.5" />AI Pick</Badge>
           )}
-          {deadlineSoon && (
+          {deadlinePassed ? (
+            <Badge variant="danger" className="text-[10px]">Deadline passed</Badge>
+          ) : deadlineSoon && (
             <Badge variant="warning" className="text-[10px]">⚡ Closing soon</Badge>
           )}
         </div>
@@ -198,8 +198,8 @@ export function InternshipCard({
         </div>
 
         {internship.deadlineDate && (
-          <p className={cn("text-[11px] mt-auto", deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
-            Deadline: {formatDate(internship.deadlineDate)}
+          <p className={cn("text-[11px] mt-auto", deadlinePassed || deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
+            {deadlinePassed ? "Deadline passed" : "Deadline"}: {formatDate(internship.deadlineDate)}
           </p>
         )}
       </div>

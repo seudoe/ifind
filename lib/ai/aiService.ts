@@ -3,15 +3,14 @@
  * Uses Groq when available (cost-effective), falls back to Gemini
  */
 
-import { generateChatCompletion } from '../groq/groqService';
+import { generateChatCompletion, groqAvailable } from '../groq/groqService';
 import geminiService from '../resume/geminiService';
 
 /**
  * Check if Groq is available and configured
  */
 export function isGroqAvailable(): boolean {
-    const apiKey = process.env.GROQ_API_KEY;
-    return Boolean(apiKey && apiKey !== 'your_groq_api_key_here' && apiKey.length > 10);
+    return groqAvailable();
 }
 
 /**

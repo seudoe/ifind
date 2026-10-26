@@ -1,7 +1,7 @@
 "use client";
 
 import { safeHref } from "@/lib/safeUrl";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { track } from "@/lib/analytics/track";
@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPeriod } from "@/lib/utils";
 import { toast } from "sonner";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import type { User, ParsedResumeData } from "@/types";
@@ -118,6 +118,18 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const [activeAnalysisTab, setActiveAnalysisTab] = useState<"overview" | "details">("overview");
 
     const hasResume = Boolean(localResume?.driveViewLink);
+    // The PDF is served by our own route (same origin: the preview iframe and "Open PDF" both work); HEAD tells us whether the stored file still exists
+    const resumeFileUrl = "/api/user/resume/file";
+    const [fileMissing, setFileMissing] = useState(false);
+    useEffect(() => {
+        if (!localResume?.driveViewLink) return;
+        let alive = true;
+        setFileMissing(false);
+        fetch(resumeFileUrl, { method: "HEAD", credentials: "include" })
+            .then((r) => { if (alive) setFileMissing(r.status === 404); })
+            .catch(() => {});
+        return () => { alive = false; };
+    }, [localResume?.driveViewLink, localResume?.uploadedAt]);
     const isUploading = uploadPhase !== "idle";
     const hasExistingData = Boolean(localResume?.parsedData);
     const isComparing = Boolean(pendingData && oldData);
@@ -724,23 +736,34 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                         className="rounded-lg border border-gray-200 overflow-hidden bg-gray-50"
                         style={{ height: 480 }}
                     >
-                        <iframe
-                            src={localResume.driveViewLink!}
-                            className="w-full h-full"
-                            title="Resume Preview"
-                        />
+                        {fileMissing ? (
+                            <div className="h-full flex flex-col items-center justify-center gap-2 text-center px-6">
+                                <FileText className="h-8 w-8 text-gray-400" />
+                                <p className="text-sm font-medium text-gray-700">The stored PDF could not be found</p>
+                                <p className="text-xs text-gray-500">Your extracted data is safe. Re-upload the PDF to restore the preview.</p>
+                            </div>
+                        ) : (
+                            <iframe
+                                src={resumeFileUrl}
+                                className="w-full h-full"
+                                title="Resume Preview"
+                            />
+                        )}
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                         <a
-                            href={localResume.driveViewLink!}
+                            href={resumeFileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-disabled={fileMissing}
+                            onClick={(e) => { if (fileMissing) e.preventDefault(); }}
                         >
                             <Button
                                 variant="outline"
                                 size="sm"
                                 className="flex items-center gap-2"
+                                disabled={fileMissing}
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
                                 Open PDF
@@ -1420,10 +1443,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                     </Badge>
                                 </div>
                                 <p className="text-xs text-gray-500">
-                                    {w.period?.start} –{" "}
-                                    {w.period?.isCurrent
-                                        ? "Present"
-                                        : (w.period?.end ?? "N/A")}
+                                    {formatPeriod(w.period)}
                                 </p>
                                 {w.responsibilities?.length > 0 && (
                                     <BulletList
@@ -1461,10 +1481,7 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                     {e.field?.type} in {e.field?.course}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                    {e.period?.start} –{" "}
-                                    {e.period?.isCurrent
-                                        ? "Present"
-                                        : (e.period?.end ?? "N/A")}
+                                    {formatPeriod(e.period)}
                                 </p>
                                 {e.output && (
                                     <p className="text-xs text-gray-600">
@@ -1726,16 +1743,16 @@ function ResumeDataDisplay({ data }: { data: ParsedResumeData }) {
                                         <p className="text-sm font-medium text-gray-900">
                                             {a.organization}
                                         </p>
-                                        <p className="text-xs text-gray-600">
-                                            {a.role} · {a.type}
-                                        </p>
+                                        {(a.role || a.type) && (
+                                            <p className="text-xs text-gray-600">
+                                                {/* the extractor often repeats the type inside the role ("Co-Committee Member" / "Co-Committee") */}
+                                                {[a.role, a.type && !(a.role ?? "").toLowerCase().includes(a.type.toLowerCase()) ? a.type : ""].filter((x) => x && x.trim()).join(" · ")}
+                                            </p>
+                                        )}
                                     </div>
-                                    <span className="text-xs text-gray-500 shrink-0">
-                                        {a.period?.start} –{" "}
-                                        {a.period?.isCurrent
-                                            ? "Present"
-                                            : (a.period?.end ?? "N/A")}
-                                    </span>
+                                    {formatPeriod(a.period) && (
+                                        <span className="text-xs text-gray-500 shrink-0">{formatPeriod(a.period)}</span>
+                                    )}
                                 </div>
                                 {a.impact?.length > 0 && (
                                     <BulletList items={a.impact} />

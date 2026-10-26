@@ -234,44 +234,49 @@ export async function GET(req: NextRequest) {
 function extractResumeText(parsedData: any): string {
     if (!parsedData) return '';
 
+    const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
+    const period = (p: any) => (p?.start || p?.end || p?.isCurrent ? `${p.start ?? ''} - ${p.isCurrent ? 'Present' : p.end ?? ''}` : '');
+    const section = (title: string, lines: string[]) => (lines.length ? `${title.toUpperCase()}\n${lines.join('\n')}` : '');
     const parts: string[] = [];
 
-    // Add summary
-    if (parsedData.summary) {
-        parts.push(parsedData.summary);
+    const meta = parsedData.metaDetails;
+    if (meta) {
+        const contact = [meta.name, meta.email, meta.phone_no, meta.linkedin && 'LinkedIn', meta.github_profile && 'GitHub'].filter(Boolean);
+        if (contact.length) parts.push(section('Contact', [contact.join(' | ')]));
     }
+    if (parsedData.summary) parts.push(section('Summary', [parsedData.summary]));
 
-    // Add skills
-    if (parsedData.skills && Array.isArray(parsedData.skills)) {
-        parts.push(`Skills: ${parsedData.skills.map((s: any) => s.name || s).join(', ')}`);
-    }
+    parts.push(section('Skills', list(parsedData.skills).map((s: any) => {
+        const tools = list(s.tools).map((t: any) => t.name || t).filter(Boolean).join(', ');
+        return typeof s === 'string' ? s : `${s.field || s.name || ''}${tools ? `: ${tools}` : ''}`;
+    }).filter(Boolean)));
 
-    // Add work history
-    if (parsedData.workHistory && Array.isArray(parsedData.workHistory)) {
-        parsedData.workHistory.forEach((work: any) => {
-            parts.push(`${work.title || ''} at ${work.company || ''}`);
-            if (work.description) {
-                parts.push(work.description);
-            }
-        });
-    }
+    parts.push(section('Experience', list(parsedData.workHistory).flatMap((w: any) => [
+        `${w.title || ''} at ${w.company || ''}${w.location ? `, ${w.location}` : ''} (${w.type || 'job'}) ${period(w.period)}`.trim(),
+        ...list(w.responsibilities).map((r: string) => `- ${r}`),
+        ...list(w.achievements).map((r: string) => `- ${r}`),
+        ...(w.description ? [String(w.description)] : []),
+    ])));
 
-    // Add education
-    if (parsedData.education && Array.isArray(parsedData.education)) {
-        parsedData.education.forEach((edu: any) => {
-            parts.push(`${edu.field?.course || edu.degree || ''} from ${edu.institution || ''}`);
-        });
-    }
+    parts.push(section('Education', list(parsedData.education).map((e: any) =>
+        `${e.field?.course || e.degree || ''}${e.field?.type ? ` (${e.field.type})` : ''}, ${e.institution || ''} ${period(e.period)}${e.output ? ` - ${e.output}` : ''}`.trim())));
 
-    // Add projects
-    if (parsedData.projects && Array.isArray(parsedData.projects)) {
-        parsedData.projects.forEach((project: any) => {
-            parts.push(`Project: ${project.name || ''}`);
-            if (project.description) {
-                parts.push(project.description);
-            }
-        });
-    }
+    parts.push(section('Projects', list(parsedData.projects).flatMap((pr: any) => [
+        `${pr.title || pr.name || ''}${pr.role ? ` (${pr.role})` : ''}${list(pr.techStack).length ? ` [${pr.techStack.join(', ')}]` : ''}`,
+        ...(pr.problemStatement ? [`Problem: ${pr.problemStatement}`] : []),
+        ...(Array.isArray(pr.description) ? pr.description : pr.description ? [pr.description] : []).map((d: string) => `- ${d}`),
+        ...list(pr.metrics).map((m: string) => `- Result: ${m}`),
+    ])));
+
+    parts.push(section('Certifications', list(parsedData.certifications).map((c: any) => `${c.name}${c.issuer ? `, ${c.issuer}` : ''}${c.date ? ` (${c.date})` : ''}`)));
+    parts.push(section('Awards', list(parsedData.awards).map((a: any) => `${a.name}${a.issuingBody ? `, ${a.issuingBody}` : ''}${a.justification ? ` - ${a.justification}` : ''}`)));
+    parts.push(section('Publications', list(parsedData.publications).map((x: any) => `${x.title}${x.platform ? `, ${x.platform}` : ''}`)));
+    parts.push(section('Affiliations and leadership', list(parsedData.affiliations).flatMap((a: any) => [
+        `${a.role || ''}, ${a.organization || ''} ${period(a.period)}`.trim(),
+        ...list(a.impact).map((i: string) => `- ${i}`),
+    ])));
+    parts.push(section('Languages', list(parsedData.languages).map((l: any) => `${l.lang}${l.proficiency ? ` (${l.proficiency})` : ''}`)));
+    parts.push(section('Interests', list(parsedData.interests).map((i: any) => `${i.activity}${i.description ? `: ${i.description}` : ''}`)));
 
     return parts.filter(Boolean).join('\n\n');
 }

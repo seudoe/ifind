@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
-import { Briefcase, Plus, Sparkles, TrendingUp, Target, AlertCircle } from "lucide-react";
+import { Briefcase, Plus, Sparkles, TrendingUp, Target, AlertCircle, Search } from "lucide-react";
+import { useStudentDashboard } from "@/hooks/useStudentDashboard";
+import { formatAddresses } from "@/lib/address";
+import { getInternshipId } from "@/lib/utils";
+import type { Internship } from "@/types";
 
 interface JobDescription {
   _id: string;
@@ -46,8 +50,31 @@ interface JobMatch {
   createdAt: string;
 }
 
+/** Plain-text posting built from a stored internship, so the same analysis works for listed and pasted internships. */
+function internshipToPosting(i: Internship) {
+  const lines = [
+    i.summary,
+    i.responsibilities?.length ? `Responsibilities:\n${i.responsibilities.map((r) => `- ${r}`).join("\n")}` : "",
+    i.skills?.length ? `Required skills: ${i.skills.join(", ")}` : "",
+    i.degree?.length ? `Degree: ${i.degree.join(", ")}` : "",
+    i.field?.length ? `Field: ${i.field.join(", ")}` : "",
+    i.perks?.length ? `Perks: ${i.perks.join(", ")}` : "",
+  ].filter(Boolean);
+  return {
+    title: i.name,
+    company: i.company,
+    description: lines.join("\n\n") || `${i.name} at ${i.company}`,
+    location: i.isRemote ? "Remote" : formatAddresses(i.address, ["city", "state"]),
+    employmentType: "internship",
+    experienceLevel: "entry",
+  };
+}
+
 export function JobMatchTab() {
+  const student = useStudentDashboard();
   const [step, setStep] = useState<'list' | 'create' | 'results'>('list');
+  const [mode, setMode] = useState<'existing' | 'new'>('existing');
+  const [pickQuery, setPickQuery] = useState('');
   const [jobDescriptions, setJobDescriptions] = useState<JobDescription[]>([]);
   const [jobMatches, setJobMatches] = useState<JobMatch[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<JobMatch | null>(null);
@@ -60,7 +87,7 @@ export function JobMatchTab() {
     company: '',
     description: '',
     location: '',
-    employmentType: 'full-time',
+    employmentType: 'internship',
   });
 
   useEffect(() => {
@@ -95,7 +122,22 @@ export function JobMatchTab() {
     }
   };
 
-  const handleCreateJobDescription = async (e: React.FormEvent) => {
+  // Internships the student can pick from: saved, recommended, applied, then the rest of the feed (no duplicates)
+  const pickable: Internship[] = (() => {
+    const d = student.data;
+    if (!d) return [];
+    const seen = new Set<string>();
+    return [...(d.saved ?? []), ...(d.recommended ?? []), ...(d.applied ?? []), ...(d.browse ?? [])].filter((i) => {
+      const id = getInternshipId(i);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  })();
+  const q = pickQuery.trim().toLowerCase();
+  const pickShown = (q ? pickable.filter((i) => `${i.name} ${i.company} ${(i.skills ?? []).join(' ')}`.toLowerCase().includes(q)) : pickable).slice(0, 30);
+
+  const handleCreateJobDescription = async (e: React.FormEvent, posting: Record<string, unknown> = formData) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -104,7 +146,7 @@ export function JobMatchTab() {
       const res = await fetch('/api/job-descriptions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ experienceLevel: 'entry', ...posting }),
       });
 
       const data = await res.json();
@@ -112,7 +154,7 @@ export function JobMatchTab() {
       if (data.success) {
         // Now generate match
         await generateMatch(data.data._id);
-        setFormData({ title: '', company: '', description: '', location: '', employmentType: 'full-time' });
+        setFormData({ title: '', company: '', description: '', location: '', employmentType: 'internship' });
       } else {
         setError(data.error || 'Failed to create internship description');
       }
@@ -171,8 +213,8 @@ export function JobMatchTab() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Add Internship Description</h2>
-            <p className="text-gray-600 mt-1">Compare your resume with an internship posting</p>
+            <h2 className="text-2xl font-bold text-gray-900">New Match</h2>
+            <p className="text-gray-600 mt-1">See how well your resume fits an internship</p>
           </div>
           <button
             onClick={() => setStep('list')}
@@ -182,6 +224,64 @@ export function JobMatchTab() {
           </button>
         </div>
 
+        <div className="flex gap-2">
+          {([['existing', 'Pick an internship'], ['new', 'Paste a new one']] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setMode(id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border ${mode === id ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {mode === 'existing' && (
+          <div className="space-y-4 bg-[var(--surface)] p-6 rounded-lg border">
+            <div className="relative">
+              <Search className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={pickQuery}
+                onChange={(e) => setPickQuery(e.target.value)}
+                placeholder="Search by title, company or skill"
+                className="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-red-800">{error}</p>
+              </div>
+            )}
+            {pickShown.length === 0 ? (
+              <p className="text-sm text-gray-500 py-6 text-center">{student.data ? 'No internships match your search.' : 'Loading internships...'}</p>
+            ) : (
+              <ul className="divide-y max-h-[420px] overflow-y-auto">
+                {pickShown.map((i) => (
+                  <li key={getInternshipId(i)} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{i.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{i.company}{i.skills?.length ? ` · ${i.skills.slice(0, 3).join(', ')}` : ''}</p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={(e) => handleCreateJobDescription(e, internshipToPosting(i))}
+                      className="shrink-0 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 inline-flex items-center gap-1.5"
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      {loading ? 'Analyzing...' : 'Match'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {mode === 'new' && (
         <form onSubmit={handleCreateJobDescription} className="space-y-6 bg-[var(--surface)] p-6 rounded-lg border">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -193,7 +293,7 @@ export function JobMatchTab() {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Senior Software Engineer"
+              placeholder="e.g., Data Science Intern"
             />
           </div>
 
@@ -207,7 +307,7 @@ export function JobMatchTab() {
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Google"
+              placeholder="e.g., Razorpay"
             />
           </div>
 
@@ -220,7 +320,7 @@ export function JobMatchTab() {
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., San Francisco, CA"
+              placeholder="e.g., Bengaluru or Remote"
             />
           </div>
 
@@ -233,10 +333,10 @@ export function JobMatchTab() {
               onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="full-time">Full-time</option>
-              <option value="part-time">Part-time</option>
-              <option value="contract">Contract</option>
               <option value="internship">Internship</option>
+              <option value="part-time">Part-time</option>
+              <option value="full-time">Full-time</option>
+              <option value="contract">Contract</option>
               <option value="remote">Remote</option>
             </select>
           </div>
@@ -279,6 +379,7 @@ export function JobMatchTab() {
             )}
           </button>
         </form>
+        )}
       </div>
     );
   }
@@ -488,7 +589,7 @@ export function JobMatchTab() {
             onClick={() => setStep('create')}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Add Internship Description
+            New Match
           </button>
         </div>
       ) : (

@@ -37,7 +37,8 @@ Scripts: `scripts/push-repo-secrets.mjs` uploads GitHub Actions secrets (`ENV_LO
 | `INTERNSCRAPER_URL`, `INTERNSCRAPER_API_KEY` | internScraper base URL and the `x-api-key` sent to `/process` and `/analyze` |
 | `VECTORISER_URL` | vectoriser base URL |
 | `RESUME_EXTRACTOR_URL`, `MAX_WAIT_FOR_HF` | resume extractor (via `proxy-resume-extractor`) and its timeout |
-| `OPENAI_API_KEY`, `GEMINI_API_KEY` | resume and assistant fallbacks |
+| `GROQ_API_KEYS` (also `GROQ_API_KEY`, `GROQ_API_KEY_1..n`) | career assistant, chat, resume analysis. Comma-separated; rotated on rate limit or rejected key |
+| `OPENAI_API_KEY`, `GEMINI_API_KEY` | resume extraction and assistant fallbacks |
 | `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` | LinkedIn sign-in |
 | `IMAGEKIT_*`, `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` | image uploads |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limits and usage counters |
@@ -58,8 +59,8 @@ All routes are JSON over cookie sessions. Mutations also pass the same-site chec
 | Area | Routes |
 |---|---|
 | Student auth | `POST /api/auth/{register,login,logout}`, `GET /api/auth/me`, `GET /api/auth/linkedin` and `/callback` |
-| Student data | `/api/user/{profile,dashboard,applications,notifications,vectorization-status,upload-picture,delete-account}`, `/api/user/applications/[internshipId]` and `/withdraw` |
-| Resume | `/api/user/resume`, `/upload-temp`, `/analyze`, `/reextract`, `/commit`, `/discard-temp` |
+| Student data | `/api/user/{profile,dashboard,applications,notifications,notification-prefs,vectorization-status,upload-picture,delete-account}`, `/api/user/applications/[internshipId]` and `/withdraw` |
+| Resume | `/api/user/resume`, `/upload-temp`, `/analyze`, `/reextract`, `/commit`, `/discard-temp`, `GET`/`HEAD /api/user/resume/file` (streams the student's own PDF inline) |
 | Internships | `GET /api/internships/[id]`, `POST /api/internships/[id]/apply`, `/save`, `/api/internship-match[/id]`, `/api/job-descriptions[/id]` |
 | Assistant and chat | `/api/career-assistant/{career-roadmap,learning-roadmap,interview,projects,rewrite,star}`, `/api/chat/{sessions,sessions/[id],messages}` |
 | Misc | `/api/events`, `/api/usage/me` |

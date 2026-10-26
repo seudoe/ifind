@@ -28,8 +28,10 @@ interface NotifyInput {
 }
 
 /** Email addresses for a set of people. Banned accounts are skipped. */
-async function addressesOf(kind: RecipientType, ids: Id[]): Promise<{ email: string; name?: string }[]> {
-    const filter = { _id: { $in: ids }, isBanned: { $ne: true } };
+async function addressesOf(kind: RecipientType, ids: Id[], type?: NotificationType): Promise<{ email: string; name?: string }[]> {
+    const filter: Record<string, unknown> = { _id: { $in: ids }, isBanned: { $ne: true } };
+    // A student can opt out of application-progress emails (Settings, Notifications); everything else is mandatory
+    if (kind === "student" && type === "application_status") filter.emailApplicationUpdates = { $ne: false };
     const model = kind === "student" ? User : kind === "employer" ? Employer : Moderator;
     const rows = await (model as typeof User).find(filter).select("email name").lean();
     return rows.filter((r) => r.email).map((r) => ({ email: r.email as string, name: r.name as string | undefined }));
@@ -48,7 +50,8 @@ async function defer(fn: () => Promise<void>) {
 
 async function emailPersonal(kind: RecipientType, ids: Id[], input: { type: NotificationType; title: string; body?: string; link?: string }, docIds: Id[]) {
     if (!emailConfigured()) return;
-    const to = await addressesOf(kind, ids);
+    const to = await addressesOf(kind, ids, input.type);
+    if (!to.length) return;
     const { html, text } = notificationEmail({ title: input.title, body: input.body, link: input.link });
     const ok = await sendEmail({ to, subject: input.title, html, text, tags: ["notification", input.type] });
     if (ok) await notificationModel(kind).updateMany({ _id: { $in: docIds } }, { $set: { emailedAt: new Date() } });

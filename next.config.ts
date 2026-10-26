@@ -25,7 +25,7 @@ const GA_CONNECT = ["https://www.google-analytics.com", "https://*.google-analyt
  * locked down: no plugins, no <base> hijack, forms post only to this site, and the site can't be framed.
  * 'unsafe-eval' is added in development only (React refresh needs it).
  */
-function contentSecurityPolicy(): string {
+function contentSecurityPolicy(frameAncestors = "'none'"): string {
   const ik = imagekitOrigin();
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
@@ -36,7 +36,7 @@ function contentSecurityPolicy(): string {
     "font-src": ["'self'", "data:"],
     "connect-src": ["'self'", ...(gaEnabled ? GA_CONNECT : []), ...(isProd ? [] : ["ws:", "wss:"])],
     "frame-src": ["'self'", ik],
-    "frame-ancestors": ["'none'"],
+    "frame-ancestors": [frameAncestors],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],
@@ -73,6 +73,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // The resume preview iframe loads this same-origin route, so it may be framed by this site only.
+      {
+        source: "/api/user/resume/file",
+        headers: [
+          { key: "Content-Security-Policy", value: contentSecurityPolicy("'self'") },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        ],
+      },
       { source: "/api/:path*", headers: noStore },
       { source: "/user/:username/:path*", headers: noStore },
       { source: "/employer/:path((?!login|register).+)", headers: noStore },

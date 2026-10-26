@@ -1,12 +1,64 @@
 import Groq from 'groq-sdk';
 import { recordLlmCall } from '../usage/context';
 
-// Lazy client: constructing it at import time throws when GROQ_API_KEY is unset,
-// which breaks `next build` even for routes that never run.
-let _groq: Groq | null = null;
-function getGroq(): Groq {
-  if (!_groq) _groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-  return _groq;
+// Several Groq keys (limits are per key/organisation): requests are spread round-robin, and a key that is rate-limited or
+// rejected is skipped for a while so the next one answers. Keys come from GROQ_API_KEYS (comma or whitespace separated),
+// GROQ_API_KEY and GROQ_API_KEY_1, GROQ_API_KEY_2, ...
+const clients = new Map<string, Groq>();
+const coolUntil = new Map<string, number>();
+let cursor = 0;
+
+const PLACEHOLDER = 'your_groq_api_key_here';
+
+export function groqKeys(): string[] {
+  const raw = [
+    ...(process.env.GROQ_API_KEYS ?? '').split(/[\s,]+/),
+    process.env.GROQ_API_KEY ?? '',
+    ...Object.entries(process.env).filter(([k]) => /^GROQ_API_KEY_\d+$/.test(k)).map(([, v]) => v ?? ''),
+  ];
+  return [...new Set(raw.map((k) => k.trim()).filter((k) => k.length > 10 && k !== PLACEHOLDER))];
+}
+
+export function groqAvailable(): boolean {
+  return groqKeys().length > 0;
+}
+
+function clientFor(key: string): Groq {
+  let c = clients.get(key);
+  if (!c) clients.set(key, (c = new Groq({ apiKey: key })));
+  return c;
+}
+
+/** Rate limit, quota or auth problem on this key (another key may still work). */
+function keyProblem(error: any): { cooldownMs: number } | null {
+  const status = Number(error?.status ?? error?.statusCode);
+  const text = String(error?.message ?? '').toLowerCase();
+  if (status === 429 || /rate.?limit|quota|tokens per|requests per/.test(text)) return { cooldownMs: 60_000 };
+  if (status === 401 || status === 403 || /invalid api key|organization.*(restricted|disabled)/.test(text)) return { cooldownMs: 3_600_000 };
+  return null;
+}
+
+/** Runs `fn` with a usable key, moving on to the next key when one is rate-limited or rejected. */
+async function withKey<T>(fn: (client: Groq) => Promise<T>): Promise<T> {
+  const keys = groqKeys();
+  if (!keys.length) throw new Error('GROQ_API_KEY is not configured on the server');
+  const now = Date.now();
+  const start = cursor++ % keys.length;
+  const order = keys.map((_, i) => keys[(start + i) % keys.length]);
+  // keys on cooldown go last, so they are still tried when every key is limited
+  order.sort((x, y) => Number((coolUntil.get(x) ?? 0) > now) - Number((coolUntil.get(y) ?? 0) > now));
+  let lastError: unknown;
+  for (const key of order) {
+    try {
+      return await fn(clientFor(key));
+    } catch (error: any) {
+      const problem = keyProblem(error);
+      if (!problem) throw error;
+      coolUntil.set(key, Date.now() + problem.cooldownMs);
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 // Default model
@@ -35,14 +87,14 @@ export async function generateChatCompletion(
   const model = options.model || DEFAULT_MODEL;
   const startedAt = Date.now();
   try {
-    const completion = await getGroq().chat.completions.create({
+    const completion = await withKey((client) => client.chat.completions.create({
       model,
       messages,
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
       top_p: options.top_p ?? 1,
       stream: false, // Force stream to false for type safety
-    });
+    }));
 
     recordLlmCall({
       provider: 'groq',
@@ -72,13 +124,13 @@ export async function generateStreamingCompletion(
   } = {}
 ) {
   try {
-    const stream = await getGroq().chat.completions.create({
+    const stream = await withKey((client) => client.chat.completions.create({
       model: options.model || DEFAULT_MODEL,
       messages,
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
       stream: true,
-    });
+    }));
 
     return stream;
   } catch (error: any) {
@@ -199,4 +251,3 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
   return dotProduct / (normA * normB);
 }
 
-export default getGroq;

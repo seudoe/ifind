@@ -81,6 +81,8 @@ export interface IUser extends Document {
     loginCount?: number;
     failedLoginAttempts?: Date[];
     vectorizationStatus: "idle" | "processing" | "completed" | "failed";
+    /** Email me when an employer moves my application forward (default on). Other emails are not optional. */
+    emailApplicationUpdates?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -214,6 +216,7 @@ const UserSchema = new Schema<IUser>(
         loginCount: { type: Number, default: 0 },
         failedLoginAttempts: { type: [Date], default: [] }, // most recent 20, for the ban signals
         vectorizationStatus: { type: String, enum: ["idle", "processing", "completed", "failed"], default: "idle" },
+        emailApplicationUpdates: { type: Boolean, default: true },
     },
     { timestamps: true }
 );

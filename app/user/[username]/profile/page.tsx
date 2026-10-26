@@ -36,6 +36,7 @@ export default function ProfilePage() {
   const { data, error, mutate } = useStudentDashboard();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editSection, setEditSection] = useState<EditSection>("personal");
+  const [tab, setTab] = useState<"edit" | "insights">("edit");
 
   if (!data) return <main className="min-h-screen grid place-items-center text-sm text-[var(--text-2)]">{error ?? "Loading profile…"}</main>;
 
@@ -49,6 +50,12 @@ export default function ProfilePage() {
     !internships.length && "Add internship",
     !resume.certifications.length && "Add certificates",
   ].filter(Boolean) as string[];
+  // "Review missing details" opens the editor for the first gap
+  const reviewMissing = () => {
+    if (!user.profilePicture) return triggerEdit("personal");
+    if (!internships.length) return triggerEdit("internships");
+    triggerEdit("accomplishments");
+  };
 
   const triggerEdit = (section: EditSection) => {
     setEditSection(section);
@@ -64,14 +71,18 @@ export default function ProfilePage() {
           education={education ? `${education.field.type} · ${education.field.course}` : "Student profile"} 
           missing={missing} 
           onEditClick={() => triggerEdit("personal")}
+          onReview={reviewMissing}
         />
 
         <div className="flex items-center gap-6 border-b border-[var(--border)] px-2">
-          <span className="border-b-2 border-[var(--primary)] pb-3 text-sm font-semibold text-[var(--text)]">View & Edit</span>
-          <span className="pb-3 text-sm text-[var(--text-3)]">Activity insights</span>
+          {([["edit", "View & Edit"], ["insights", "Activity insights"]] as const).map(([id, label]) => (
+            <button key={id} type="button" onClick={() => setTab(id)} className={cn("pb-3 text-sm", tab === id ? "border-b-2 border-[var(--primary)] font-semibold text-[var(--text)]" : "text-[var(--text-3)] hover:text-[var(--text-2)]")}>{label}</button>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[200px_1fr]">
+        {tab === "insights" && <ActivityInsights user={user} resume={resume} />}
+
+        <div className={cn("grid grid-cols-1 gap-5 lg:grid-cols-[200px_1fr]", tab !== "edit" && "hidden")}>
           <aside className="h-fit plasma-card p-4 lg:sticky lg:top-20">
             <h2 className="mb-3 text-sm font-semibold text-[var(--heading)]">Quick links</h2>
             <nav className="grid grid-cols-2 gap-x-3 gap-y-1 lg:block">
@@ -229,7 +240,7 @@ export default function ProfilePage() {
   );
 }
 
-function ProfileHeader({ user, education, missing, onEditClick }: { user: User; education: string; missing: string[]; onEditClick: () => void }) {
+function ProfileHeader({ user, education, missing, onEditClick, onReview }: { user: User; education: string; missing: string[]; onEditClick: () => void; onReview: () => void }) {
   const meta = user.resume?.parsedData?.metaDetails;
   const name = meta?.name || user.name;
   const email = meta?.email || user.email;
@@ -289,7 +300,7 @@ function ProfileHeader({ user, education, missing, onEditClick }: { user: User; 
         <div className="mt-3 space-y-2">
           {missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between gap-2 text-xs text-[var(--text-2)]"><span>{item}</span><span className="shrink-0 whitespace-nowrap text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}
         </div>
-        <button type="button" className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white">Review missing details</button>
+        <button type="button" onClick={onReview} disabled={!missing.length} className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{missing.length ? "Review missing details" : "Profile complete"}</button>
       </div>
     </section>
   );
@@ -1528,5 +1539,36 @@ function FormField({ label, children, required }: { label: string; children: Rea
       </label>
       {children}
     </div>
+  );
+}
+
+function ActivityInsights({ user, resume }: { user: User; resume: ParsedResumeData }) {
+  const applied = user.appliedInternships ?? [];
+  const count = (status: string) => applied.filter((a) => a.status === status).length;
+  const stats: [string, string | number][] = [
+    ["Profile completion", `${user.profileCompletionScore ?? 0}%`],
+    ["Applications", applied.length],
+    ["Shortlisted", count("shortlisted")],
+    ["Selected", count("selected")],
+    ["Rejected", count("rejected")],
+    ["Saved internships", user.savedInternships?.length ?? 0],
+    ["Recommended for you", user.recommendedInternships?.recommendedList?.length ?? 0],
+    ["Skills on resume", resume.skills.length],
+  ];
+  return (
+    <section className="plasma-card p-5">
+      <h2 className="text-sm font-semibold text-[var(--heading)]">Your activity</h2>
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {stats.map(([label, value]) => (
+          <div key={label} className="rounded-[var(--radius-sm)] border border-[var(--border)] p-3">
+            <p className="text-xs text-[var(--text-3)]">{label}</p>
+            <p className="mt-1 text-lg font-semibold text-[var(--text)]">{value}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-xs text-[var(--text-3)]">
+        {user.resume?.uploadedAt ? `Resume last updated ${new Date(user.resume.uploadedAt).toLocaleDateString("en-IN")}.` : "No resume uploaded yet."}
+      </p>
+    </section>
   );
 }

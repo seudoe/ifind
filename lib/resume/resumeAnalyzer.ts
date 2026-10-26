@@ -95,8 +95,16 @@ Provide a comprehensive analysis focusing on ATS compatibility:
 
 7. **SUMMARY**: Write a 2-3 sentence overall assessment focusing on ATS readiness and top priority improvements.
 
+**SCORING CALIBRATION (follow this):**
+- The candidate is most likely a student or fresher. Judge them against other students, not against senior professionals. Do not penalise a short, one-page resume or a missing "work experience" section when internships, projects or education are present.
+- Typical scores: a clear, complete student resume with projects and skills scores 65-80 overall. 80-90 means strong, quantified, well-structured. Below 40 is only for a resume that is nearly empty, unreadable or has no usable content. Never give a score below 30 unless the text is under ~100 words.
+- The text below was rebuilt from structured data, so ignore the absence of visual formatting (fonts, columns, bullets). Judge only what is written: content, clarity, specificity, quantified results, keywords.
+- overallScore should be close to the average of the four sub-scores.
+- Strengths and weaknesses must quote or name concrete items from THIS resume (a project, a company, a skill). No generic advice such as "add more keywords" without naming which ones and where.
+- Recommendations: each must say exactly what to change and show a short before/after example when rewriting a line.
+
 **IMPORTANT**: 
-- Be critical but constructive
+- Be honest and constructive
 - Focus on ATS compatibility - will automated systems parse this correctly?
 - All scores should reflect the ACTUAL content, not generic scores
 - Recommendations must be specific to THIS resume, not generic advice

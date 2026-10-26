@@ -15,7 +15,7 @@ import { StipendBadge } from "@/components/internships/StipendBadge";
 import { sourceLabel } from "@/lib/constants";
 import { Modal } from "@/components/ui/Modal";
 import type { Internship } from "@/types";
-import { formatDuration, formatDate, cn, getInternshipId } from "@/lib/utils";
+import { deadlineState, formatDuration, formatDate, cn, getInternshipId } from "@/lib/utils";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics/track";
 
@@ -262,9 +262,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
     ? "Work from Home"
     : formatAddresses(internship.address) || "India";
 
-  const deadlineSoon =
-    internship.deadlineDate &&
-    new Date(internship.deadlineDate).getTime() - Date.now() < 7 * 86400000;
+  const { passed: deadlinePassed, soon: deadlineSoon } = deadlineState(internship.deadlineDate);
 
   return (
     <div className="space-y-6">
@@ -328,7 +326,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
         <div
           className={cn(
             "flex items-center gap-2 p-3 rounded-[var(--radius-sm)] border text-xs leading-relaxed",
-            deadlineSoon
+            deadlinePassed || deadlineSoon
               ? "bg-red-50 border-red-200 text-red-800"
               : "bg-amber-50 border-amber-200 text-amber-800"
           )}
@@ -336,7 +334,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
           <Calendar className="h-4 w-4 shrink-0" />
           <span>
             <strong>Application Deadline:</strong> {formatDate(internship.deadlineDate)}
-            {deadlineSoon && " (Closing soon!)"}
+            {deadlinePassed ? " (Deadline passed, applications are closed)" : deadlineSoon && " (Closing soon!)"}
           </span>
         </div>
       )}
