@@ -70,6 +70,10 @@ const nextConfig: NextConfig = {
   // Don't advertise the framework, and never ship source maps (and the server paths in them) to browsers.
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
+  // Same path as the other services: GET /version
+  async rewrites() {
+    return [{ source: "/version", destination: "/api/version" }];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
