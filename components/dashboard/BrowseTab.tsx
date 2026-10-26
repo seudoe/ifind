@@ -7,7 +7,7 @@ import { FilterPanel } from "@/components/internships/FilterPanel";
 import { InternshipDetailModal, MobileInternshipDetail } from "@/components/internships/InternshipDetail";
 import { useFilters } from "@/hooks/useFilters";
 import { Button } from "@/components/ui/Button";
-import { cn, getInternshipId } from "@/lib/utils";
+import { cn, deadlineState, getInternshipId } from "@/lib/utils";
 import { addressTerms } from "@/lib/address";
 import { track } from "@/lib/analytics/track";
 import { internshipSlug } from "@/lib/slug";
@@ -178,11 +178,11 @@ export function BrowseTab({
       });
     }
 
-    // Sorting
-    // DEADLINE-PASSED (disabled for now): listings past their deadline went last:
-    //   const isClosed = (i: Internship) => (deadlineState(i.deadlineDate).passed ? 1 : 0);   (import deadlineState from "@/lib/utils")
-    //   inside the sort: const closed = isClosed(a) - isClosed(b); if (closed) return closed;
+    // Sorting. Listings whose deadline has passed always go last (they stay visible, marked in red, but never lead the feed)
+    const isClosed = (i: Internship) => (deadlineState(i.deadlineDate).passed ? 1 : 0);
     list.sort((a, b) => {
+      const closed = isClosed(a) - isClosed(b);
+      if (closed) return closed;
       if (filters.sortBy === "stipend") {
         return (b.stipend?.amount || 0) - (a.stipend?.amount || 0);
       }

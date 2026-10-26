@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ApplicationDialog, type ApplicantDetails } from "@/components/internships/ApplicationDialog";
 import { useOptionalStudent } from "@/components/student/StudentProvider";
 import { sourceLabel } from "@/lib/constants";
-import { getInternshipId } from "@/lib/utils";
-// DEADLINE-PASSED (disabled for now): import { deadlineState, getInternshipId } from "@/lib/utils";
+import { deadlineState, getInternshipId } from "@/lib/utils";
 import type { Internship } from "@/types";
 
 interface Props {
@@ -33,8 +32,7 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
   const [error, setError] = useState<string | null>(null);
   const id = getInternshipId(internship);
   const onPlatform = internship.source === "ifind";
-  // DEADLINE-PASSED (disabled for now): const closed = !isApplied && deadlineState(internship.deadlineDate).passed;
-  // then on the Button: disabled={closed}, title "The application deadline has passed", and the label "Deadline passed" when closed
+  const closed = !isApplied && deadlineState(internship.deadlineDate).passed;
   const student = useOptionalStudent();
   // iFind posts always open the apply pop-up (details, resume, employer questions); scraped listings go to the source site
   const needsForm = onPlatform && Boolean(student?.data?.user);
@@ -95,9 +93,10 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
         className={className}
         onClick={click}
         loading={applying && !open}
-        title={isApplied ? "View application status" : undefined}
+        disabled={closed}
+        title={isApplied ? "View application status" : closed ? "The application deadline has passed" : undefined}
       >
-        {isApplied ? "Applied ✓" : onPlatform ? "Apply" : internship.applyLink?.startsWith("mailto:") ? "Apply by email" : internship.source === "web" ? "Apply on company site" : `Apply on ${sourceLabel(internship.source)}`}
+        {isApplied ? "Applied ✓" : closed ? "Deadline passed" : onPlatform ? "Apply" : internship.applyLink?.startsWith("mailto:") ? "Apply by email" : internship.source === "web" ? "Apply on company site" : `Apply on ${sourceLabel(internship.source)}`}
       </Button>
 
       {needsForm && open && student?.data?.user && (

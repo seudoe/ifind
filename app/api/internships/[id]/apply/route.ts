@@ -10,6 +10,7 @@ import { visibleToStudentsFilter } from "@/lib/employer/visibility";
 import PlatformInternship from "@/models/PlatformInternship";
 import User from "@/models/User";
 import { str, strList } from "@/lib/validate";
+import { deadlineState } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -40,9 +41,9 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
         const platform = await PlatformInternship.findOne({ _id: oid, ...visibleToStudentsFilter() });
         if (!platform) {
-            if (!(await db.collection("internships").countDocuments({ _id: oid, isActive: true }, { limit: 1 }))) return fail("Internship not found", 404);
-            // DEADLINE-PASSED (disabled for now): load { deadlineDate: 1 } with findOne instead of countDocuments, then
-            // if (deadlineState(scraped.deadlineDate).passed) return fail("The application deadline has passed", 400);   (import deadlineState from "@/lib/utils")
+            const scraped = await db.collection("internships").findOne({ _id: oid, isActive: true }, { projection: { deadlineDate: 1 } });
+            if (!scraped) return fail("Internship not found", 404);
+            if (deadlineState(scraped.deadlineDate).passed) return fail("The application deadline has passed", 400);
             await record();
             return NextResponse.json({ success: true });
         }
