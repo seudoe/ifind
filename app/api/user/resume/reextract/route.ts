@@ -11,6 +11,7 @@ import {
 import { withBilling } from "@/lib/usage/withBilling";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 async function handlePost() {
     try {
@@ -76,9 +77,8 @@ async function handlePost() {
 
         // Trigger vectorization & recommendation scoring in background
         if (parsedData) {
-            const { vectorizeAndRecommendUser } =
-                await import("@/lib/vectorizer");
-            void vectorizeAndRecommendUser(session.userId, parsedData);
+            const { scheduleVectorize } = await import("@/lib/vectorizer");
+            await scheduleVectorize(session.userId, parsedData);
         }
 
         return NextResponse.json({

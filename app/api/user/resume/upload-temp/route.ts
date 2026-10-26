@@ -16,6 +16,7 @@ import { looksLikePdf } from "@/lib/uploads";
 import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 async function handlePost(req: NextRequest) {
     try {
@@ -141,8 +142,8 @@ async function handlePost(req: NextRequest) {
 
             // Trigger vectorization in background for auto-commit
             if (pendingParsedData) {
-                const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
-                void vectorizeAndRecommendUser((user._id || user.id).toString(), pendingParsedData);
+                const { scheduleVectorize } = await import("@/lib/vectorizer");
+                await scheduleVectorize((user._id || user.id).toString(), pendingParsedData);
             }
 
             return NextResponse.json({

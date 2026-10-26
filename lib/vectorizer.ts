@@ -17,6 +17,21 @@ async function setStatus(userId: string, status: "completed" | "failed") {
 }
 
 /**
+ * Runs vectorizeAndRecommendUser after the response is sent. A plain `void promise` is not enough on Vercel: the function
+ * is frozen once the response is out, so the vectoriser call often never finished. `after()` keeps it alive (bounded by
+ * the route's maxDuration). Outside a request (scripts, tests) it just runs.
+ */
+export async function scheduleVectorize(userId: string, parsedData: unknown): Promise<void> {
+  const run = () => vectorizeAndRecommendUser(userId, parsedData).then(() => undefined).catch((err) => console.error("[vectorizer]", err));
+  try {
+    const { after } = await import("next/server");
+    after(run);
+  } catch {
+    void run();
+  }
+}
+
+/**
  * A student's resume or profile changed: one request to the vectoriser (POST /encode-resume).
  * With user_id it saves the TF-IDF (15,000-d) and BERT (768-d) vectors on the student, and with recommend: true it
  * then runs the student through the WHOLE HNSW graph and saves their recommendations. This is the only time a
@@ -30,11 +45,16 @@ export async function vectorizeAndRecommendUser(userId: string, parsedData: unkn
     return false;
   }
   try {
-    const res = await fetch(`${base}/encode-resume`, {
+    const body = JSON.stringify({ resume: parsedData, boost_weight: BOOST_WEIGHT, user_id: userId, recommend: true });
+    const send = () => fetch(`${base}/encode-resume`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume: parsedData, boost_weight: BOOST_WEIGHT, user_id: userId, recommend: true }),
+      body,
+      signal: AbortSignal.timeout(100_000),
     });
+    // A sleeping vectoriser Space answers the first request with a timeout or 5xx while it wakes: try once more
+    let res = await send().catch(() => null);
+    if (!res || res.status >= 500) res = await send();
     if (!res.ok) {
       console.error(`[vectorizer] /encode-resume failed ${res.status}: ${(await res.text()).slice(0, 200)}`);
       await setStatus(userId, "failed");

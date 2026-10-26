@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/db";
 import { str, strList } from "@/lib/validate";
 
 export const runtime = "nodejs";
+export const maxDuration = 120; // the vectoriser call (encode + whole-graph recommend) runs after the response
 
 /** Only these resume sections may be edited from the profile page (mirrors ParsedResumeData). */
 const EDITABLE_RESUME_SECTIONS = new Set([
@@ -167,7 +168,14 @@ export async function PUT(request: Request) {
       }
     }
 
-    if (hasChanged && mergedUser.resume?.parsedData) {
+    // What the vectoriser reads: the extracted resume, plus the student's own skills list (edited separately on the
+    // profile page). A student with no resume yet is still re-scored from their skills alone.
+    const ownSkills: string[] = Array.isArray(mergedUser.skills) ? mergedUser.skills.filter((s: unknown) => typeof s === "string" && s.trim()) : [];
+    const vectorSource: Record<string, unknown> | null = mergedUser.resume?.parsedData
+      ? { ...mergedUser.resume.parsedData, skills: [...(mergedUser.resume.parsedData.skills ?? []), ...ownSkills] }
+      : ownSkills.length ? { skills: ownSkills } : null;
+
+    if (hasChanged && vectorSource) {
       setFields["vectorizationStatus"] = "processing";
     }
 
@@ -188,9 +196,9 @@ export async function PUT(request: Request) {
     const updatedUser = 'value' in result ? result.value : result;
 
     // Only re-encode vectors & update recommended internships if section data actually changed
-    if (hasChanged && mergedUser.resume?.parsedData) {
-      const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
-      void vectorizeAndRecommendUser(session.userId, mergedUser.resume.parsedData);
+    if (hasChanged && vectorSource) {
+      const { scheduleVectorize } = await import("@/lib/vectorizer");
+      await scheduleVectorize(session.userId, vectorSource);
     }
 
     return NextResponse.json({

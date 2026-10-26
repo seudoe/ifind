@@ -6,6 +6,7 @@ import User from "@/models/User";
 import { deleteResumeFromImageKit } from "@/lib/imagekit";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 export async function POST() {
   try {
@@ -50,8 +51,8 @@ export async function POST() {
 
     // Trigger vectorization & recommendation scoring in background
     if (pendingParsedData) {
-      const { vectorizeAndRecommendUser } = await import("@/lib/vectorizer");
-      void vectorizeAndRecommendUser(session.userId, pendingParsedData);
+      const { scheduleVectorize } = await import("@/lib/vectorizer");
+      await scheduleVectorize(session.userId, pendingParsedData);
     }
 
     await notify({
