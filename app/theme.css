@@ -9,18 +9,18 @@
    :root[data-theme="dark"]   -> DARK theme
    The ThemeProvider sets data-theme on <html> from the saved choice (light | dark | system).
 
-   Design language: navy / blue / cool-white, 2-4px corners, 2px structural rules, 1px hairlines,
-   mono UPPERCASE chrome + Inter content. Blue is the only action colour.
+   Design language: navy / violet / cream, 2-4px corners, 2px structural rules, 1px hairlines,
+   mono UPPERCASE chrome + Inter content. Violet is the only action colour.
    ===================================================================== */
 
 :root {
   color-scheme: light;
 
   /* Surfaces */
-  --bg:         #eef3fa;   /* page canvas (cool blue-white) */
+  --bg:         #f2efe6;   /* page canvas (warm cream) */
   --surface:    #ffffff;   /* cards, inputs, sidebars */
   --surface-2:  #f1f5f9;   /* hover, chips, subtle fills */
-  --surface-3:  #e1e9f5;   /* skeletons, tracks */
+  --surface-3:  #e9e6dc;   /* skeletons, tracks */
 
   /* Borders */
   --border:     #e2e8f0;   /* 1px hairlines */
@@ -29,9 +29,9 @@
 
   /* Brand */
   --navy:       #172554;   /* brand badge, dark panels */
-  --primary:    #2563eb;   /* royal blue: the ONLY action colour */
-  --primary-dk: #1d4ed8;   /* hover */
-  --primary-bg: #e6efff;   /* tint: hover bg, selected, focus ring */
+  --primary:    #6d5ae6;   /* electric violet: the ONLY action colour */
+  --primary-dk: #5848c2;   /* hover */
+  --primary-bg: #efecfd;   /* tint: hover bg, selected, focus ring */
   --on-primary: #ffffff;
 
   /* Text */
@@ -49,12 +49,12 @@
   --mint-ink:   #047857;
 
   /* Decorative accent chips (initials / logos), rotated by name hash */
-  --accent-1: #0ea5e9; --accent-2: #2563eb; --accent-3: #10b981; --accent-4: #f5316b; --accent-5: #1d9bf0;
-  --accent-6: #f5a623; --accent-7: #0dd4b8; --accent-8: #ff6b4a; --accent-9: #84cc16; --accent-10: #06b6d4;
+  --accent-1: #6366f1; --accent-2: #6d5ae6; --accent-3: #10b981; --accent-4: #f5316b; --accent-5: #1d9bf0;
+  --accent-6: #f5a623; --accent-7: #0dd4b8; --accent-8: #ff6b4a; --accent-9: #84cc16; --accent-10: #d946ef;
 
   /* Landing page */
-  --landing-grad: linear-gradient(180deg, #dbeafe 0%, #e8f0fe 35%, #eef3fa 75%);
-  --sphere-violet: rgba(37, 99, 235, 0.38);
+  --landing-grad: linear-gradient(180deg, #e0ecff 0%, #eef2ff 35%, #f2efe6 75%);
+  --sphere-violet: rgba(109, 90, 230, 0.4);
   --sphere-blue:   rgba(96, 165, 250, 0.35);
   --sphere-green:  rgba(16, 185, 129, 0.32);
   --sphere-navy:   rgba(23, 37, 84, 0.22);
@@ -65,12 +65,7 @@
   --shadow:        0 8px 24px rgba(23, 37, 84, 0.08);
   --shadow-md:     0 8px 24px rgba(23, 37, 84, 0.08);
   --shadow-lg:     0 20px 50px rgba(23, 37, 84, 0.12);
-  --shadow-violet: 0 10px 28px rgba(37, 99, 235, 0.18);
-
-  /* Gradients: a slight lift on the big, important surfaces (hero, primary buttons, stat cards, panels) */
-  --grad-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
-  --grad-surface: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
-  --grad-hero:    linear-gradient(160deg, #2563eb 0%, #1e3a8a 70%, #172554 100%);
+  --shadow-violet: 0 10px 28px rgba(109, 90, 230, 0.16);
 
   /* Geometry — almost-square corners (also drives Tailwind rounded-*) */
   --radius-xs:  2px;
@@ -94,26 +89,26 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:         #09111f;
-  --surface:    #0f1b33;
-  --surface-2:  #152545;
-  --surface-3:  #1c3157;
+  --bg:         #0b1020;
+  --surface:    #121a36;
+  --surface-2:  #182246;
+  --surface-3:  #212c58;
 
-  --border:     #1f3560;
-  --border-2:   #2c4a82;
-  --rule:       #3b62ad;
+  --border:     #26305a;
+  --border-2:   #36427a;
+  --rule:       #4a5699;
 
-  --navy:       #12306f;
-  --primary:    #4f8bff;
-  --primary-dk: #7aa6ff;   /* hover is lighter on dark */
-  --primary-bg: #11264d;
+  --navy:       #1b2866;
+  --primary:    #7f6df0;
+  --primary-dk: #9384f5;   /* hover is lighter on dark */
+  --primary-bg: #221d4d;
   --on-primary: #ffffff;
 
-  --heading:    #ecf3ff;
-  --text:       #e3ecfa;
-  --text-2:     #b3c4e2;
-  --text-3:     #8aa0cc;
-  --text-inv:   #09111f;
+  --heading:    #eef0ff;
+  --text:       #e6e9f7;
+  --text-2:     #b8c0e0;
+  --text-3:     #8d97c4;
+  --text-inv:   #0b1020;
 
   --success:    #34d399;
   --warning:    #fbbf24;
@@ -121,20 +116,16 @@
   --mint-bg:    #0f3d33;
   --mint-ink:   #6ee7b7;
 
-  --landing-grad: linear-gradient(180deg, #0d1c3d 0%, #0b1730 35%, #09111f 75%);
-  --sphere-violet: rgba(79, 139, 255, 0.28);
+  --landing-grad: linear-gradient(180deg, #0f1733 0%, #0d1430 35%, #0b1020 75%);
+  --sphere-violet: rgba(127, 109, 240, 0.28);
   --sphere-blue:   rgba(96, 165, 250, 0.16);
   --sphere-green:  rgba(16, 185, 129, 0.16);
-  --sphere-navy:   rgba(79, 139, 255, 0.18);
+  --sphere-navy:   rgba(99, 118, 220, 0.18);
   --overlay: rgba(0, 0, 0, 0.65);
 
   --shadow-sm:     0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow:        0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-md:     0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-lg:     0 20px 50px rgba(0, 0, 0, 0.55);
-  --shadow-violet: 0 10px 28px rgba(79, 139, 255, 0.25);
-
-  --grad-primary: linear-gradient(135deg, #5b95ff 0%, #4f8bff 55%, #3b78ee 100%);
-  --grad-surface: linear-gradient(180deg, #12213f 0%, #0f1b33 100%);
-  --grad-hero:    linear-gradient(160deg, #1f4fb8 0%, #12306f 70%, #0b1d45 100%);
+  --shadow-violet: 0 10px 28px rgba(127, 109, 240, 0.25);
 }

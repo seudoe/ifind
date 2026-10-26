@@ -73,7 +73,7 @@ export function HeroSection({ stats, categories }: Props) {
 
           {/* Visual: graduate photo on a brand panel, with the newest real listing floating over it */}
           <div className="relative w-full">
-            <div className="relative aspect-[1444/1089] overflow-hidden rounded-[24px] shadow-[var(--shadow-lg)]" style={{ background: "var(--grad-hero)" }}>
+            <div className="relative aspect-[1444/1089] overflow-hidden rounded-[24px] shadow-[var(--shadow-lg)]" style={{ background: "linear-gradient(160deg, var(--primary) 0%, var(--navy) 100%)" }}>
               <Image src="/hero-student.png" alt="Smiling graduate holding a laptop in front of a company campus" fill priority sizes="(min-width: 1024px) 480px, 90vw" className="object-cover" />
             </div>
           </div>
