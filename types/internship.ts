@@ -1,5 +1,5 @@
 /** Where an internship came from: a scraper, or "ifind" (posted by an employer on our platform). */
-export const INTERNSHIP_SOURCES = ["github", "internshala", "indeed", "naukri", "unstop", "freshersworld", "letsintern", "telegram", "ifind"] as const;
+export const INTERNSHIP_SOURCES = ["github", "internshala", "indeed", "naukri", "unstop", "freshersworld", "letsintern", "telegram", "web", "ifind"] as const;
 export type InternshipSource = (typeof INTERNSHIP_SOURCES)[number];
 /** Stored values: the sources above plus the pre-migration "web_scraping" (see internScraper/backfill_source.py). */
 export type StoredInternshipSource = InternshipSource | "web_scraping";

@@ -11,6 +11,7 @@ export const SOURCE_LABELS: Record<InternshipSource, string> = {
   freshersworld: "Freshersworld",
   indeed: "Indeed",
   github: "GitHub",
+  web: "Web",
 };
 
 /** Label for any stored source; legacy "web_scraping" and unknown values read as "Web". */

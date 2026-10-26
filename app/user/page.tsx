@@ -22,7 +22,7 @@ export default async function StudentLandingPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
-        <HeroSection stats={data.stats} categories={data.categories} latest={data.featured[0]} />
+        <HeroSection stats={data.stats} categories={data.categories} />
 
         {data.featured.length > 0 && (
           <section id="categories" className="py-12 bg-[var(--bg)]">

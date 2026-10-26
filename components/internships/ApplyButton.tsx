@@ -96,7 +96,7 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
         disabled={closed}
         title={isApplied ? "View application status" : closed ? "The application deadline has passed" : undefined}
       >
-        {isApplied ? "Applied ✓" : closed ? "Deadline passed" : onPlatform ? "Apply" : internship.applyLink?.startsWith("mailto:") ? "Apply by email" : `Apply on ${sourceLabel(internship.source)}`}
+        {isApplied ? "Applied ✓" : closed ? "Deadline passed" : onPlatform ? "Apply" : internship.applyLink?.startsWith("mailto:") ? "Apply by email" : internship.source === "web" ? "Apply on company site" : `Apply on ${sourceLabel(internship.source)}`}
       </Button>
 
       {needsForm && open && student?.data?.user && (

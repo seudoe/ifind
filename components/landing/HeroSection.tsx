@@ -1,13 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Search, Star, User, Zap } from "lucide-react";
+import { Search, Star, User, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { HeroSearch } from "@/components/landing/HeroSearch";
-import { StipendBadge } from "@/components/internships/StipendBadge";
-import { formatAddresses } from "@/lib/address";
-import { internshipSlug } from "@/lib/slug";
 import { cn } from "@/lib/utils";
-import type { Internship } from "@/types";
 
 const FEATURES = [
   { icon: Search, label: "Personalized matching" },
@@ -23,19 +19,12 @@ const ACCENTS = ["var(--accent-1)", "var(--accent-2)", "var(--accent-3)", "var(-
 interface Props {
   stats: { internships: number; students: number; companies: number; applications: number };
   categories: { label: string; code: string; count: number }[];
-  latest?: Internship;
 }
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
-/** Landing hero: copy + live latest listing on the left/right, then search, category chips and real platform numbers. */
-export function HeroSection({ stats, categories, latest }: Props) {
-  const location = latest
-    ? latest.isRemote
-      ? "Work from Home"
-      : formatAddresses(latest.address, ["city", "state"]) || "India"
-    : "";
-
+/** Landing hero: copy and graduate photo, then search, category chips and real platform numbers. */
+export function HeroSection({ stats, categories }: Props) {
   const STATS = [
     { value: stats.internships, label: "Active internships" },
     { value: stats.companies, label: "Hiring companies" },
@@ -84,23 +73,9 @@ export function HeroSection({ stats, categories, latest }: Props) {
 
           {/* Visual: graduate photo on a brand panel, with the newest real listing floating over it */}
           <div className="relative w-full">
-            <div className="relative aspect-[1444/1089] overflow-hidden rounded-[24px] shadow-[var(--shadow-lg)]" style={{ background: "linear-gradient(160deg, var(--primary) 0%, var(--navy) 100%)" }}>
+            <div className="relative aspect-[1444/1089] overflow-hidden rounded-[24px] shadow-[var(--shadow-lg)]" style={{ background: "var(--grad-hero)" }}>
               <Image src="/hero-student.png" alt="Smiling graduate holding a laptop in front of a company campus" fill priority sizes="(min-width: 1024px) 480px, 90vw" className="object-cover" />
             </div>
-            {latest && (
-              <Link
-                href={`/internships/${internshipSlug(latest)}`}
-                className="absolute -left-2 sm:-left-6 bottom-8 max-w-[260px] rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-3.5 shadow-[var(--shadow-lg)] hover:border-[var(--primary)] transition-colors"
-              >
-                <span className="label !text-[10px] !text-[var(--success)]">● Newly listed</span>
-                <p className="text-[13px] font-bold leading-snug text-[var(--heading)] mt-1 line-clamp-2">{latest.name}</p>
-                <p className="text-[11.5px] text-[var(--text-3)] truncate">{latest.company}</p>
-                <div className="flex items-center gap-2 mt-1.5 text-[11px] text-[var(--text)]">
-                  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{location}</span>
-                  <StipendBadge stipend={latest.stipend} className="text-[11px]" />
-                </div>
-              </Link>
-            )}
           </div>
         </div>
 
