@@ -39,7 +39,7 @@ jobs:
         run: bash scripts/sync-vercel-env.sh
 
       - name: Deploy to production
-        run: vercel deploy --prod --yes --build-env GIT_SHA=${{ github.sha }} --build-env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }} --env GIT_SHA=${{ github.sha }} --env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }}
+        run: vercel deploy --prod --yes --build-env GIT_SHA=${{ github.sha }} --build-env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }} --env INSTANCE=${{ env.PROJECT_IDENTITY }} --env GIT_SHA=${{ github.sha }} --env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }}
 
   deploy-rest:
     name: Deploy account ${{ matrix.target }}
@@ -90,4 +90,4 @@ jobs:
         run: bash scripts/sync-vercel-env.sh
 
       - name: Deploy to production
-        run: vercel deploy --prod --yes --build-env GIT_SHA=${{ github.sha }} --build-env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }} --env GIT_SHA=${{ github.sha }} --env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }}
+        run: vercel deploy --prod --yes --build-env GIT_SHA=${{ github.sha }} --build-env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }} --env INSTANCE=${{ env.PROJECT_IDENTITY }} --env GIT_SHA=${{ github.sha }} --env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }}
