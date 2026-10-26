@@ -13,12 +13,12 @@ export function notificationEmail(opts: { title: string; body?: string | null; l
     const html = `<!doctype html><html><body style="margin:0;background:#f2efe6;font-family:Inter,Segoe UI,Arial,sans-serif;color:#1e293b">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #e2e8f0;border-radius:3px">
-    <tr><td style="padding:16px 24px;border-bottom:2px solid #172554"><span style="display:inline-block;background:#172554;color:#ffffff;font-weight:700;font-size:15px;padding:6px 10px;border-radius:2px"><span style="color:#8b7cf0">i</span>Find</span></td></tr>
+    <tr><td style="padding:16px 24px;border-bottom:2px solid #172554"><span style="display:inline-block;background:#172554;color:#ffffff;font-weight:700;font-size:15px;padding:6px 10px;border-radius:2px"><span style="color:#60a5fa">i</span>Find</span></td></tr>
     <tr><td style="padding:24px">
       ${opts.contextLine ? `<p style="margin:0 0 8px;font-family:Consolas,monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#64748b">${esc(opts.contextLine)}</p>` : ""}
       <h1 style="margin:0 0 12px;font-size:19px;line-height:1.3;color:#172554">${esc(opts.title)}</h1>
       ${opts.body ? `<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#333f4e">${esc(opts.body)}</p>` : ""}
-      ${url ? `<a href="${esc(url)}" style="display:inline-block;background:#6d5ae6;color:#ffffff;text-decoration:none;font-family:Consolas,monospace;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:11px 18px;border-radius:2px">Open in iFind</a>` : ""}
+      ${url ? `<a href="${esc(url)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-family:Consolas,monospace;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:11px 18px;border-radius:2px">Open in iFind</a>` : ""}
     </td></tr>
     <tr><td style="padding:14px 24px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b">You are receiving this because it is an important update about your iFind account. Everything else waits in your notifications.</td></tr>
   </table>

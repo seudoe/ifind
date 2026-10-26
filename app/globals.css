@@ -54,6 +54,7 @@ html:hover, *:hover, *:active { scrollbar-color: var(--border-2) transparent; }
 /* ── Card ────────────────────────────────────────────────────────────────── */
 .plasma-card {
   background: var(--surface);
+  background-image: var(--grad-surface); /* slight top-to-bottom lift on cards and panels */
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);

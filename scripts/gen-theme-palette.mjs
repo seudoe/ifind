@@ -8,22 +8,25 @@ const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const rev = (s) => STEPS[STEPS.length - 1 - STEPS.indexOf(s)];
 const scale = (hue) => Object.fromEntries(STEPS.map((s) => [s, src.match(new RegExp(`--color-${hue}-${s}:\s*([^;]+);`))?.[1]]));
 
-// Hand-tuned scales: gray -> slate/navy (900 is the heading navy), blue -> brand violet.
+// Hand-tuned scales: gray -> slate/navy (900 is the heading navy), blue -> brand blue (indigo / purple / violet / fuchsia are aliased onto it).
 const custom = {
   gray: {
     light: { 50: "#f8fafc", 100: "#f1f5f9", 200: "#e2e8f0", 300: "#cbd5e1", 400: "#94a3b8", 500: "#64748b", 600: "#475569", 700: "#334155", 800: "#1e293b", 900: "#172554", 950: "#0f172a" },
-    dark:  { 50: "#151c3b", 100: "#1b2347", 200: "#262f5a", 300: "#38437a", 400: "#7e89b8", 500: "#98a2cc", 600: "#b4bde0", 700: "#cdd3ee", 800: "#e1e5f6", 900: "#eef0fb", 950: "#f8f9ff" },
+    dark:  { 50: "#12203d", 100: "#172a4d", 200: "#22365f", 300: "#34497a", 400: "#7c92c0", 500: "#97aad0", 600: "#b3c3e2", 700: "#ccd8ef", 800: "#e0e9f8", 900: "#eef3fc", 950: "#f8faff" },
   },
   blue: {
-    light: { 50: "#efecfd", 100: "#e2ddfb", 200: "#cbc3f8", 300: "#aea2f3", 400: "#9183ee", 500: "#7a69ea", 600: "#6d5ae6", 700: "#5848c2", 800: "#473a9c", 900: "#372d78", 950: "#241c5c" },
-    dark:  { 50: "#221d4d", 100: "#2c2563", 200: "#3a317f", 300: "#5648b8", 400: "#8273ee", 500: "#8f81f0", 600: "#7f6df0", 700: "#6b59dc", 800: "#c2b9f9", 900: "#dcd7fc", 950: "#efecfd" },
+    light: { 50: "#eff6ff", 100: "#dbeafe", 200: "#bfdbfe", 300: "#93c5fd", 400: "#60a5fa", 500: "#3b82f6", 600: "#2563eb", 700: "#1d4ed8", 800: "#1e40af", 900: "#1e3a8a", 950: "#172554" },
+    dark:  { 50: "#10244a", 100: "#14305f", 200: "#1b4285", 300: "#2559b8", 400: "#4f8bff", 500: "#5b95ff", 600: "#4f8bff", 700: "#3f78ee", 800: "#b6cfff", 900: "#d6e4ff", 950: "#eaf1ff" },
   },
 };
-const reversed = ["red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "indigo", "purple", "fuchsia", "pink", "rose"];
+const reversed = ["red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "pink", "rose"];
+const bluish = ["indigo", "purple", "violet", "fuchsia"]; // the purple family follows the brand blue
 
 let light = "", dark = "";
 for (const [hue, v] of Object.entries(custom))
   for (const s of STEPS) { light += `  --color-${hue}-${s}: ${v.light[s]};\n`; dark += `  --color-${hue}-${s}: ${v.dark[s]};\n`; }
+for (const hue of bluish)
+  for (const s of STEPS) { light += `  --color-${hue}-${s}: ${custom.blue.light[s]};\n`; dark += `  --color-${hue}-${s}: ${custom.blue.dark[s]};\n`; }
 for (const hue of reversed) {
   const d = scale(hue);
   for (const s of STEPS) dark += `  --color-${hue}-${s}: ${d[rev(s)]};\n`; // 50<->950, 100<->900 ... keeps tints dark and text light

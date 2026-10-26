@@ -240,8 +240,8 @@ export function BrowseTab({
 
   return (
     <div className="flex gap-6">
-      {/* Desktop Filter Sidebar - hidden on mobile details view */}
-      <aside className={cn("hidden lg:block w-64 shrink-0", selectedInternship && "lg:block")}>
+      {/* Desktop filter sidebar, on the right; hidden on mobile details view */}
+      <aside className={cn("hidden lg:block lg:order-last w-64 shrink-0", selectedInternship && "lg:block")}>
         <div className="sticky top-20">
           <FilterPanel
             filters={filters}
