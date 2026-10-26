@@ -262,7 +262,9 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
     ? "Work from Home"
     : formatAddresses(internship.address) || "India";
 
-  const { passed: deadlinePassed, soon: deadlineSoon } = deadlineState(internship.deadlineDate);
+  const { soon: deadlineSoon } = deadlineState(internship.deadlineDate);
+  // DEADLINE-PASSED (disabled for now): const { passed: deadlinePassed, soon: deadlineSoon } = deadlineState(internship.deadlineDate);
+  // then: red banner when deadlinePassed || deadlineSoon, and the text {deadlinePassed ? " (Deadline passed, applications are closed)" : deadlineSoon && " (Closing soon!)"}
 
   return (
     <div className="space-y-6">
@@ -326,7 +328,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
         <div
           className={cn(
             "flex items-center gap-2 p-3 rounded-[var(--radius-sm)] border text-xs leading-relaxed",
-            deadlinePassed || deadlineSoon
+            deadlineSoon
               ? "bg-red-50 border-red-200 text-red-800"
               : "bg-amber-50 border-amber-200 text-amber-800"
           )}
@@ -334,7 +336,7 @@ function InternshipDetailContent({ internship }: { internship: Internship }) {
           <Calendar className="h-4 w-4 shrink-0" />
           <span>
             <strong>Application Deadline:</strong> {formatDate(internship.deadlineDate)}
-            {deadlinePassed ? " (Deadline passed, applications are closed)" : deadlineSoon && " (Closing soon!)"}
+            {deadlineSoon && " (Closing soon!)"}
           </span>
         </div>
       )}

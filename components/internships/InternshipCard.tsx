@@ -44,7 +44,9 @@ export function InternshipCard({
     ? "Work from Home"
     : formatAddresses(internship.address, ["city", "state"]) || formatAddresses(internship.address, ["country"]) || "India";
 
-  const { passed: deadlinePassed, soon: deadlineSoon } = deadlineState(internship.deadlineDate);
+  const { soon: deadlineSoon } = deadlineState(internship.deadlineDate);
+  // DEADLINE-PASSED (disabled for now): to show "Deadline passed" in red on cards, use the line below and the commented JSX further down
+  // const { passed: deadlinePassed, soon: deadlineSoon } = deadlineState(internship.deadlineDate);
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -111,8 +113,8 @@ export function InternshipCard({
         {/* Deadline */}
         {internship.deadlineDate && (
           <div className="hidden md:block text-[11px] text-right shrink-0">
-            <span className={cn(deadlinePassed || deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
-              {deadlinePassed ? `Deadline passed ${formatDate(internship.deadlineDate)}` : `${deadlineSoon ? "⚡ " : ""}Closes ${formatDate(internship.deadlineDate)}`}
+            <span className={cn(deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
+              {deadlineSoon ? "⚡ " : ""}Closes {formatDate(internship.deadlineDate)}
             </span>
           </div>
         )}
@@ -167,9 +169,8 @@ export function InternshipCard({
           {isRecommended && (
             <Badge variant="default" className="gap-1 text-[10px]"><Sparkles className="h-2.5 w-2.5" />AI Pick</Badge>
           )}
-          {deadlinePassed ? (
-            <Badge variant="danger" className="text-[10px]">Deadline passed</Badge>
-          ) : deadlineSoon && (
+          {/* DEADLINE-PASSED (disabled for now): {deadlinePassed ? (<Badge variant="danger" className="text-[10px]">Deadline passed</Badge>) : deadlineSoon && (...closing soon badge...)} */}
+          {deadlineSoon && (
             <Badge variant="warning" className="text-[10px]">⚡ Closing soon</Badge>
           )}
         </div>
@@ -198,8 +199,8 @@ export function InternshipCard({
         </div>
 
         {internship.deadlineDate && (
-          <p className={cn("text-[11px] mt-auto", deadlinePassed || deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
-            {deadlinePassed ? "Deadline passed" : "Deadline"}: {formatDate(internship.deadlineDate)}
+          <p className={cn("text-[11px] mt-auto", deadlineSoon ? "text-red-500 font-medium" : "text-[var(--text-3)]")}>
+            Deadline: {formatDate(internship.deadlineDate)}
           </p>
         )}
       </div>

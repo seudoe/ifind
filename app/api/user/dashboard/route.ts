@@ -38,7 +38,7 @@ export async function GET() {
     const projection = { bert_vector: 0, tfidf_vector: 0, moderation: 0 };
     const visible = visibleToStudentsFilter() as Record<string, unknown>;
     const [scraped, platform, linkedScraped, linkedPlatform] = await Promise.all([
-      db.collection("internships").find({ isActive: true }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).sort({ datePublished: -1 }).limit(300).toArray(),
+      db.collection("internships").find({ isActive: true }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).sort({ datePublished: -1 }).limit(1000).toArray(),
       db.collection("internships.this-platform").find(visible, { projection }).sort({ datePublished: -1 }).limit(200).toArray(),
       linkedIds.length ? db.collection("internships").find({ _id: { $in: linkedIds } }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).toArray() : [],
       linkedIds.length ? db.collection("internships.this-platform").find({ _id: { $in: linkedIds }, "moderation.status": { $in: ["auto_approved", "manually_approved"] } }, { projection }).toArray() : [],

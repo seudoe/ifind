@@ -179,6 +179,9 @@ export function BrowseTab({
     }
 
     // Sorting
+    // DEADLINE-PASSED (disabled for now): listings past their deadline went last:
+    //   const isClosed = (i: Internship) => (deadlineState(i.deadlineDate).passed ? 1 : 0);   (import deadlineState from "@/lib/utils")
+    //   inside the sort: const closed = isClosed(a) - isClosed(b); if (closed) return closed;
     list.sort((a, b) => {
       if (filters.sortBy === "stipend") {
         return (b.stipend?.amount || 0) - (a.stipend?.amount || 0);
