@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Briefcase, CircleCheck, CircleX } from "lucide-react";
+import { ApplyDialog } from "@/components/student/campus/ApplyDialog";
+import { Button } from "@/components/ui/Button";
 import { useCampus } from "@/components/student/campus/CampusProvider";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -27,7 +31,10 @@ const TBA = "To be announced";
 
 export default function CampusInternshipsPage() {
     const { state } = useCampus();
+    const { username } = useParams<{ username: string }>();
     const [items, setItems] = useState<Item[] | null>(null);
+    const [applying, setApplying] = useState<string | null>(null);
+    const [tick, setTick] = useState(0);
     const joined = !!state?.current;
 
     useEffect(() => {
@@ -38,7 +45,7 @@ export default function CampusInternshipsPage() {
             .then((j) => live && setItems(j.success ? j.data.items : []))
             .catch(() => live && setItems([]));
         return () => { live = false; };
-    }, [joined]);
+    }, [joined, tick]);
 
     if (!state) return null;
     if (!joined) {
@@ -85,8 +92,16 @@ export default function CampusInternshipsPage() {
                         <div><dt className="text-[var(--text-3)]">Stipend</dt><dd className="text-[var(--text)] capitalize">{i.stipend ? (i.stipend.type === "paid" && i.stipend.amount ? `₹${i.stipend.amount.toLocaleString("en-IN")}${i.stipend.period === "monthly" ? "/month" : ""}` : i.stipend.type) : TBA}</dd></div>
                         <div><dt className="text-[var(--text-3)]">Duration</dt><dd className="text-[var(--text)]">{i.duration ? `${i.duration.value} ${i.duration.unit}` : TBA}</dd></div>
                     </dl>
+                    <div className="flex justify-end">
+                        {i.applicationStatus ? (
+                            <Link href={`/user/${username}/campus/applied`} className="text-sm text-[var(--primary)] hover:underline">View application</Link>
+                        ) : (
+                            <Button size="sm" disabled={!i.eligible} onClick={() => setApplying(i._id)}>{i.eligible ? "Apply" : "Not eligible"}</Button>
+                        )}
+                    </div>
                 </li>
             ))}
+            {applying && state?.enrollment && <ApplyDialog internshipId={applying} enrollment={state.enrollment} onClose={() => setApplying(null)} onDone={() => { setApplying(null); setItems(null); setTick((t) => t + 1); }} />}
         </ul>
     );
 }

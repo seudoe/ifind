@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Search, Users } from "lucide-react";
+import { toast } from "sonner";
+import { controlCls } from "@/components/employer/CompanyForm";
+import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -11,10 +14,15 @@ import type { StudentRow } from "@/lib/campus/studentRow";
 interface Data { items: StudentRow[]; total: number; page: number; pageSize: number; uidLabel: string }
 
 /** Joined students of the campus (staff only). Removing and barring students arrive with applications. */
-export function CampusStudentsTable({ entityId }: { entityId: string }) {
+export function CampusStudentsTable({ entityId, canEdit }: { entityId: string; canEdit: boolean }) {
     const [q, setQ] = useState("");
     const [term, setTerm] = useState("");
     const [page, setPage] = useState(1);
+    const [tick, setTick] = useState(0);
+    const [act, setAct] = useState<{ kind: "ban" | "remove"; s: StudentRow } | null>(null);
+    const [reason, setReason] = useState("");
+    const [alsoRemove, setAlsoRemove] = useState(true);
+    const [busy, setBusy] = useState(false);
     const [data, setData] = useState<Data | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +39,23 @@ export function CampusStudentsTable({ entityId }: { entityId: string }) {
             .then((j) => { if (!live) return; if (j.success) { setData(j.data); setError(null); } else setError(j.error); })
             .catch(() => live && setError("Unable to load students"));
         return () => { live = false; };
-    }, [entityId, term, page]);
+    }, [entityId, term, page, tick]);
+
+    const run = async () => {
+        if (!act) return;
+        setBusy(true);
+        const base = `/api/employer/campus/${entityId}`;
+        const res = act.kind === "ban"
+            ? await fetch(`${base}/blacklist`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ studentId: act.s.userId, reason, removeOpen: alsoRemove }) })
+            : await fetch(`${base}/students/${act.s.userId}/remove`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason }) });
+        const j = await res.json().catch(() => ({ success: false, error: "Failed" }));
+        setBusy(false);
+        if (!j.success) return toast.error(j.error);
+        toast.success(act.kind === "ban" ? "Student barred" : "Student removed from the campus");
+        setAct(null);
+        setReason("");
+        setTick((t) => t + 1);
+    };
 
     const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
@@ -62,6 +86,7 @@ export function CampusStudentsTable({ entityId }: { entityId: string }) {
                                 <th className="px-4 py-3 font-medium">Batch</th>
                                 <th className="px-4 py-3 font-medium text-right">CGPA</th>
                                 <th className="px-4 py-3 font-medium">Joined</th>
+                                {canEdit && <th className="px-4 py-3 font-medium text-right">Actions</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -79,6 +104,12 @@ export function CampusStudentsTable({ entityId }: { entityId: string }) {
                                     <td className="px-4 py-3 tabular-nums">{s.batch}</td>
                                     <td className="px-4 py-3 text-right tabular-nums">{s.cgpa ?? "-"}</td>
                                     <td className="px-4 py-3 text-[var(--text-2)]">{s.joinedAt ? new Date(s.joinedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "-"}</td>
+                                    {canEdit && (
+                                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                                            <Button size="sm" variant="ghost" onClick={() => { setReason(""); setAct({ kind: "remove", s }); }}>Remove</Button>
+                                            <Button size="sm" variant="ghost" onClick={() => { setReason(""); setAct({ kind: "ban", s }); }}>Ban</Button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
@@ -95,6 +126,20 @@ export function CampusStudentsTable({ entityId }: { entityId: string }) {
                     </div>
                 </div>
             )}
+
+            <Modal open={!!act} onClose={() => setAct(null)} title={act?.kind === "ban" ? `Bar ${act.s.name} from campus internships?` : `Remove ${act?.s.name ?? ""} from the campus?`} size="sm">
+                <p className="mb-3 text-sm text-[var(--text-2)]">
+                    {act?.kind === "ban"
+                        ? "They can't apply to any internship of this campus until you lift it from the Blacklist. They are told the reason."
+                        : "They go back to having no campus and their open applications here are removed. This is not a ban: they can rejoin with your code."}
+                </p>
+                <textarea className={controlCls} rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={act?.kind === "ban" ? "Reason (required, the student sees it)" : "Reason (optional)"} aria-label="Reason" />
+                {act?.kind === "ban" && <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={alsoRemove} onChange={(e) => setAlsoRemove(e.target.checked)} className="accent-[var(--campus)]" /> Also remove them from their open applications here</label>}
+                <div className="mt-4 flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => setAct(null)}>Cancel</Button>
+                    <Button variant="danger" loading={busy} disabled={act?.kind === "ban" && reason.trim().length < 3} onClick={run}>{act?.kind === "ban" ? "Bar student" : "Remove"}</Button>
+                </div>
+            </Modal>
         </div>
     );
 }
