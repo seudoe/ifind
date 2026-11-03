@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
                 type: "account_status",
                 title: "Your employer account was reinstated",
                 body: "A moderator lifted the ban. You can post and manage internships again.",
-                link: "/employer/companies",
+                link: "/employer/institutes",
             });
         }
         return NextResponse.json({ success: true });

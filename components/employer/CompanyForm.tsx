@@ -41,7 +41,7 @@ export function Field({ label, error, hint, children }: { label: string; error?:
     );
 }
 
-function ImageField({ label, value, onChange }: { label: string; value?: string; onChange: (url: string) => void }) {
+export function ImageField({ label, value, onChange }: { label: string; value?: string; onChange: (url: string) => void }) {
     const ref = useRef<HTMLInputElement>(null);
     const [busy, setBusy] = useState(false);
     const upload = async (file: File) => {

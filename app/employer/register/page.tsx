@@ -42,7 +42,7 @@ export default function EmployerRegisterPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Registration failed");
       toast.success("Account created!");
-      router.push("/employer/companies");
+      router.push("/employer/institutes");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed");
     }

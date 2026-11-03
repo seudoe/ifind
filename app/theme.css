@@ -47,6 +47,9 @@
   --danger:     #dc2626;
   --mint-bg:    #d1fae5;
   --mint-ink:   #047857;
+  /* College campuses: tells them apart from companies */
+  --campus:     #0d8a7f;
+  --campus-bg:  #e0f5f2;
 
   /* Decorative accent chips (initials / logos), rotated by name hash */
   --accent-1: #6366f1; --accent-2: #6d5ae6; --accent-3: #10b981; --accent-4: #f5316b; --accent-5: #1d9bf0;
@@ -115,6 +118,8 @@
   --danger:     #f87171;
   --mint-bg:    #0f3d33;
   --mint-ink:   #6ee7b7;
+  --campus:     #2dd4bf;
+  --campus-bg:  #0e3030;
 
   --landing-grad: linear-gradient(180deg, #0f1733 0%, #0d1430 35%, #0b1020 75%);
   --sphere-violet: rgba(127, 109, 240, 0.28);

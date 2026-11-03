@@ -41,7 +41,7 @@ export default function EmployerLoginPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Login failed");
       toast.success("Welcome back!");
-      router.push("/employer/companies");
+      router.push("/employer/institutes");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid credentials");
     }

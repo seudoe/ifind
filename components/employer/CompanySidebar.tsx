@@ -76,8 +76,8 @@ export function CompanySidebar({ companyId, name, logo, verification, role, comp
                                     {c.name}
                                 </button>
                             ))}
-                            <Link href="/employer/companies" className="block border-t border-[var(--border)] px-3 py-2 text-xs text-[var(--text-3)] hover:bg-[var(--surface-2)]">
-                                All companies
+                            <Link href="/employer/institutes" className="block border-t border-[var(--border)] px-3 py-2 text-xs text-[var(--text-3)] hover:bg-[var(--surface-2)]">
+                                All institutes
                             </Link>
                         </div>
                     )}
@@ -117,7 +117,7 @@ export function CompanySidebar({ companyId, name, logo, verification, role, comp
 
             {/* Mobile: scrollable tab strip — the tabs stay on screen */}
             <nav className="md:hidden sticky top-14 z-20 flex items-stretch overflow-x-auto border-b border-[var(--border)] bg-[var(--surface)]" aria-label="Company sections">
-                <Link href="/employer/companies" className="flex items-center gap-2 border-r border-[var(--border)] px-3 max-w-[40%] shrink-0" title="All companies">
+                <Link href="/employer/institutes" className="flex items-center gap-2 border-r border-[var(--border)] px-3 max-w-[40%] shrink-0" title="All institutes">
                     <Building2 className="h-4 w-4 shrink-0 text-[var(--primary)]" />
                     <span className="truncate text-xs font-semibold text-[var(--heading)]">{name}</span>
                 </Link>

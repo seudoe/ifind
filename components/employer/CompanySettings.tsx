@@ -45,7 +45,7 @@ export function CompanySettings({ companyId, initial, verification, isOwner }: P
             setConfirm(false);
             return toast.error(j.error);
         }
-        router.push("/employer/companies");
+        router.push("/employer/institutes");
     };
 
     return (

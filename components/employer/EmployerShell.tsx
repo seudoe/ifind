@@ -10,7 +10,7 @@ import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { cn } from "@/lib/utils";
 
 const NAV: { label: string; href: string; icon: LucideIcon }[] = [
-    { label: "Companies", href: "/employer/companies", icon: Building2 },
+    { label: "Institutes", href: "/employer/institutes", icon: Building2 },
     { label: "Profile", href: "/employer/profile", icon: UserCircle },
     { label: "Settings", href: "/employer/settings", icon: Settings },
     { label: "Notifications", href: "/employer/notifications", icon: Bell },
@@ -45,8 +45,8 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
         router.push("/employer/login");
     };
 
-    // Inside a company the global sidebar shrinks to icons (it opens on hover) to leave room for the company's own sidebar
-    const collapsed = pathname.startsWith("/employer/company/");
+    // Inside a company or campus the global sidebar shrinks to icons (it opens on hover) to leave room for the company's own sidebar
+    const collapsed = pathname.startsWith("/employer/company/") || pathname.startsWith("/employer/campus/");
     const labelCls = collapsed ? "md:opacity-0 md:group-hover:opacity-100" : "";
 
     const badge = unread > 0 && (
@@ -66,13 +66,13 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
             >
                 <div className="flex w-56 flex-col">
                     <div className="h-14 px-4 flex items-center border-b-2 border-[var(--rule)]">
-                        <Link href="/employer/companies" title="iFind for Employers" aria-label="iFind for Employers"><Logo size="md" className={collapsed ? "!px-2.5" : ""} /></Link>
+                        <Link href="/employer/institutes" title="iFind for Employers" aria-label="iFind for Employers"><Logo size="md" className={collapsed ? "!px-2.5" : ""} /></Link>
                     </div>
                     <p className={cn("label px-4 pt-4 pb-3 !text-[10px] !text-[var(--text-2)] whitespace-nowrap transition-opacity duration-300", labelCls)}>Employer portal</p>
 
                     <nav className="flex flex-col gap-0.5 px-3">
                         {NAV.map(({ label, href, icon: Icon }) => {
-                            const active = pathname === href;
+                            const active = pathname === href || pathname.startsWith(`${href}/`);
                             return (
                                 <Link
                                     key={href}
@@ -111,7 +111,7 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
             <div className={cn("flex min-w-0 flex-1 flex-col transition-[padding] duration-300", collapsed ? "md:pl-16" : "md:pl-56")}>
                 {/* ── Top bar (small screens) ─────────────────────────────────────── */}
                 <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b-2 border-[var(--rule)] bg-[var(--surface)] px-4 md:hidden">
-                    <Link href="/employer/companies" aria-label="iFind for Employers"><Logo size="md" /></Link>
+                    <Link href="/employer/institutes" aria-label="iFind for Employers"><Logo size="md" /></Link>
                     <div className="flex items-center gap-3">
                         <ThemeSwitcher compact className="w-28" />
                         <button onClick={logout} aria-label="Log out" className="p-1.5 text-[var(--text-3)] hover:text-[var(--danger)]"><LogOut className="h-4 w-4" /></button>
@@ -124,7 +124,7 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
             {/* ── Bottom tab bar (small screens) — tabs stay visible ──────────────── */}
             <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 h-14 flex border-t-2 border-[var(--rule)] bg-[var(--surface)]">
                 {NAV.map(({ label, href, icon: Icon }) => {
-                    const active = pathname === href;
+                    const active = pathname === href || pathname.startsWith(`${href}/`);
                     return (
                         <Link
                             key={href}

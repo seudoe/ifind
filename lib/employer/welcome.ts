@@ -19,5 +19,5 @@ export const welcomeEmployer = (id: mongoose.Types.ObjectId | string) =>
         type: "welcome",
         title: "Welcome to iFind for Employers",
         body: "Create your company profile, then post your first internship. A verified company badge builds trust with students.",
-        link: "/employer/companies",
+        link: "/employer/institutes",
     });

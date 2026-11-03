@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
         });
       }
       const empCookie = empAuthCookie(signEmpToken({ employerId: employer.id, email: employer.email, name: employer.name, role: "employer" }, employer.tokenVersion ?? 0));
-      const empResponse = NextResponse.redirect(new URL("/employer/companies", origin));
+      const empResponse = NextResponse.redirect(new URL("/employer/institutes", origin));
       empResponse.cookies.set(empCookie.name, empCookie.value, empCookie.options);
       empResponse.cookies.delete("linkedin_oauth_state");
       empResponse.cookies.delete("linkedin_oauth_intent");

@@ -71,6 +71,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   // Same path as the other services: GET /version
+  // "Companies" became "Institutes" (companies and college campuses). Old bookmarks and emails keep working.
+  async redirects() {
+    return [
+      { source: "/employer/companies", destination: "/employer/institutes", permanent: true },
+      { source: "/employer/companies/new", destination: "/employer/institutes/new", permanent: true },
+    ];
+  },
   async rewrites() {
     return [{ source: "/version", destination: "/api/version" }];
   },

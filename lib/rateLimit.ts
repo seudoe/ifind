@@ -72,6 +72,7 @@ export const RULES = {
   profileWrite: { limit: 60, windowSec: 60 * 60 },
   chatSessionCreate: { limit: 30, windowSec: 60 * 60 },
   employerWrite: { limit: 120, windowSec: 60 * 60 },
+  campusRead: { limit: 300, windowSec: 60 * 60 }, // college search / same-college lookups
   employerModeration: { limit: 20, windowSec: 60 * 60 },
   // Unauthenticated endpoints that make the server call another service.
   oauthIp: { limit: 40, windowSec: 15 * 60 },

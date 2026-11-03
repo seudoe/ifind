@@ -27,7 +27,7 @@ export default function NewCompanyPage() {
 
     return (
         <main className="flex-1 min-w-0 p-4 md:p-8 max-w-2xl">
-            <Link href="/employer/companies" className="text-xs text-[var(--text-3)] hover:text-[var(--text)]">← Companies</Link>
+            <Link href="/employer/institutes/new" className="text-xs text-[var(--text-3)] hover:text-[var(--text)]">← Institutes</Link>
             <h1 className="text-lg font-bold text-[var(--heading)] mt-1 mb-6">Register a company</h1>
             <CompanyForm mode="create" onSubmit={onSubmit} />
         </main>
