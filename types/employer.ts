@@ -250,8 +250,8 @@ export interface AppNotification {
     body?: string | null;
     link?: string | null;
     companyId?: string | null;
-    /** "company" = shared by every member of companyId (notifications.company); "personal" = addressed to this person. */
-    scope?: "personal" | "company";
+    /** "company" = shared by every member of companyId (notifications.company); "college" = shared by the staff of a campus (notifications.college, companyName holds the campus name); "personal" = addressed to this person. */
+    scope?: "personal" | "company" | "college";
     /** critical notifications were also emailed. */
     priority?: "critical" | "normal";
     companyName?: string | null;

@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import CampusEntity from "@/models/CampusEntity";
+import CollegeNotification from "@/models/CollegeNotification";
 import Company from "@/models/Company";
 import { CompanyNotification, EmployerNotification } from "@/models/Notification";
 import type { AppNotification } from "@/types/employer";
@@ -25,24 +27,41 @@ async function companyScope(employerId: Id) {
     return { scopes, filter };
 }
 
+/** Same idea for campuses: staff see a campus's notifications from the day they joined it. */
+async function collegeScope(employerId: Id) {
+    const campuses = await CampusEntity.find({ "members.employerId": oid(employerId), "deleteDetails.deleted": { $ne: true } })
+        .select("name members.employerId members.addedAt")
+        .lean();
+    const scopes = campuses.map((c) => ({
+        entityId: c._id as mongoose.Types.ObjectId,
+        name: c.name,
+        since: c.members.find((m) => String(m.employerId) === String(employerId))?.addedAt ?? new Date(0),
+    }));
+    const filter = scopes.length ? { $or: scopes.map((s) => ({ entityId: s.entityId, createdAt: { $gte: s.since } })) } : { _id: { $in: [] } };
+    return { scopes, filter };
+}
+
 export async function employerUnreadCount(employerId: Id): Promise<number> {
     const me = oid(employerId);
-    const { filter } = await companyScope(me);
-    const [personal, company] = await Promise.all([
+    const [{ filter }, { filter: cFilter }] = await Promise.all([companyScope(me), collegeScope(me)]);
+    const [personal, company, college] = await Promise.all([
         EmployerNotification.countDocuments({ recipientType: "employer", recipientId: me, readAt: null }),
         CompanyNotification.countDocuments({ ...filter, "readBy.employerId": { $ne: me } }),
+        CollegeNotification.countDocuments({ ...cFilter, "readBy.employerId": { $ne: me } }),
     ]);
-    return personal + company;
+    return personal + company + college;
 }
 
 export async function employerFeed(employerId: Id, limit = 100): Promise<{ items: AppNotification[]; unread: number }> {
     const me = oid(employerId);
-    const { scopes, filter } = await companyScope(me);
+    const [{ scopes, filter }, { scopes: cScopes, filter: cFilter }] = await Promise.all([companyScope(me), collegeScope(me)]);
     const names = new Map(scopes.map((s) => [String(s.companyId), s.name]));
+    const campusNames = new Map(cScopes.map((s) => [String(s.entityId), s.name]));
 
-    const [personal, company] = await Promise.all([
+    const [personal, company, college] = await Promise.all([
         EmployerNotification.find({ recipientType: "employer", recipientId: me }).sort({ createdAt: -1 }).limit(limit).lean(),
         CompanyNotification.find(filter).sort({ createdAt: -1 }).limit(limit).lean(),
+        CollegeNotification.find(cFilter).sort({ createdAt: -1 }).limit(limit).lean(),
     ]);
 
     const items: AppNotification[] = [
@@ -77,6 +96,22 @@ export async function employerFeed(employerId: Id, limit = 100): Promise<{ items
             readAt: n.readBy?.find((r) => String(r.employerId) === String(me))?.at.toISOString() ?? null,
             createdAt: n.createdAt.toISOString(),
         })),
+        ...college.map((n) => ({
+            _id: String(n._id),
+            recipientType: "employer" as const,
+            recipientId: String(me),
+            type: n.type,
+            title: n.title,
+            body: n.body ?? null,
+            link: n.link ?? null,
+            companyId: null,
+            companyName: campusNames.get(String(n.entityId)) ?? null,
+            scope: "college" as const,
+            priority: n.priority,
+            actorName: n.actor?.name ?? null,
+            readAt: n.readBy?.find((r) => String(r.employerId) === String(me))?.at.toISOString() ?? null,
+            createdAt: n.createdAt.toISOString(),
+        })),
     ]
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, limit);
@@ -85,18 +120,22 @@ export async function employerFeed(employerId: Id, limit = 100): Promise<{ items
 }
 
 /** { id, scope } marks one read; { all: true } marks every personal and company notification read for this person. */
-export async function markEmployerRead(employerId: Id, target: { id: string; scope: "personal" | "company" } | { all: true }) {
+export async function markEmployerRead(employerId: Id, target: { id: string; scope: "personal" | "company" | "college" } | { all: true }) {
     const me = oid(employerId);
     const now = new Date();
     if ("all" in target) {
-        const { filter } = await companyScope(me);
+        const [{ filter }, { filter: cFilter }] = await Promise.all([companyScope(me), collegeScope(me)]);
         await Promise.all([
             EmployerNotification.updateMany({ recipientType: "employer", recipientId: me, readAt: null }, { $set: { readAt: now } }),
             CompanyNotification.updateMany({ ...filter, "readBy.employerId": { $ne: me } }, { $push: { readBy: { employerId: me, at: now } } }),
+            CollegeNotification.updateMany({ ...cFilter, "readBy.employerId": { $ne: me } }, { $push: { readBy: { employerId: me, at: now } } }),
         ]);
         return;
     }
-    if (target.scope === "company") {
+    if (target.scope === "college") {
+        const { filter } = await collegeScope(me);
+        await CollegeNotification.updateOne({ $and: [{ _id: oid(target.id) }, filter], "readBy.employerId": { $ne: me } }, { $push: { readBy: { employerId: me, at: now } } });
+    } else if (target.scope === "company") {
         const { filter } = await companyScope(me); // only notifications of companies they belong to can be touched
         await CompanyNotification.updateOne({ $and: [{ _id: oid(target.id) }, filter], "readBy.employerId": { $ne: me } }, { $push: { readBy: { employerId: me, at: now } } });
     } else {

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireCampusRole } from "@/lib/campus/access";
+import { closeCampusEntity } from "@/lib/campus/deletion";
 import { updateCampusProfile } from "@/lib/campus/entities";
 import { campusProfileSchema } from "@/lib/campus/validation";
 import { isResponse } from "@/lib/employer/access";
+import { notify } from "@/lib/employer/notify";
 import { stripHtml } from "@/lib/employer/sanitize";
 import { checkImageUrls } from "@/lib/employer/upload";
 import { zodMessage } from "@/lib/employer/validation";
@@ -39,5 +41,25 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
     } catch (error) {
         console.error("[employer/campus PATCH]", error);
         return NextResponse.json({ success: false, error: "Unable to update campus" }, { status: 500 });
+    }
+}
+
+/** Owner of THIS campus only. Closes its internships, withdraws active applications, detaches and notifies students. */
+export async function DELETE(_req: NextRequest, { params }: Ctx) {
+    try {
+        const access = await requireCampusRole((await params).entityId, "owner");
+        if (isResponse(access)) return access;
+        const { entity, employer } = access;
+        const result = await closeCampusEntity(entity, "deleted");
+        if (!result.closed) return NextResponse.json({ success: false, error: "Campus not found" }, { status: 404 });
+        const others = entity.members.filter((m) => !m.employerId.equals(employer._id)).map((m) => m.employerId);
+        await notify({
+            recipientType: "employer", recipientIds: others, type: "campus_member_removed", priority: "normal",
+            title: `${entity.name} was deleted`, body: `${employer.name} deleted the campus.`,
+        });
+        return NextResponse.json({ success: true, data: { students: result.students, withdrawn: result.withdrawn } });
+    } catch (error) {
+        console.error("[employer/campus DELETE]", error);
+        return NextResponse.json({ success: false, error: "Unable to delete campus" }, { status: 500 });
     }
 }

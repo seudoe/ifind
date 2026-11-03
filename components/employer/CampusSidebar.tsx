@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, LayoutDashboard, Settings, type LucideIcon } from "lucide-react";
+import { GraduationCap, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import { CAMPUS_ROLE_RANK, type CampusRole } from "@/types/campus";
@@ -10,6 +10,7 @@ import { CAMPUS_ROLE_RANK, type CampusRole } from "@/types/campus";
 /** Tabs are added here as their stages land (internships, events, students, team). */
 const TABS: { label: string; segment: string; icon: LucideIcon; minRole: CampusRole }[] = [
     { label: "Overview", segment: "overview", icon: LayoutDashboard, minRole: "viewer" },
+    { label: "Team", segment: "team", icon: Users, minRole: "viewer" }, // everyone sees the team; managing needs admin
     { label: "Settings", segment: "settings", icon: Settings, minRole: "viewer" },
 ];
 

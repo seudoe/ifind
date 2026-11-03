@@ -17,6 +17,7 @@ export interface Recipient {
     id: string;
     email?: string | null;
     name?: string | null;
+    username?: string | null;
     phone?: string | null;
     emailUpdates: boolean;
     smsUpdates: boolean;
@@ -161,7 +162,7 @@ export async function resolveStudentRecipients(entityId: string, opts: ResolveOp
     if (!enrollments.length) return [];
     const ids = enrollments.map((e) => e.userId);
     const [users, banned] = await Promise.all([
-        User.find({ _id: { $in: ids }, isBanned: { $ne: true }, "deleteDetails.deleted": { $ne: true } }).select("email name phone").lean(),
+        User.find({ _id: { $in: ids }, isBanned: { $ne: true }, "deleteDetails.deleted": { $ne: true } }).select("email name phone username").lean(),
         CampusBlacklist.find({ entityId, studentId: { $in: ids }, active: true }).select("studentId").lean(),
     ]);
     const blocked = new Set(banned.map((b) => String(b.studentId)));
@@ -174,6 +175,7 @@ export async function resolveStudentRecipients(entityId: string, opts: ResolveOp
             id: String(e.userId),
             email: u.email || null,
             name: u.name || null,
+            username: u.username || null,
             phone: e.phone || u.phone || null,
             emailUpdates: e.emailUpdates !== false,
             smsUpdates: e.smsUpdates === true,

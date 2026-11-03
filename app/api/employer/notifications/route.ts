@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-/** Body: { id, scope: "personal" | "company" } marks one read, { all: true } marks everything read (for this person only). */
+/** Body: { id, scope: "personal" | "company" | "college" } marks one read, { all: true } marks everything read (for this person only). */
 export async function PATCH(request: NextRequest) {
     try {
         const employer = await requireEmployer();
@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest) {
         if (body.all === true) {
             await markEmployerRead(employer._id, { all: true });
         } else {
-            if (typeof body.id !== "string" || !mongoose.isValidObjectId(body.id) || (body.scope !== "personal" && body.scope !== "company")) {
+            if (typeof body.id !== "string" || !mongoose.isValidObjectId(body.id) || (body.scope !== "personal" && body.scope !== "company" && body.scope !== "college")) {
                 return NextResponse.json({ success: false, error: "id and scope, or all, required" }, { status: 400 });
             }
             await markEmployerRead(employer._id, { id: body.id, scope: body.scope });

@@ -22,7 +22,7 @@ export default function NotificationsPage() {
     }, []);
     useEffect(load, [load]);
 
-    const mark = async (body: { id: string; scope: "personal" | "company" } | { all: true }) => {
+    const mark = async (body: { id: string; scope: "personal" | "company" | "college" } | { all: true }) => {
         await fetch("/api/employer/notifications", {
             method: "PATCH",
             credentials: "include",
@@ -61,8 +61,8 @@ export default function NotificationsPage() {
                         const body = (
                             <>
                                 <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                                    <span className={cn("pill !cursor-default !normal-case", n.scope === "company" && "!bg-[var(--primary-bg)]")}>
-                                        {n.scope === "company" ? `Team · ${n.companyName ?? "company"}` : "Just you"}
+                                    <span className={cn("pill !cursor-default !normal-case", n.scope === "company" && "!bg-[var(--primary-bg)]", n.scope === "college" && "!bg-[var(--campus-bg)]")}>
+                                        {n.scope === "company" ? `Team · ${n.companyName ?? "company"}` : n.scope === "college" ? `Campus team · ${n.companyName ?? "campus"}` : "Just you"}
                                     </span>
                                     {n.priority === "critical" && <span className="pill !cursor-default !border-[var(--warning)] !text-[var(--warning)]">Important · emailed</span>}
                                     {n.actorName && <span className="text-[11px] text-[var(--text-3)]">by {n.actorName}</span>}

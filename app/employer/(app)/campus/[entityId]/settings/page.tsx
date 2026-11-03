@@ -15,6 +15,7 @@ export default async function CampusSettingsPage({ params }: { params: Promise<{
             name={entity.name}
             canEdit={admin}
             canRotate={admin}
+            isOwner={role === "owner"}
             joinCode={admin ? entity.joinCode : undefined}
             initial={{
                 name: entity.name,
