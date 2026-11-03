@@ -50,7 +50,7 @@ export async function closeCampusEntity(entity: Pick<ICampusEntity, "_id" | "nam
     await sendToStudents(
         recipients,
         (r) => entityClosedMessage({ entityName: entity.name, link: r.username ? `/user/${r.username}/campus` : "/" }),
-        { email: true, kind: "entity-closed", refId: String(entity._id), defer: true },
+        { email: true, kind: "entity-closed", refId: String(entity._id), entityId: String(entity._id), defer: true },
     );
     return { closed: true, students: enrolled.length, withdrawn: withdrawn.modifiedCount };
 }

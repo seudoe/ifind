@@ -13,10 +13,11 @@ import CampusEntityReport from "../models/CampusEntityReport";
 import CampusEvent from "../models/CampusEvent";
 import CampusInternship from "../models/CampusInternship";
 import CollegeNotification from "../models/CollegeNotification";
+import OutboundMessage from "../models/OutboundMessage";
 
 dotenv.config({ path: ".env.local" });
 
-const MODELS = [CampusEntity, CampusEnrollment, CampusEntityReport, CampusBlacklist, CampusInternship, CampusEvent, CampusApplication, CollegeNotification];
+const MODELS = [CampusEntity, CampusEnrollment, CampusEntityReport, CampusBlacklist, CampusInternship, CampusEvent, CampusApplication, CollegeNotification, OutboundMessage];
 
 async function main() {
     if (!process.env.MONGODB_URI) throw new Error("MONGODB_URI missing in .env.local");

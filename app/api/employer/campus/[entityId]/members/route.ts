@@ -58,7 +58,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
             actor: { kind: "employer", id: access.employer._id, name: access.employer.name },
         });
         await sendToStaff([{ id: String(target._id), email: target.email, name: target.name }], () => staffAddedMessage({ entityName: name, role, link: link(access) }),
-            { email: true, kind: "staff-added", refId: String(access.entity._id), version: `${target._id}:${role}`, defer: true });
+            { email: true, kind: "staff-added", refId: String(access.entity._id), entityId: String(access.entity._id), version: `${target._id}:${role}`, defer: true });
         return NextResponse.json({ success: true }, { status: 201 });
     } catch (error) {
         console.error("[employer/campus/members POST]", error);
@@ -127,7 +127,7 @@ export async function DELETE(request: NextRequest, { params }: Ctx) {
             });
             if (person?.email) {
                 await sendToStaff([{ id, email: person.email, name: person.name }], () => staffRemovedMessage({ entityName: access.entity.name }),
-                    { email: true, kind: "staff-removed", refId: String(access.entity._id), version: id, defer: true });
+                    { email: true, kind: "staff-removed", refId: String(access.entity._id), entityId: String(access.entity._id), version: id, defer: true });
             }
         }
         return NextResponse.json({ success: true });

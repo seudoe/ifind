@@ -139,3 +139,36 @@ test("resolveStudentRecipients: only joined, unbanned, non-blacklisted, eligible
     const eligible = await resolveStudentRecipients(String(entity), { eligibleFor: { minCgpa: 7 } });
     assert.deepEqual(eligible.map((r) => r.id).sort(), [String(ok._id), String(lifted._id)].sort());
 });
+
+test("outbox: every send is recorded; failures keep time + reason; sent keeps time; same key is never re-sent", async () => {
+    const OutboundMessage = (await import("../models/OutboundMessage")).default;
+    const ok = spy();
+    await sendToStudents([rec("o1")], build, { email: true, kind: "outbox", refId: "R1", transport: ok.transport });
+    const sent = await OutboundMessage.findOne({ idempotencyKey: "outbox:R1:o1:1" }).lean();
+    assert.equal(sent!.status, "sent");
+    assert.ok(sent!.sentAt && !sent!.failedAt);
+    assert.equal(sent!.attempts, 1);
+    assert.equal(sent!.to, "o1@x.edu");
+
+    // the real (not implemented) stub: recorded as failed, retryable, with the reason and the time
+    await sendToStudents([rec("o2")], build, { email: true, kind: "outbox", refId: "R2" });
+    const stub = await OutboundMessage.findOne({ idempotencyKey: "outbox:R2:o2:1" }).lean();
+    assert.equal(stub!.status, "failed");
+    assert.equal(stub!.lastError, "not_implemented");
+    assert.ok(stub!.failedAt && stub!.nextAttemptAt && !stub!.sentAt);
+
+    // a throwing transport is recorded with its message
+    const bad = spy({ throwEmail: true });
+    await sendToStudents([rec("o3")], build, { email: true, kind: "outbox", refId: "R3", transport: bad.transport });
+    const thrown = await OutboundMessage.findOne({ idempotencyKey: "outbox:R3:o3:1" }).lean();
+    assert.equal(thrown!.status, "failed");
+    assert.equal(thrown!.lastError, "boom");
+
+    // same key again: no second attempt; a new version is a new row
+    const again = spy();
+    await sendToStudents([rec("o1")], build, { email: true, kind: "outbox", refId: "R1", transport: again.transport });
+    assert.equal(again.emails.length, 0);
+    await sendToStudents([rec("o1")], build, { email: true, kind: "outbox", refId: "R1", version: 2, transport: again.transport });
+    assert.equal(again.emails.length, 1);
+    assert.equal(await OutboundMessage.countDocuments({ kind: "outbox", recipientId: "o1" }), 2);
+});
