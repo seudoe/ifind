@@ -20,6 +20,9 @@ test("eligibility", () => {
     assert.equal(isEligible({ ...stu, cgpa: null }, { minCgpa: 6 }).ok, false); // unknown value with a set rule excludes
     assert.equal(isEligible({ ...stu, activeBacklogs: 2 }, { maxBacklogs: 1 }).ok, false);
     assert.equal(isEligible({ ...stu, cgpa: null }, {}).ok, true);
+    assert.equal(isEligible({ ...stu, course: "B. Tech" }, { courses: ["B.Tech", "B.E."] }).ok, true); // spacing and dots do not matter
+    assert.equal(isEligible({ ...stu, department: "Computer  Engineering" }, { departments: ["computer engineering"] }).ok, true);
+    assert.equal(isEligible({ ...stu, department: "Mechanical" }, { departments: ["Computer Engineering"] }).ok, false); // different words still differ
 });
 
 test("join code: alphabet, length, uniqueness, normalisation", () => {

@@ -13,7 +13,8 @@ export interface EligibilityResult {
     reasons: string[];
 }
 
-const norm = (s: string) => s.trim().toLowerCase();
+/** "B. Tech", "b.tech" and "BTech" are the same course: compare letters and digits only. */
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const has = (list: string[] | undefined, v: string) => !list?.length || list.some((x) => norm(x) === norm(v));
 
 /**
