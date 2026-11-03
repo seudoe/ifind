@@ -3,7 +3,7 @@
 import React from "react";
 import { safeNextPath } from "@/lib/authRedirect";
 
-export function LinkedInButton({ text = "Continue with LinkedIn", as }: { text?: string; as?: "employer" | "employer-link" }) {
+export function LinkedInButton({ text = "Continue with LinkedIn", as }: { text?: string; as?: "employer" | "employer-link" | "student-link" }) {
   const handleLinkedInAuth = () => {
     if (as) {
       window.location.href = `/api/auth/linkedin?as=${as}`;

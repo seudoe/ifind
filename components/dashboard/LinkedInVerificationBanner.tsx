@@ -20,7 +20,7 @@ export function LinkedInVerificationBanner({ linkedinDetails, className = "" }: 
           </span>
         </div>
         <a
-          href="/api/auth/linkedin"
+          href="/api/auth/linkedin?as=student-link"
           className="px-2.5 py-1 rounded bg-amber-600 text-white font-medium hover:bg-amber-700 transition-colors shrink-0 text-[11px]"
         >
           Connect LinkedIn
@@ -51,7 +51,7 @@ export function LinkedInVerificationBanner({ linkedinDetails, className = "" }: 
         </span>
       </div>
       <a
-        href="/api/auth/linkedin"
+        href="/api/auth/linkedin?as=student-link"
         className="px-2.5 py-1 rounded bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shrink-0 text-[11px]"
       >
         Re-verify LinkedIn

@@ -57,6 +57,9 @@ export interface IUser extends Document {
     tokenVersion?: number;
     linkedinId?: string;
     linkedinDetails?: any;
+    /** Set when an existing account connects LinkedIn; the review pop-up shows until linkedinReviewedAt is set. */
+    linkedinLinkedAt?: Date | null;
+    linkedinReviewedAt?: Date | null;
     profilePicture?: string | null;
     role: "student";
     phone?: string | null;
@@ -182,6 +185,8 @@ const UserSchema = new Schema<IUser>(
         // so the second password-only signup on a fresh database would fail as "already taken".
         linkedinId: { type: String, default: undefined, trim: true },
         linkedinDetails: { type: Schema.Types.Mixed, default: null },
+        linkedinLinkedAt: { type: Date, default: null },
+        linkedinReviewedAt: { type: Date, default: null },
         profilePicture: { type: String, default: null },
         role: { type: String, enum: ["student"], default: "student" },
         phone: { type: String, default: null, trim: true },

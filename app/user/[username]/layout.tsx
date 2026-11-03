@@ -2,6 +2,7 @@
 
 import { StudentProvider, useStudent } from "@/components/student/StudentProvider";
 import { StudentShell } from "@/components/student/StudentShell";
+import { LinkedInReviewDialog } from "@/components/student/LinkedInReviewDialog";
 
 function Gate({ children }: { children: React.ReactNode }) {
   const { data, error } = useStudent();
@@ -12,7 +13,7 @@ function Gate({ children }: { children: React.ReactNode }) {
       </main>
     );
   }
-  return <StudentShell user={data.user}>{children}</StudentShell>;
+  return <StudentShell user={data.user}>{children}<LinkedInReviewDialog user={data.user} /></StudentShell>;
 }
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {

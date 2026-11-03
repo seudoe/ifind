@@ -5,7 +5,7 @@ import { welcomeEmployer, welcomeStudent } from "@/lib/employer/welcome";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
-import { authCookie, signToken } from "@/lib/auth";
+import { authCookie, getSession, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { EMP_COOKIE_NAME, empAuthCookie, signEmpToken, verifyEmpToken } from "@/lib/employerAuth";
 import Employer from "@/models/Employer";
@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
   const intent = request.cookies.get("linkedin_oauth_intent")?.value;
   const isLink = intent === "employer-link";
   const isEmployer = intent === "employer" || isLink;
-  const loginPath = isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
+  const isStudentLink = intent === "student-link";
+  const loginPath = isStudentLink ? "/user" : isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
 
   if (errorParam) {
     console.error("[auth/linkedin/callback] LinkedIn returned error:", errorParam, errorDescription);
@@ -131,6 +132,28 @@ export async function GET(request: NextRequest) {
       linkRes.cookies.delete("linkedin_oauth_state");
       linkRes.cookies.delete("linkedin_oauth_intent");
       return linkRes;
+    }
+
+    if (isStudentLink) {
+      // A signed-in student connecting LinkedIn: attach it to this account, never create or switch accounts
+      const session = await getSession();
+      if (!session) return NextResponse.redirect(`${origin}/user/login`);
+      const me = await User.findById(session.userId).select("username linkedinId");
+      if (!me) return NextResponse.redirect(`${origin}/user/login`);
+      const back = `${origin}/user/${me.username}/profile`;
+      if (await User.exists({ linkedinId: profile.sub, _id: { $ne: me._id } })) {
+        return NextResponse.redirect(`${back}?error=${encodeURIComponent("This LinkedIn account is already linked to another iFind account")}`);
+      }
+      if (me.linkedinId && me.linkedinId !== profile.sub) {
+        return NextResponse.redirect(`${back}?error=${encodeURIComponent("A different LinkedIn account is already connected to this account")}`);
+      }
+      const firstLink = !me.linkedinId;
+      await User.updateOne({ _id: me._id }, { $set: { linkedinId: profile.sub, linkedinDetails: profile, ...(firstLink ? { linkedinLinkedAt: new Date(), linkedinReviewedAt: null } : {}) } });
+      const linked = NextResponse.redirect(back);
+      linked.cookies.delete("linkedin_oauth_state");
+      linked.cookies.delete("linkedin_oauth_intent");
+      linked.cookies.delete("linkedin_oauth_next");
+      return linked;
     }
 
     if (isEmployer) {

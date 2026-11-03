@@ -463,7 +463,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                         </p>
                         {!isLinkedInVerified && (
                             <a
-                                href="/api/auth/linkedin"
+                                href="/api/auth/linkedin?as=student-link"
                                 className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] hover:underline mt-0.5"
                             >
                                 <BadgeCheck className="h-3.5 w-3.5" />

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   // Generate state token for CSRF protection
   const state = crypto.randomUUID();
   const as = request.nextUrl.searchParams.get("as");
-  const intent = as === "employer" || as === "employer-link" ? as : "student";
+  const intent = as === "employer" || as === "employer-link" || as === "student-link" ? as : "student";
 
   const scope = process.env.LINKEDIN_SCOPE || "openid profile email";
 

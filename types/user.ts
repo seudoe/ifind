@@ -29,6 +29,8 @@ export interface User {
     email: string;
     linkedinId?: string | null;
     linkedinDetails?: LinkedInProfile | null;
+    linkedinLinkedAt?: string | null;
+    linkedinReviewedAt?: string | null;
     role?: "user" | "admin";
     profilePicture?: string | null;
     phone?: string | null;
