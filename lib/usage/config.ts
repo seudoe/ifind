@@ -10,6 +10,8 @@ export const FEATURE_CREDITS = {
   "learning-roadmap": 3,
   "job-match": 5,
   "resume-analyze": 5,
+  // Employer-side: paragraph -> campus internship details. Employer ids use the same daily pool (distinct subjects).
+  "campus-extract": 2,
   // Logged but outside the daily pool: gpt-4o resume parsing has its own monthly limit (lib/resumeParser.ts).
   "resume-parse": 0,
 } as const;

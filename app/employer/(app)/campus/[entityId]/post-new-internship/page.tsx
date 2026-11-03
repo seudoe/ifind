@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CampusInternshipForm } from "@/components/employer/CampusInternshipForm";
+import { CampusInternshipStart } from "@/components/employer/CampusInternshipStart";
 import { getCampusAccess } from "@/lib/campus/access";
 import { suggestionsOf } from "@/lib/campus/suggestions";
 
@@ -7,5 +7,5 @@ export default async function PostNewCampusInternshipPage({ params }: { params: 
     const { entityId } = await params;
     const access = await getCampusAccess(entityId, "coordinator");
     if (!access) notFound();
-    return <CampusInternshipForm entityId={entityId} title="Post a new internship" suggestions={suggestionsOf(access.entity)} />;
+    return <CampusInternshipStart entityId={entityId} suggestions={suggestionsOf(access.entity)} />;
 }

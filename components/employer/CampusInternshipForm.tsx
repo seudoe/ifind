@@ -63,6 +63,25 @@ function fromDTO(d: CampusInternshipDTO): FormState {
     };
 }
 
+const BLANK: CampusInternshipDTO = {
+    _id: "", entityId: "", status: "draft", company: { name: "" }, designation: "", description: "", rounds: [], workMode: "onsite", locations: [],
+    ppoAvailable: false, skills: [], responsibilities: [], perks: [], eligibility: {}, requireResume: true, screeningQuestions: [], createdAt: "", updatedAt: "",
+};
+/** Suggestions from the paragraph reader: only the fields it found, the rest stay empty. */
+function fromPartial(p: Partial<CampusInternshipDTO>): FormState {
+    return fromDTO({ ...BLANK, ...p, company: { name: "", ...p.company }, eligibility: { ...p.eligibility } } as CampusInternshipDTO);
+}
+
+const FIELD_LABEL: Record<string, string> = {
+    "company.name": "Company name", designation: "Designation", deadlineDate: "Application deadline", assessmentDate: "Assessment date",
+    interviewDate: "Interview date", resultDate: "Result date", startDate: "Start date", description: "Description", stipend: "Stipend",
+    duration: "Duration", openings: "Openings", workMode: "Work mode", locations: "Locations", skills: "Skills", eligibility: "Eligibility", rounds: "Rounds",
+    "eligibility.minCgpa": "Minimum CGPA", "eligibility.batches": "Batches", "eligibility.courses": "Courses", "eligibility.departments": "Departments",
+    "company.tier": "Tier", "company.website": "Website",
+};
+const LOW = 0.6;
+const MARK = "!border-amber-400 !shadow-[0_0_0_3px_rgba(245,158,11,0.25)]";
+
 /** The form always sends every field; the API treats it as a full replace. */
 function toPayload(s: FormState, sourceText?: string | null) {
     return {
@@ -99,16 +118,20 @@ interface Props {
     entityId: string;
     initial?: CampusInternshipDTO;
     title?: string;
+    /** Suggestions read from a pasted notification. They are NOT saved until the person edits or saves. */
+    prefill?: Partial<CampusInternshipDTO>;
+    sourceText?: string | null;
+    review?: { confidence: Record<string, number>; missing: string[] };
     /** Viewers see the details but cannot change them. */
     canEdit?: boolean;
     /** Suggestions from the campus settings. */
     suggestions: { courses: string[]; departments: string[]; batches: string[] };
 }
 
-export function CampusInternshipForm({ entityId, initial, title, suggestions, canEdit = true }: Props) {
+export function CampusInternshipForm({ entityId, initial, title, suggestions, canEdit = true, prefill, sourceText, review }: Props) {
     const router = useRouter();
     const base = `/api/employer/campus/${entityId}/internships`;
-    const [data, setData] = useState<FormState>(initial ? fromDTO(initial) : EMPTY);
+    const [data, setData] = useState<FormState>(initial ? fromDTO(initial) : prefill ? fromPartial(prefill) : EMPTY);
     const status = initial?.status ?? "draft";
     const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
     const [error, setError] = useState<string | null>(null);
@@ -130,7 +153,7 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
 
     /** Create (first time) or update. Serialised via `busy` so a slow create can't race a second one. */
     const save = useCallback(async (): Promise<CampusInternshipDTO | null> => {
-        const body = toPayload(dataRef.current, initial?.sourceText);
+        const body = toPayload(dataRef.current, sourceText ?? initial?.sourceText);
         if (body.company.name.length < 2 || body.designation.length < 2) {
             setError("Add the company and the designation to save");
             return null;
@@ -159,7 +182,7 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
         } finally {
             busy.current = false;
         }
-    }, [base, initial?.sourceText]);
+    }, [base, initial?.sourceText, sourceText]);
 
     // Autosave drafts 1.5 s after the last edit
     useEffect(() => {
@@ -196,6 +219,10 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
     };
 
     const fixed = !!title;
+    const flagged = new Set<string>([...(review?.missing ?? []), ...Object.entries(review?.confidence ?? {}).filter(([, c]) => c < LOW).map(([k]) => k)]);
+    // One line per field (stipend.amount and stipend.type are both "Stipend")
+    const flaggedList = [...new Map([...flagged].map((k) => [FIELD_LABEL[k] ?? FIELD_LABEL[k.split(".")[0]] ?? k, review?.missing.includes(k) ?? false] as const)).entries()];
+    const mark = (...keys: string[]) => (keys.some((k) => flagged.has(k)) ? MARK : "");
     const q = data.questions;
     const setQ = (i: number, patch: Partial<Question>) => set("questions", q.map((x, n) => (n === i ? { ...x, ...patch } : x)));
     const setRound = (i: number, patch: Partial<Round>) => set("rounds", data.rounds.map((x, n) => (n === i ? { ...x, ...patch } : x)));
@@ -209,12 +236,23 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
                 </div>
             )}
             <div className={fixed ? "flex-1 min-h-0 overflow-y-auto space-y-5 pr-2" : "space-y-5"}>
+                {review && flagged.size > 0 && (
+                    <div role="status" className="rounded-[var(--radius-sm)] border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-800">
+                        <p className="font-medium">Read from the notification. Please check the highlighted fields before publishing.</p>
+                        <ul className="mt-1 list-disc pl-5 text-xs">
+                            {flaggedList.map(([label, notFound]) => (
+                                <li key={label}>{label}: {notFound ? "not found, add it" : "not sure, please verify"}</li>
+                            ))}
+                        </ul>
+                        <p className="mt-1 text-xs">Nothing is saved until you press Save draft or Publish.</p>
+                    </div>
+                )}
                 {readOnly && <div className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--text-2)]">{canEdit ? `This internship is ${status} and read-only. Duplicate it from Settings to post it again.` : "You have view-only access."}</div>}
 
                 <fieldset disabled={readOnly || publishing} className="space-y-5 min-w-0">
                     <section className="plasma-card p-5 space-y-4 border-l-4 border-l-[var(--campus)]">
                         <h2 className="font-semibold text-[var(--heading)]">Company</h2>
-                        <Input label="Company name" value={data.companyName} onChange={(e) => set("companyName", e.target.value)} maxLength={150} placeholder="e.g. Acme Technologies" hint="Required. This is what students look for first." />
+                        <Input label="Company name" value={data.companyName} className={mark("company.name")} onChange={(e) => set("companyName", e.target.value)} maxLength={150} placeholder="e.g. Acme Technologies" hint="Required. This is what students look for first." />
                         <div className="grid gap-4 sm:grid-cols-2">
                             <Field label="Tier (optional)">
                                 <select className={controlCls} value={data.tier} onChange={(e) => set("tier", e.target.value)}>
@@ -230,9 +268,9 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
 
                     <section className="plasma-card p-5 space-y-4">
                         <h2 className="font-semibold text-[var(--heading)]">Role</h2>
-                        <Input label="Designation" value={data.designation} onChange={(e) => set("designation", e.target.value)} maxLength={150} placeholder="e.g. Software Engineer Intern" />
+                        <Input label="Designation" value={data.designation} className={mark("designation")} onChange={(e) => set("designation", e.target.value)} maxLength={150} placeholder="e.g. Software Engineer Intern" />
                         <Field label="Description" hint="Plain text. Paste the company's notification if you have it.">
-                            <textarea rows={6} maxLength={10000} className={controlCls} value={data.description} onChange={(e) => set("description", e.target.value)} />
+                            <textarea rows={6} maxLength={10000} className={`${controlCls} ${mark("description")}`} value={data.description} onChange={(e) => set("description", e.target.value)} />
                         </Field>
                         <div className="grid gap-4 sm:grid-cols-3">
                             <Field label="Work mode">
@@ -255,11 +293,11 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
                         <h2 className="font-semibold text-[var(--heading)]">Dates</h2>
                         <p className="text-xs text-[var(--text-3)]">Only the application deadline is needed to publish. Leave the rest empty; students see &ldquo;{TBA}&rdquo;. Add them later and post an event.</p>
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Input label="Application deadline" type="datetime-local" value={data.deadlineDate} onChange={(e) => set("deadlineDate", e.target.value)} hint="Required to publish. Closes automatically at this time." />
-                            <Input label="Online assessment" type="datetime-local" value={data.assessmentDate} onChange={(e) => set("assessmentDate", e.target.value)} hint={TBA} />
-                            <Input label="Interviews" type="datetime-local" value={data.interviewDate} onChange={(e) => set("interviewDate", e.target.value)} hint={TBA} />
-                            <Input label="Results" type="datetime-local" value={data.resultDate} onChange={(e) => set("resultDate", e.target.value)} hint={TBA} />
-                            <Input label="Internship start" type="datetime-local" value={data.startDate} onChange={(e) => set("startDate", e.target.value)} hint={TBA} />
+                            <Input label="Application deadline" type="datetime-local" className={mark("deadlineDate")} value={data.deadlineDate} onChange={(e) => set("deadlineDate", e.target.value)} hint="Required to publish. Closes automatically at this time." />
+                            <Input label="Online assessment" type="datetime-local" className={mark("assessmentDate")} value={data.assessmentDate} onChange={(e) => set("assessmentDate", e.target.value)} hint={TBA} />
+                            <Input label="Interviews" type="datetime-local" className={mark("interviewDate")} value={data.interviewDate} onChange={(e) => set("interviewDate", e.target.value)} hint={TBA} />
+                            <Input label="Results" type="datetime-local" className={mark("resultDate")} value={data.resultDate} onChange={(e) => set("resultDate", e.target.value)} hint={TBA} />
+                            <Input label="Internship start" type="datetime-local" className={mark("startDate")} value={data.startDate} onChange={(e) => set("startDate", e.target.value)} hint={TBA} />
                         </div>
                         <div className="space-y-3">
                             <p className="text-xs font-medium text-[var(--text-2)] font-mono uppercase tracking-[0.07em]">Selection rounds ({data.rounds.length}/10)</p>
@@ -315,7 +353,7 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
                         <TagInput label="Courses" tags={data.courses} onChange={(v) => set("courses", v)} suggestions={suggestions.courses} placeholder="e.g. B.Tech" />
                         <TagInput label="Departments" tags={data.departments} onChange={(v) => set("departments", v)} suggestions={suggestions.departments} placeholder="e.g. Computer Engineering" />
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Input label="Minimum CGPA" type="number" min={0} max={100} step="0.01" value={data.minCgpa} onChange={(e) => set("minCgpa", e.target.value)} />
+                            <Input label="Minimum CGPA" className={mark("eligibility.minCgpa")} type="number" min={0} max={100} step="0.01" value={data.minCgpa} onChange={(e) => set("minCgpa", e.target.value)} />
                             <Input label="Max active backlogs" type="number" min={0} value={data.maxBacklogs} onChange={(e) => set("maxBacklogs", e.target.value)} />
                         </div>
                         <Field label="Other conditions (optional)">
