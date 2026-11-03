@@ -54,7 +54,7 @@ export async function syncCampusAutoClose(entityId: unknown): Promise<mongoose.T
     const capped = open.filter((o) => o.maxApplications);
     const counts = capped.length
         ? await CampusApplication.aggregate<{ _id: mongoose.Types.ObjectId; n: number }>([
-            { $match: { internshipId: { $in: capped.map((o) => o._id) } } },
+            { $match: { internshipId: { $in: capped.map((o) => o._id) }, status: { $ne: "withdrawn" } } },
             { $group: { _id: "$internshipId", n: { $sum: 1 } } },
         ])
         : [];

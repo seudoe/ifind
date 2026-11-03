@@ -164,6 +164,8 @@ export interface ResolveOptions {
     eligibleFor?: CampusEligibility;
     /** Only this batch. */
     batch?: number;
+    /** Include students on the entity blacklist: they must still hear about their own ban or removal. */
+    includeBlocked?: boolean;
 }
 
 /**
@@ -180,7 +182,7 @@ export async function resolveStudentRecipients(entityId: string, opts: ResolveOp
     const ids = enrollments.map((e) => e.userId);
     const [users, banned] = await Promise.all([
         User.find({ _id: { $in: ids }, isBanned: { $ne: true }, "deleteDetails.deleted": { $ne: true } }).select("email name phone username").lean(),
-        CampusBlacklist.find({ entityId, studentId: { $in: ids }, active: true }).select("studentId").lean(),
+        opts.includeBlocked ? Promise.resolve([]) : CampusBlacklist.find({ entityId, studentId: { $in: ids }, active: true }).select("studentId").lean(),
     ]);
     const blocked = new Set(banned.map((b) => String(b.studentId)));
     const byId = new Map(users.map((u) => [String(u._id), u]));
