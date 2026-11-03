@@ -37,6 +37,21 @@ export const DEFAULT_PRIORITY: Record<NotificationType, NotificationPriority> = 
     resume_updated: "normal",
     welcome: "normal",
     system: "normal",
+    // campus: inbox only. Campus email goes through lib/messaging (dispatchEmail), never through this table
+    campus_entity_created: "normal",
+    campus_internship: "normal",
+    campus_event: "normal",
+    campus_application_status: "normal",
+    campus_removed: "normal",
+    campus_banned: "normal",
+    campus_member_added: "normal",
+    campus_member_removed: "normal",
+    campus_member_role: "normal",
+    campus_new_applicant: "normal",
+    campus_withdrawal: "normal",
+    campus_offer_response: "normal",
+    campus_entity_reported: "normal",
+    campus_student_left: "normal",
 };
 
 /** Moves in the hiring pipeline a student should hear about by email (a rejection is inbox-only). */

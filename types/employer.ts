@@ -1,3 +1,4 @@
+import { CAMPUS_NOTIFICATION_TYPES } from "./campus";
 import type { Address, Duration, ExperienceRequired, Moderation, Stipend } from "./internship";
 
 // ── Enums (single source of truth; models import these) ─────────────────────
@@ -19,6 +20,7 @@ export const NOTIFICATION_TYPES = [
     "internship_pending_review", "internship_status", "internship_closed", "application_submitted",
     "company_restriction", "company_member_removed", "company_member_role",
     "account_security", "account_status", "welcome", "moderator_pending", "moderator_status", "resume_updated",
+    ...CAMPUS_NOTIFICATION_TYPES,
 ] as const;
 /** Personal inboxes: one document per person. Company-wide events live in notifications.company (see CompanyNotification). */
 export const RECIPIENT_TYPES = ["student", "employer", "moderator"] as const;
