@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics/track";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import { ApplicationDialog, type ApplicantDetails } from "@/components/internships/ApplicationDialog";
 import { useOptionalStudent } from "@/components/student/StudentProvider";
 import { sourceLabel } from "@/lib/constants";
@@ -29,6 +30,7 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
   const username = useParams()?.username as string | undefined;
   const [applying, setApplying] = useState(false);
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = getInternshipId(internship);
   const onPlatform = internship.source === "ifind";
@@ -82,7 +84,8 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
     }
     // Scraped listings only: for iFind posts the server reports application_submitted
     if (!onPlatform) track("apply_click", { internship_id: id });
-    void submit();
+    // Opening the source is not proof of applying: ask first, record only on "Yes"
+    setConfirmOpen(true);
   };
 
   return (
@@ -98,6 +101,16 @@ export function ApplyButton({ internship, isApplied, onApplied, size = "sm", cla
       >
         {isApplied ? "Applied ✓" : closed ? "Deadline passed" : onPlatform ? "Apply" : internship.applyLink?.startsWith("mailto:") ? "Apply by email" : internship.source === "web" ? "Apply on company site" : `Apply on ${sourceLabel(internship.source)}`}
       </Button>
+
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Did you apply?" description="We opened the application page in a new tab." size="sm">
+        <div onClick={(e) => e.stopPropagation()}>
+          <p className="text-sm text-[var(--text-2)]">Only mark it as applied if you actually submitted your application.</p>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button variant="secondary" size="sm" disabled={applying} onClick={() => setConfirmOpen(false)}>No</Button>
+            <Button size="sm" loading={applying} onClick={async () => { await submit(); setConfirmOpen(false); }}>Yes, I applied</Button>
+          </div>
+        </div>
+      </Modal>
 
       {needsForm && open && student?.data?.user && (
         <ApplicationDialog
