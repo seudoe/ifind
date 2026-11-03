@@ -96,3 +96,37 @@ export interface CampusEligibility {
     maxBacklogs?: number | null;
     other?: string | null;
 }
+
+/** Client shape of a campus internship (ids and dates as strings). */
+export interface CampusInternshipDTO {
+    _id: string;
+    entityId: string;
+    status: CampusInternshipStatus;
+    sourceText?: string | null;
+    company: { name: string; logo?: string | null; website?: string | null; industry?: string | null; tier?: (typeof CAMPUS_COMPANY_TIERS)[number] | null };
+    designation: string;
+    description: string;
+    deadlineDate?: string | null;
+    assessmentDate?: string | null;
+    interviewDate?: string | null;
+    resultDate?: string | null;
+    rounds: { name: string; type: (typeof CAMPUS_ROUND_TYPES)[number]; plannedDate?: string | null; notes?: string | null }[];
+    startDate?: string | null;
+    duration?: { value: number; unit: "weeks" | "months" } | null;
+    stipend?: { type: "paid" | "unpaid" | "performance-based"; amount?: number | null; period?: "monthly" | "weekly" | "lump-sum" | null } | null;
+    workMode: (typeof CAMPUS_WORK_MODES)[number];
+    locations: string[];
+    openings?: number | null;
+    ppoAvailable: boolean;
+    skills: string[];
+    responsibilities: string[];
+    perks: string[];
+    eligibility: CampusEligibility;
+    requireResume: boolean;
+    screeningQuestions: { _id?: string; question: string; type: "text" | "yes_no" | "single_choice" | "multi_choice" | "number"; options: string[]; required: boolean }[];
+    maxApplications?: number | null;
+    closedAt?: string | null;
+    applicantCount?: number;
+    createdAt: string;
+    updatedAt: string;
+}

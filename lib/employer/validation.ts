@@ -63,7 +63,7 @@ export const memberSchema = z.object({
     role: z.enum(MEMBER_ROLES),
 });
 
-const screeningQuestionSchema = z
+export const screeningQuestionSchema = z
     .object({
         _id: opt(z.string()),
         question: text(300).min(3),
