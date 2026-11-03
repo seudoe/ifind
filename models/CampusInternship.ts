@@ -47,6 +47,8 @@ export interface ICampusInternship extends Document {
     closedAt?: Date | null;
     /** Set once when the "new internship" message fan-out ran, so a re-publish never double-sends. */
     emailedAt?: Date | null;
+    /** Set when the 24h deadline reminder went out. */
+    remindedAt?: Date | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -134,6 +136,7 @@ const CampusInternshipSchema = new Schema<ICampusInternship>(
         attachments: { type: [new Schema({ name: { type: String, required: true }, url: { type: String, required: true } }, { _id: false })], default: [] },
         closedAt: { type: Date, default: null },
         emailedAt: { type: Date, default: null },
+        remindedAt: { type: Date, default: null },
     },
     { timestamps: true, collection: "campus-internships" },
 );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Flag, GraduationCap } from "lucide-react";
+import { toast } from "sonner";
 import { LeaveSwitchDialog, ReportDialog } from "@/components/student/campus/CampusDialogs";
 import { useCampus } from "@/components/student/campus/CampusProvider";
 import { CollegeDetailsForm } from "@/components/student/campus/CollegeDetailsForm";
@@ -14,6 +15,14 @@ export default function CollegeDetailsPage() {
     if (!state?.enrollment) return null;
     const c = state.current;
     const done = async () => { setDialog(null); await refresh(); };
+    const e = state.enrollment;
+
+    const pref = async (patch: { emailUpdates?: boolean; smsUpdates?: boolean }) => {
+        const res = await fetch("/api/user/campus/preferences", { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
+        const j = await res.json().catch(() => ({ success: false, error: "Unable to save" }));
+        if (!j.success) return toast.error(j.error);
+        await refresh();
+    };
 
     return (
         <div className="space-y-6">
@@ -36,6 +45,13 @@ export default function CollegeDetailsPage() {
                     </div>
                 </section>
             ) : null}
+
+            <section className="plasma-card p-4 max-w-2xl space-y-2">
+                <h2 className="font-semibold text-[var(--heading)]">Messages from your campus</h2>
+                <label className="flex items-start gap-2 text-sm text-[var(--text)]"><input type="checkbox" className="mt-1 accent-[var(--campus)]" checked={e.emailUpdates} onChange={(ev) => pref({ emailUpdates: ev.target.checked })} /> Email me about new internships, events and my applications</label>
+                <label className="flex items-start gap-2 text-sm text-[var(--text)]"><input type="checkbox" className="mt-1 accent-[var(--campus)]" checked={e.smsUpdates} disabled={!e.phone} onChange={(ev) => pref({ smsUpdates: ev.target.checked })} /> Text me on my phone{!e.phone && <span className="text-xs text-[var(--text-3)]"> (save a phone number below first)</span>}</label>
+                <p className="text-xs text-[var(--text-3)]">You always get an in-app notice. Account and safety messages are not affected.</p>
+            </section>
 
             <CollegeDetailsForm initial={state.enrollment} college={state.college} current={c} onSaved={refresh} />
 

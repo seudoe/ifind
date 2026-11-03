@@ -344,3 +344,15 @@ export async function campusState(userId: string) {
         banner,
     };
 }
+
+/** Message preferences. SMS can only be switched on when a phone number is saved (and SMS itself is a stub for now). */
+export async function setPreferences(userId: string, input: { emailUpdates?: boolean; smsUpdates?: boolean }): Promise<Outcome<{ emailUpdates: boolean; smsUpdates: boolean }>> {
+    const enrollment = await getEnrollment(userId);
+    if (!enrollment) return no(400, "Fill in your college details first.", "no_enrollment");
+    if (input.smsUpdates === true && !enrollment.phone) return no(400, "Add your phone number in College details first.", "phone_required");
+    const set: Record<string, boolean> = {};
+    if (typeof input.emailUpdates === "boolean") set.emailUpdates = input.emailUpdates;
+    if (typeof input.smsUpdates === "boolean") set.smsUpdates = input.smsUpdates;
+    const updated = Object.keys(set).length ? await CampusEnrollment.findOneAndUpdate({ _id: enrollment._id }, { $set: set }, { returnDocument: "after" }) : enrollment;
+    return { ok: true, emailUpdates: updated?.emailUpdates !== false, smsUpdates: updated?.smsUpdates === true };
+}

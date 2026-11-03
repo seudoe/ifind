@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import type { CampusInternshipStatus } from "@/types/campus";
 
-/** The events tab arrives with the events feature. */
 const TABS = [
     { label: "Applicants", segment: "applicants" },
+    { label: "Events", segment: "events" },
     { label: "Details", segment: "details" },
     { label: "Settings", segment: "settings" },
 ];

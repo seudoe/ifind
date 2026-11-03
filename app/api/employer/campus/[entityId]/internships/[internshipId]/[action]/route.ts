@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { campusPostingBlocked, requireCampusRole } from "@/lib/campus/access";
+import { announceInternship } from "@/lib/campus/announce";
 import { campusInternshipPublishSchema } from "@/lib/campus/internshipSchema";
 import { CAMPUS_STATUS_TRANSITIONS, duplicateFields, loadCampusInternship, syncCampusAutoClose, toCampusInternshipDTO } from "@/lib/campus/internships";
 import { isResponse } from "@/lib/employer/access";
@@ -59,6 +60,8 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
         );
         if (res.modifiedCount !== 1) return fail("This internship was just changed by someone else. Reload and try again.", 409);
         const updated = await CampusInternship.findById(doc._id);
+        // First publish tells the eligible students (once: emailedAt is claimed atomically inside)
+        if (action === "publish" && updated) after(() => announceInternship(access.entity, updated).catch((e) => console.error("[announceInternship]", e)));
         return NextResponse.json({ success: true, data: toCampusInternshipDTO(updated!) });
     } catch (error) {
         console.error("[employer/campus/internship action]", error);

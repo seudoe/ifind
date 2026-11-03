@@ -21,6 +21,8 @@ export interface ICampusEvent extends Document {
     /** Bumped on every update that re-notifies; part of the outbound idempotency key. */
     version: number;
     notifiedAt?: Date | null;
+    /** Version of the event the 24h reminder was last sent for (cron is idempotent per version). */
+    remindedVersion: number;
     status: (typeof CAMPUS_EVENT_STATUSES)[number];
     createdAt: Date;
     updatedAt: Date;
@@ -48,6 +50,7 @@ const CampusEventSchema = new Schema<ICampusEvent>(
         },
         version: { type: Number, default: 1 },
         notifiedAt: { type: Date, default: null },
+        remindedVersion: { type: Number, default: 0 },
         status: { type: String, enum: CAMPUS_EVENT_STATUSES, default: "scheduled" },
     },
     { timestamps: true, collection: "campus-internships.events" },

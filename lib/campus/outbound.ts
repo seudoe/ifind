@@ -164,6 +164,8 @@ export interface ResolveOptions {
     eligibleFor?: CampusEligibility;
     /** Only this batch. */
     batch?: number;
+    /** Extra per-student filter (audiences that depend on the student, e.g. applicants of one internship). */
+    filter?: (e: { userId: mongoose.Types.ObjectId; batch: number; course: string; department: string; cgpa?: number | null; activeBacklogs?: number | null }) => boolean;
     /** Include students on the entity blacklist: they must still hear about their own ban or removal. */
     includeBlocked?: boolean;
 }
@@ -178,6 +180,7 @@ export async function resolveStudentRecipients(entityId: string, opts: ResolveOp
     if (opts.batch != null) filter.batch = opts.batch;
     let enrollments = await CampusEnrollment.find(filter).lean();
     if (opts.eligibleFor) enrollments = enrollments.filter((e) => isEligible(e, opts.eligibleFor).ok);
+    if (opts.filter) enrollments = enrollments.filter(opts.filter);
     if (!enrollments.length) return [];
     const ids = enrollments.map((e) => e.userId);
     const [users, banned] = await Promise.all([
