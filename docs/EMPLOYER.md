@@ -140,3 +140,7 @@ Still open: a student bell/page for `notifications.student`; withdraw (`status: 
 ## 12. Known gaps
 
 No login rate limiting; no email verification for password signups; company verification is a status/badge only (no workflow); no interview scheduling, messaging, outgoing email, billing or public company pages; `Model.syncIndexes()` has not been run (manual step).
+
+## 13. Campus internships
+
+College placement teams run their own post-and-apply drives, as a second kind of institute next to companies (list at `/employer/institutes`; `/employer/companies*` redirects there). Company workspace URLs are unchanged. Full description: [CAMPUS.md](CAMPUS.md).

@@ -43,3 +43,7 @@ Student-facing application data never includes employer notes, ratings or `chang
 - Withdraw is allowed while the status is not `hired`, `rejected` or `withdrawn`. It sets `withdrawn`, mirrors it on
   `user.appliedInternships[].status`, and notifies the company (`application_withdrawn`). Because
   `(internshipId, studentId)` is unique, a withdrawn application cannot be re-applied.
+
+## Campus internships
+
+A "Campus Internships" entry (`/user/[username]/campus`) lets a student fill college details, join their college's campus and see its internships, events and applications. Campus applications also show on Applied with a "Campus" badge. A student can be in one campus at a time and cannot leave while an application is active. Not the same as **Events** (hackathons). Details: [CAMPUS.md](CAMPUS.md).
