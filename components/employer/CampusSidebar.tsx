@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, GraduationCap, LayoutDashboard, PlusCircle, Settings, Users, type LucideIcon } from "lucide-react";
+import { Briefcase, GraduationCap, LayoutDashboard, PlusCircle, Settings, UserRound, Users, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import { CAMPUS_ROLE_RANK, type CampusRole } from "@/types/campus";
@@ -12,6 +12,7 @@ const TABS: { label: string; segment: string; icon: LucideIcon; minRole: CampusR
     { label: "Overview", segment: "overview", icon: LayoutDashboard, minRole: "viewer" },
     { label: "Internships", segment: "internships", icon: Briefcase, minRole: "viewer" },
     { label: "Post New Internship", segment: "post-new-internship", icon: PlusCircle, minRole: "coordinator" },
+    { label: "Students", segment: "students", icon: UserRound, minRole: "viewer" },
     { label: "Team", segment: "team", icon: Users, minRole: "viewer" }, // everyone sees the team; managing needs admin
     { label: "Settings", segment: "settings", icon: Settings, minRole: "viewer" },
 ];

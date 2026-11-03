@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createCampusEntity } from "@/lib/campus/entities";
+import { after, NextRequest, NextResponse } from "next/server";
+import { announceEntityCreated, createCampusEntity } from "@/lib/campus/entities";
 import { campusCreateSchema } from "@/lib/campus/validation";
 import { isResponse, requireEmployer } from "@/lib/employer/access";
 import { stripHtml } from "@/lib/employer/sanitize";
@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
         const result = await createCampusEntity(employer._id, input);
         if (!result.ok) return NextResponse.json({ success: false, error: result.error }, { status: result.status });
         const { entity } = result;
+        after(() => announceEntityCreated(entity)); // students of that college get an in-app notice
         return NextResponse.json({ success: true, data: { _id: String(entity._id), slug: entity.slug, joinCode: entity.joinCode } }, { status: 201 });
     } catch (error) {
         console.error("[employer/campus POST]", error);

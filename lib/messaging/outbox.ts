@@ -15,7 +15,7 @@ export async function claimOutbox(row: Row): Promise<boolean> {
         const existing = await OutboundMessage.findOneAndUpdate(
             { channel: row.channel, idempotencyKey: row.idempotencyKey },
             { $setOnInsert: { ...row, status: "pending", attempts: 0 } },
-            { upsert: true, new: false },
+            { upsert: true, returnDocument: "before" },
         ).select("_id");
         return existing === null;
     } catch (err) {

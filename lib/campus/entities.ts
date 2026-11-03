@@ -6,6 +6,8 @@ import College from "@/models/College";
 import Company from "@/models/Company";
 import { CAMPUS_ACTIVE_STATUSES } from "@/types/campus";
 import { uniqueJoinCode } from "./joinCode";
+import { notifyStudents } from "./notify";
+import CampusEnrollment from "@/models/CampusEnrollment";
 import type { CampusCreateInput, CampusProfileInput } from "./validation";
 
 export const MAX_CAMPUSES_PER_EMPLOYER = 10;
@@ -140,3 +142,27 @@ export async function otherCampusesOfCollege(collegeId: string) {
 /** Count of the entity's applicants still in play (used by overview). */
 export const activeApplicantCount = (entityId: mongoose.Types.ObjectId) =>
     CampusApplication.countDocuments({ entityId, status: { $in: CAMPUS_ACTIVE_STATUSES } });
+
+/**
+ * In-app notice to every student enrolled for this college (including those already in another campus), with a link to
+ * the Campuses page to view, join or report. Skipped for code-only campuses (they are not announced). Never throws.
+ */
+export async function announceEntityCreated(entity: Pick<ICampusEntity, "_id" | "name" | "collegeId" | "listing">): Promise<number> {
+    if (entity.listing !== "listed") return 0;
+    try {
+        const students = await CampusEnrollment.find({ collegeId: entity.collegeId }).select("userId").lean();
+        const ids = students.map((s) => s.userId);
+        for (let i = 0; i < ids.length; i += 500) {
+            await notifyStudents(ids.slice(i, i + 500), {
+                type: "campus_entity_created",
+                title: `${entity.name} was set up for your college`,
+                body: "Check that it is your official placement cell before you join. You can report it if it is not.",
+                path: "/campus/campuses",
+            });
+        }
+        return ids.length;
+    } catch (err) {
+        console.error("[announceEntityCreated]", err);
+        return 0;
+    }
+}

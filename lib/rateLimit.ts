@@ -73,6 +73,10 @@ export const RULES = {
   chatSessionCreate: { limit: 30, windowSec: 60 * 60 },
   employerWrite: { limit: 120, windowSec: 60 * 60 },
   campusRead: { limit: 300, windowSec: 60 * 60 }, // college search / same-college lookups
+  // Join codes: tight, because a code is a bearer secret and guessing must be impractical (8 chars from 31 symbols).
+  campusJoinCodeUser: { limit: 10, windowSec: 15 * 60 },
+  campusJoinCodeIp: { limit: 40, windowSec: 15 * 60 },
+  campusStudentWrite: { limit: 60, windowSec: 60 * 60 }, // enrollment, join, leave, report, withdraw
   employerModeration: { limit: 20, windowSec: 60 * 60 },
   // Unauthenticated endpoints that make the server call another service.
   oauthIp: { limit: 40, windowSec: 15 * 60 },
