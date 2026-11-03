@@ -17,7 +17,9 @@ export interface CloseResult {
  * Takes a campus out of service so nobody is stuck (4.8, 7): internships close, every active application becomes
  * `withdrawn` with a history note, joined students are detached (their yellow banner returns) and told, in-app and
  * through the outbound channel. Applications stay on record read-only. Idempotent: the first caller wins.
- * Used by owner deletion now and by moderator ban/restriction later.
+ *  - "deleted": the owner deleted it; the campus is switched off (isActive false, deleted).
+ *  - "banned": a moderator banned it; the campus stays visible to its staff (so they can read why) and is lifted later
+ *    by the moderator. The caller flips `restriction` and must call this only on the transition INTO banned.
  */
 export async function closeCampusEntity(entity: Pick<ICampusEntity, "_id" | "name">, why: "deleted" | "banned" = "deleted"): Promise<CloseResult> {
     // Recipients must be resolved while students still point at the entity
@@ -29,9 +31,11 @@ export async function closeCampusEntity(entity: Pick<ICampusEntity, "_id" | "nam
     const now = new Date();
     const claimed = await CampusEntity.updateOne(
         { _id: entity._id, isActive: true },
-        { $set: { isActive: false, "deleteDetails.deleted": why === "deleted", "deleteDetails.deletedAt": why === "deleted" ? now : null, studentCount: 0 } },
+        why === "deleted"
+            ? { $set: { isActive: false, "deleteDetails.deleted": true, "deleteDetails.deletedAt": now, studentCount: 0 } }
+            : { $set: { studentCount: 0 } },
     );
-    if (claimed.modifiedCount !== 1) return { closed: false, students: 0, withdrawn: 0 };
+    if (claimed.matchedCount !== 1) return { closed: false, students: 0, withdrawn: 0 };
 
     await CampusInternship.updateMany({ entityId: entity._id, status: { $in: ["draft", "open"] } }, { $set: { status: "closed", closedAt: now } });
     const withdrawn = await CampusApplication.updateMany(

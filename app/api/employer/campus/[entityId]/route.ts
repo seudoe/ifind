@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireCampusRole } from "@/lib/campus/access";
+import { limitCampusWrite, requireCampusRole } from "@/lib/campus/access";
 import { closeCampusEntity } from "@/lib/campus/deletion";
 import { updateCampusProfile } from "@/lib/campus/entities";
 import { campusProfileSchema } from "@/lib/campus/validation";
@@ -29,6 +29,8 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCampusRole((await params).entityId, "admin");
         if (isResponse(access)) return access;
+        const limited = await limitCampusWrite(access.employer._id);
+        if (limited) return limited;
 
         const parsed = campusProfileSchema.safeParse(await request.json());
         if (!parsed.success) return NextResponse.json({ success: false, error: zodMessage(parsed.error) }, { status: 400 });
@@ -49,6 +51,8 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCampusRole((await params).entityId, "owner");
         if (isResponse(access)) return access;
+        const limited = await limitCampusWrite(access.employer._id);
+        if (limited) return limited;
         const { entity, employer } = access;
         const result = await closeCampusEntity(entity, "deleted");
         if (!result.closed) return NextResponse.json({ success: false, error: "Campus not found" }, { status: 404 });

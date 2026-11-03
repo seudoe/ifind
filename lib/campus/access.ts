@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { getValidEmployer } from "@/lib/employer/access";
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import CampusEntity, { type ICampusEntity } from "@/models/CampusEntity";
 import type { IEmployer } from "@/models/Employer";
 import { CAMPUS_ROLE_RANK, type CampusRole } from "@/types/campus";
@@ -63,4 +64,10 @@ export function campusPostingBlocked(entity: Pick<ICampusEntity, "restriction">)
     const r = entity.restriction;
     if (!r || r.status === "none") return null;
     return fail(`This campus has been ${r.status === "banned" ? "banned" : "restricted"} by iFind${r.reason ? `: ${r.reason}` : ""}.`, 403);
+}
+
+/** Shared write budget for staff actions that change people or records (team, notes, removals). Null = go ahead. */
+export async function limitCampusWrite(employerId: unknown): Promise<NextResponse | null> {
+    const r = await hit("campus:staff-write", String(employerId), RULES.employerWrite);
+    return r.ok ? null : tooManyRequests(r.retryAfter);
 }

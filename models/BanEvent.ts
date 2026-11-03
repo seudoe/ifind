@@ -3,7 +3,7 @@ import mongoose, { type Model, Schema } from "mongoose";
 /** Every ban and unban, with the user's signals at that moment, so a decision can be reviewed later. */
 export interface IBanEvent {
   userId: mongoose.Types.ObjectId;
-  targetType?: "user" | "employer" | "company";
+  targetType?: "user" | "employer" | "company" | "campus";
   action: "ban" | "unban";
   reason: string | null;
   moderatorId: mongoose.Types.ObjectId;
@@ -15,7 +15,7 @@ export interface IBanEvent {
 const BanEventSchema = new Schema<IBanEvent>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    targetType: { type: String, enum: ["user", "employer", "company"], default: "user" },
+    targetType: { type: String, enum: ["user", "employer", "company", "campus"], default: "user" },
     action: { type: String, enum: ["ban", "unban"], required: true },
     reason: { type: String, default: null },
     moderatorId: { type: Schema.Types.ObjectId, ref: "Moderator", required: true },

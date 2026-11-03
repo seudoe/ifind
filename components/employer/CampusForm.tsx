@@ -68,7 +68,7 @@ export function CampusForm({ mode, initial, onSubmit }: Props) {
                 <section className="plasma-card p-5 space-y-4">
                     <CollegePicker value={college} onChange={setCollege} />
                     {others.length > 0 && (
-                        <div role="status" className="rounded-[var(--radius-sm)] border border-amber-300/50 bg-amber-50 p-3 text-sm text-amber-800">
+                        <div role="status" className="rounded-[var(--radius-sm)] border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-3 text-sm text-[var(--text)]">
                             <p className="flex items-center gap-2 font-medium"><TriangleAlert className="h-4 w-4" /> Campuses already exist for this college</p>
                             <ul className="mt-1.5 list-disc pl-6 text-xs">
                                 {others.map((o) => (

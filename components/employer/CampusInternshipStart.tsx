@@ -91,7 +91,7 @@ export function CampusInternshipStart({ entityId, suggestions }: Props) {
                         <Button type="button" loading={busy} disabled={text.trim().length < 20 || text.length > MAX} onClick={extract}>Read details</Button>
                     </div>
                 </div>
-                {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">{error} <button type="button" className="underline" onClick={() => setPhase("form")}>Fill the form by hand</button></div>}
+                {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">{error} <button type="button" className="underline" onClick={() => setPhase("form")}>Fill the form by hand</button></div>}
             </section>
         </div>
     );

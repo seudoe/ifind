@@ -5,6 +5,7 @@ import { claimOutbox, finishOutbox } from "@/lib/messaging/outbox";
 import { dispatchSms } from "@/lib/messaging/sms";
 import type { DispatchResult, EmailMessage, SmsMessage } from "@/lib/messaging/types";
 import CampusBlacklist from "@/models/CampusBlacklist";
+import CampusEntity from "@/models/CampusEntity";
 import CampusEnrollment from "@/models/CampusEnrollment";
 import User from "@/models/User";
 import type { CampusEligibility } from "@/types/campus";
@@ -43,6 +44,8 @@ export interface SendOptions {
     version?: number | string;
     /** Run after the response when inside a request (never blocks, never throws). Default false: inline. */
     defer?: boolean;
+    /** Moderation notices to a restricted campus's own staff are still sent. */
+    bypassRestriction?: boolean;
     /** Campus the message belongs to; stored on the outbox row. */
     entityId?: string;
     /** Test seam. */
@@ -58,6 +61,15 @@ export interface SendCounts {
 }
 
 const CHUNK = 20;
+
+async function isRestricted(entityId: string): Promise<boolean> {
+    try {
+        const e = await CampusEntity.findById(entityId).select("restriction.status").lean();
+        return !!e?.restriction?.status && e.restriction.status !== "none";
+    } catch {
+        return false; // cannot tell: do not block a message because of a read failure
+    }
+}
 
 /** A stub that throws or rejects is counted as failed, never propagated. */
 async function settle(fn: () => Promise<DispatchResult>): Promise<PromiseSettledResult<DispatchResult>> {
@@ -80,6 +92,9 @@ async function run<T extends { id: string }>(
     address: (r: T) => { email?: string | null; name?: string | null; phone?: string | null },
 ): Promise<SendCounts> {
     const t = opts.transport ?? defaultTransport;
+    // A restricted or banned campus cannot email or text anyone (its students still get in-app notices).
+    // Moderation's own notices to the campus staff pass bypassRestriction.
+    const muted = !opts.bypassRestriction && !!opts.entityId && (await isRestricted(opts.entityId));
     const counts: SendCounts = { recipients: recipients.length, emailed: 0, texted: 0, skipped: 0, failed: 0 };
     // Every message is recorded in messaging.outbox before it is sent, and the outcome (sent / failed + times) after.
     // A failed or not-yet-implemented send stays retryable for a later job. The same key is never claimed twice.
@@ -104,6 +119,7 @@ async function run<T extends { id: string }>(
                 const m = build(r);
                 const key = idempotencyKey(opts.kind, opts.refId, r.id, opts.version);
                 const tags = ["campus", opts.kind];
+                if (muted) { counts.skipped++; return; }
                 if (opts.email) {
                     if (emailAllowed(r) && a.email) {
                         await send("email", { to: a.email, toName: a.name, subject: m.subject, text: m.text, link: m.link, recipientId: r.id, key, tags },

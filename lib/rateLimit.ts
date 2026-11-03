@@ -76,6 +76,7 @@ export const RULES = {
   // Join codes: tight, because a code is a bearer secret and guessing must be impractical (8 chars from 31 symbols).
   campusJoinCodeUser: { limit: 10, windowSec: 15 * 60 },
   campusJoinCodeIp: { limit: 40, windowSec: 15 * 60 },
+  campusDraftSave: { limit: 900, windowSec: 60 * 60 }, // autosave PATCH of an internship draft (about every 1.5 s while typing)
   campusStudentWrite: { limit: 60, windowSec: 60 * 60 }, // enrollment, join, leave, report, withdraw
   employerModeration: { limit: 20, windowSec: 60 * 60 },
   // Unauthenticated endpoints that make the server call another service.

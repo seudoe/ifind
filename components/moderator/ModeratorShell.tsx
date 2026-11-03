@@ -13,6 +13,7 @@ import {
     Trophy,
     Briefcase,
     Building2,
+    GraduationCap,
     LogOut,
     AlertTriangle,
     BarChart3,
@@ -25,7 +26,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import type { ModeratorSession } from "@/types/moderator";
 
-type Tab = "internships" | "analyze" | "notifications" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "moderators";
+type Tab = "internships" | "analyze" | "notifications" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "campuses" | "moderators";
 
 // ── Nav definition (grouped) ──────────────────────────────────────────────
 const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeof Users }[] }[] = [
@@ -55,6 +56,7 @@ const NAV_GROUPS: { label: string; links: { tab: Tab; label: string; icon: typeo
             { tab: "users", label: "Users", icon: Users },
             { tab: "employers", label: "Employers", icon: Briefcase },
             { tab: "companies", label: "Companies", icon: Building2 },
+            { tab: "campuses", label: "Campuses", icon: GraduationCap },
             { tab: "moderators", label: "Moderators", icon: UserCheck },
         ],
     },
@@ -113,6 +115,7 @@ export function ModeratorShell({
         users: "User Management",
         employers: "Employer Management",
         companies: "Company Management",
+        campuses: "Campus Management",
         moderators: "Moderator Accounts",
     };
 

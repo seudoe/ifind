@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { campusPostingBlocked, requireCampusRole } from "@/lib/campus/access";
+import { limitCampusWrite, campusPostingBlocked, requireCampusRole } from "@/lib/campus/access";
 import { campusInternshipDraftSchema } from "@/lib/campus/internshipSchema";
 import { EDITABLE, loadCampusInternship, syncCampusAutoClose, toCampusInternshipDTO } from "@/lib/campus/internships";
 import { isResponse } from "@/lib/employer/access";
+import { hit, RULES, tooManyRequests } from "@/lib/rateLimit";
 import { stripHtml } from "@/lib/employer/sanitize";
 import { checkImageUrls } from "@/lib/employer/upload";
 import { zodMessage } from "@/lib/employer/validation";
@@ -32,6 +33,8 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         const { entityId, internshipId } = await params;
         const access = await requireCampusRole(entityId, "coordinator");
         if (isResponse(access)) return access;
+        const limited = await hit("campus:draft-save", String(access.employer._id), RULES.campusDraftSave);
+        if (!limited.ok) return tooManyRequests(limited.retryAfter);
         const blocked = campusPostingBlocked(access.entity);
         if (blocked) return blocked;
         const doc = await loadCampusInternship(access.entity._id, internshipId);
@@ -62,6 +65,8 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
         const { entityId, internshipId } = await params;
         const access = await requireCampusRole(entityId, "coordinator");
         if (isResponse(access)) return access;
+        const limited = await limitCampusWrite(access.employer._id);
+        if (limited) return limited;
         const doc = await loadCampusInternship(access.entity._id, internshipId);
         if (isResponse(doc)) return doc;
         if (doc.status !== "draft") return fail("Only drafts can be deleted. Close or archive it instead.", 409);

@@ -232,12 +232,12 @@ export function CampusInternshipForm({ entityId, initial, title, suggestions, ca
             {(title || error) && (
                 <div className={fixed ? "shrink-0 space-y-2" : "sticky top-12 md:top-0 z-20 -mx-1 space-y-2 bg-[var(--bg)] px-1 pb-2 pt-1"}>
                     {title && <h1 className="text-lg font-bold text-[var(--heading)]">{title}</h1>}
-                    {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">{error}</div>}
+                    {error && <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">{error}</div>}
                 </div>
             )}
             <div className={fixed ? "flex-1 min-h-0 overflow-y-auto space-y-5 pr-2" : "space-y-5"}>
                 {review && flagged.size > 0 && (
-                    <div role="status" className="rounded-[var(--radius-sm)] border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-800">
+                    <div role="status" className="rounded-[var(--radius-sm)] border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-3 text-sm text-[var(--text)]">
                         <p className="font-medium">Read from the notification. Please check the highlighted fields before publishing.</p>
                         <ul className="mt-1 list-disc pl-5 text-xs">
                             {flaggedList.map(([label, notFound]) => (

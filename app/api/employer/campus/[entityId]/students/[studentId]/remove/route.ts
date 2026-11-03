@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireCampusRole } from "@/lib/campus/access";
+import { limitCampusWrite, requireCampusRole } from "@/lib/campus/access";
 import { removeStudentFromCampus } from "@/lib/campus/pipeline";
 import { failure } from "@/lib/campus/studentAuth";
 import { isResponse } from "@/lib/employer/access";
@@ -12,6 +12,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { entityId, studentId } = await params;
     const access = await requireCampusRole(entityId, "coordinator");
     if (isResponse(access)) return access;
+    const limited = await limitCampusWrite(access.employer._id);
+    if (limited) return limited;
     const body = await request.json().catch(() => null);
     const r = await removeStudentFromCampus(access.entity, studentId, { id: access.employer._id, name: access.employer.name }, stripHtml(typeof body?.reason === "string" ? body.reason : ""));
     return r.ok ? NextResponse.json({ success: true, data: { removed: r.removed } }) : failure(r);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireCampusRole } from "@/lib/campus/access";
+import { limitCampusWrite, requireCampusRole } from "@/lib/campus/access";
 import { banStudent, listBlacklist, unbanStudent } from "@/lib/campus/pipeline";
 import { failure } from "@/lib/campus/studentAuth";
 import { isResponse } from "@/lib/employer/access";
@@ -37,6 +37,8 @@ export async function POST(request: NextRequest, { params }: Ctx) {
 export async function DELETE(request: NextRequest, { params }: Ctx) {
     const access = await requireCampusRole((await params).entityId, "coordinator");
     if (isResponse(access)) return access;
+    const limited = await limitCampusWrite(access.employer._id);
+    if (limited) return limited;
     const r = await unbanStudent(access.entity, request.nextUrl.searchParams.get("studentId") ?? "", { id: access.employer._id, name: access.employer.name });
     return r.ok ? NextResponse.json({ success: true }) : failure(r);
 }

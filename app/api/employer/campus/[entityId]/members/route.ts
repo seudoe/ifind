@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
-import { requireCampusRole, type CampusAccess } from "@/lib/campus/access";
+import { limitCampusWrite, requireCampusRole, type CampusAccess } from "@/lib/campus/access";
 import { staffAddedMessage, staffRemovedMessage } from "@/lib/campus/messages";
 import { notifyCollege } from "@/lib/campus/notify";
 import { sendToStaff } from "@/lib/campus/outbound";
@@ -36,6 +36,8 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCampusRole((await params).entityId, "admin");
         if (isResponse(access)) return access;
+        const limited = await limitCampusWrite(access.employer._id);
+        if (limited) return limited;
         const parsed = addSchema.safeParse(await request.json());
         if (!parsed.success) return fail("A valid email and role are required", 400);
         const { email, role } = parsed.data;
@@ -71,6 +73,8 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCampusRole((await params).entityId, "admin");
         if (isResponse(access)) return access;
+        const limited = await limitCampusWrite(access.employer._id);
+        if (limited) return limited;
         const body = await request.json();
         if (!CAMPUS_ROLES.includes(body.role) || !mongoose.isValidObjectId(body.employerId)) return fail("employerId and a valid role are required", 400);
 
@@ -104,6 +108,8 @@ export async function DELETE(request: NextRequest, { params }: Ctx) {
     try {
         const access = await requireCampusRole((await params).entityId, "viewer");
         if (isResponse(access)) return access;
+        const limited = await limitCampusWrite(access.employer._id);
+        if (limited) return limited;
         const id = request.nextUrl.searchParams.get("employerId") ?? "";
         if (!mongoose.isValidObjectId(id)) return fail("employerId required", 400);
         const member = access.entity.members.find((m) => m.employerId.equals(id));

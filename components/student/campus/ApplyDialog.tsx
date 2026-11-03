@@ -96,7 +96,7 @@ export function ApplyDialog({ internshipId, enrollment, onClose, onDone }: { int
                     </label>
 
                     {error && (
-                        <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">
+                        <div role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">
                             <p>{error.message}</p>
                             {error.reasons && <ul className="mt-1 list-disc pl-5 text-xs">{error.reasons.map((r) => <li key={r}>{r}</li>)}</ul>}
                             {error.code === "resume_required" && <Link href={`/user/${username}/resume`} className="mt-1 inline-block underline">Upload your resume</Link>}

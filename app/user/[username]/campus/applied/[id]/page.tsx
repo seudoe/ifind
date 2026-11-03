@@ -65,13 +65,13 @@ export default function CampusApplicationPage() {
             {d.internship && <p className="-mt-3 text-sm text-[var(--text-2)]">{d.internship.designation}</p>}
 
             {d.status === "removed" && (
-                <div role="alert" className="rounded-[var(--radius)] border border-[var(--danger)]/40 bg-red-50 p-3 text-sm text-[var(--danger)]">
+                <div role="alert" className="rounded-[var(--radius)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 p-3 text-sm text-[var(--danger)]">
                     The campus staff removed you from this internship{d.removalReason ? `: ${d.removalReason}` : "."} This does not stop you from applying to other internships. Ask them if you think it is a mistake.
                 </div>
             )}
 
             {offerOpen && (
-                <section className="plasma-card space-y-3 border-l-4 border-l-amber-400 p-4">
+                <section className="plasma-card space-y-3 border-l-4 border-l-[var(--warning)] p-4">
                     <h3 className="font-semibold text-[var(--heading)]">You have an offer</h3>
                     <p className="text-sm text-[var(--text-2)]">{d.offer?.acceptBy ? `Please answer by ${when(d.offer.acceptBy)}.` : "Please answer as soon as you can."}</p>
                     <div className="flex gap-2"><Button onClick={() => setConfirm("accept")}>Accept</Button><Button variant="secondary" onClick={() => setConfirm("decline")}>Decline</Button></div>

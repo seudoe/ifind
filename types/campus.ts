@@ -73,7 +73,7 @@ export const CAMPUS_NOTIFICATION_TYPES = [
     "campus_entity_created", "campus_internship", "campus_event", "campus_application_status", "campus_removed",
     "campus_banned", "campus_member_added", "campus_member_removed", "campus_member_role",
     "campus_new_applicant", "campus_withdrawal", "campus_offer_response", "campus_entity_reported", "campus_student_left",
-    "campus_entity_closed",
+    "campus_entity_closed", "campus_restriction",
 ] as const;
 
 export const CAMPUS_JOIN_CODE_LENGTH = 8;

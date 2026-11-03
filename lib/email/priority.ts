@@ -53,6 +53,7 @@ export const DEFAULT_PRIORITY: Record<NotificationType, NotificationPriority> = 
     campus_entity_reported: "normal",
     campus_student_left: "normal",
     campus_entity_closed: "normal",
+    campus_restriction: "normal",
 };
 
 /** Moves in the hiring pipeline a student should hear about by email (a rejection is inbox-only). */

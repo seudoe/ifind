@@ -41,7 +41,7 @@ export default function CampusAppliedPage() {
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-[var(--text)]">{a.company}</p>
                             <p className="truncate text-xs text-[var(--text-2)]">{a.designation} · Applied {new Date(a.appliedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
-                            {a.acceptBy && <p className="text-xs font-medium text-amber-700">Answer the offer by {new Date(a.acceptBy).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</p>}
+                            {a.acceptBy && <p className="text-xs font-medium text-[var(--warning)]">Answer the offer by {new Date(a.acceptBy).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</p>}
                         </div>
                         <CampusApplicationPill status={a.status} />
                         <ChevronRight className="h-4 w-4 shrink-0 text-[var(--text-3)]" />

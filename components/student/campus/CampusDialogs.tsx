@@ -52,7 +52,7 @@ export function JoinDialog({ target, onClose, onDone }: { target: Target; onClos
             <div className="space-y-4">
                 <CampusFacts c={c} />
                 {c.reportCount > 0 && (
-                    <p role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]">
+                    <p role="alert" className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">
                         Students of your college reported this campus. Ask your placement coordinator whether it is the official one before you join.
                     </p>
                 )}
@@ -128,7 +128,7 @@ export function LeaveSwitchDialog({ current, target, onClose, onDone }: { curren
                 {blockers === null ? (
                     <p className="text-sm text-[var(--text-3)]">Checking your applications…</p>
                 ) : blocked ? (
-                    <div className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-red-50 p-3 space-y-2">
+                    <div className="rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 p-3 space-y-2">
                         <p className="text-sm font-semibold text-[var(--danger)]">You can&apos;t leave while you have active applications here. Withdraw them first:</p>
                         <ul className="space-y-2">
                             {blockers.map((b) => (
@@ -138,7 +138,7 @@ export function LeaveSwitchDialog({ current, target, onClose, onDone }: { curren
                                         <Button size="sm" variant="secondary" onClick={() => (b.status === "accepted" ? setConfirming(b.applicationId) : withdraw(b))}>Withdraw</Button>
                                     </div>
                                     {confirming === b.applicationId && (
-                                        <div className="mt-2 rounded-[var(--radius-sm)] bg-red-50 p-2 text-xs text-[var(--danger)]">
+                                        <div className="mt-2 rounded-[var(--radius-sm)] bg-[var(--danger)]/10 p-2 text-xs text-[var(--danger)]">
                                             <p>{ACCEPTED_WITHDRAW_WARNING}</p>
                                             <div className="mt-2 flex gap-2">
                                                 <Button size="sm" variant="danger" onClick={() => withdraw(b, true)}>Withdraw accepted offer</Button>
