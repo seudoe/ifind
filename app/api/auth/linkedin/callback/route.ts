@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
   const isEmployer = intent === "employer" || isLink;
   const isStudentLink = intent === "student-link" || intent === "student-setpw";
   const isSetPassword = intent === "student-setpw";
-  const loginPath = isStudentLink ? "/user" : isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
+  // A student connecting LinkedIn must land back in their own settings (with the reason), not on a sign-in page
+  const linkUser = isStudentLink ? (await getSession())?.username : undefined;
+  const loginPath = isStudentLink ? (linkUser ? `/user/${linkUser}/settings` : "/user/login") : isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
 
   if (errorParam) {
     console.error("[auth/linkedin/callback] LinkedIn returned error:", errorParam, errorDescription);
@@ -142,7 +144,7 @@ export async function GET(request: NextRequest) {
       if (!session) return NextResponse.redirect(`${origin}/user/login`);
       const me = await User.findById(session.userId).select("username linkedinId");
       if (!me) return NextResponse.redirect(`${origin}/user/login`);
-      const back = `${origin}/user/${me.username}/profile`;
+      const back = `${origin}/user/${me.username}/settings`;
       if (await User.exists({ linkedinId: profile.sub, _id: { $ne: me._id } })) {
         return NextResponse.redirect(`${back}?error=${encodeURIComponent("This LinkedIn account is already linked to another iFind account")}`);
       }
@@ -164,7 +166,7 @@ export async function GET(request: NextRequest) {
       }
       const firstLink = !me.linkedinId;
       await User.updateOne({ _id: me._id }, { $set: { linkedinId: profile.sub, linkedinDetails: profile, linkedinLastAuthAt: new Date(), ...(firstLink ? { linkedinLinkedAt: new Date(), linkedinReviewedAt: null } : {}) } });
-      const linked = NextResponse.redirect(back);
+      const linked = NextResponse.redirect(`${back}?linked=1`);
       linked.cookies.delete("linkedin_oauth_state");
       linked.cookies.delete("linkedin_oauth_intent");
       linked.cookies.delete("linkedin_oauth_next");
