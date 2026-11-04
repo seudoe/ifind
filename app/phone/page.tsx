@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ import {
   User,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { safeNextPath } from "@/lib/authRedirect";
 
@@ -47,10 +48,8 @@ export default function PhoneLandingPage() {
     if (touchStartY.current === null) return;
     const deltaY = e.changedTouches[0].clientY - touchStartY.current;
     if (deltaY < -40 && !expanded) {
-      // Swiped upwards
       setExpanded(true);
     } else if (deltaY > 50 && expanded) {
-      // Swiped downwards
       setExpanded(false);
     }
     touchStartY.current = null;
@@ -170,67 +169,78 @@ export default function PhoneLandingPage() {
 
   return (
     <div
-      className="h-dvh max-w-md mx-auto relative overflow-hidden bg-zinc-950 text-white flex flex-col justify-between select-none font-sans"
+      className="w-full min-h-dvh flex flex-col justify-between bg-[var(--bg)] text-[var(--text)] select-none font-sans relative overflow-x-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* ── Background & Ambient Glow ───────────────────────────────────────── */}
-      <div className="absolute inset-0 bg-radial from-emerald-950/20 via-zinc-950 to-black pointer-events-none" />
+      {/* ── Top Header (100% width, with app ThemeSwitcher) ─────────────── */}
+      <header className="w-full h-14 shrink-0 px-4 sm:px-8 border-b-2 border-[var(--rule)] bg-[var(--surface)] flex items-center justify-between z-20">
+        <Link href="/phone" className="flex items-center shrink-0" aria-label="iFind Home">
+          <Logo size="md" />
+        </Link>
 
-      {/* ── Top Bar ────────────────────────────────────────────────────────── */}
-      <header className="relative z-10 px-6 pt-5 pb-3 flex items-center justify-between">
-        <Logo size="md" />
-        <button
-          onClick={() => openAuth(role === "student" ? "employer" : "student", "login")}
-          className="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-full hover:bg-emerald-900/50 transition-colors"
-        >
-          {role === "student" ? "Employer ?" : "Student ?"}
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => openAuth(role === "student" ? "employer" : "student", "login")}
+            className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--primary-bg)] border border-[var(--primary)] px-3 py-1 rounded-[var(--radius-xl)] hover:bg-[var(--primary)] hover:text-white transition-colors"
+          >
+            {role === "student" ? "Employer ?" : "Student ?"}
+          </button>
+          <ThemeSwitcher compact className="w-24 shrink-0" />
+        </div>
       </header>
 
-      {/* ── Middle Landing Card (Hero) ─────────────────────────────────────── */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center px-6 pb-20">
-        <div className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 shadow-2xl">
-          {/* Hero Graduate Image with Overlay */}
-          <div className="relative h-56 rounded-xl overflow-hidden mb-4 bg-zinc-900">
-            <Image
-              src="/hero-graduate.png"
-              alt="Graduate receiving offer"
-              fill
-              className="object-cover object-top opacity-90"
-              priority
-            />
-            {/* Offer badge overlay */}
-            <div className="absolute top-3 right-3 bg-white/95 text-zinc-900 rounded-lg p-2 shadow-lg backdrop-blur-xs flex items-center gap-2 text-left">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[10px] font-bold">
-                ✓
-              </div>
-              <div>
-                <p className="text-[10px] font-bold leading-none">Offer Received</p>
-                <p className="text-[9px] text-zinc-500 leading-tight">Software Engineer Intern</p>
-              </div>
+      {/* ── Hero Section (100% width edge-to-edge image & big iFind logo) ─ */}
+      <div className="w-full flex-1 flex flex-col justify-start">
+        {/* Edge-to-edge image (100% width) */}
+        <div className="w-full h-72 sm:h-96 relative overflow-hidden bg-[var(--surface-3)]">
+          <Image
+            src="/hero-graduate.png"
+            alt="Graduate receiving offer"
+            fill
+            className="object-cover object-top"
+            priority
+          />
+          {/* Offer Received badge */}
+          <div className="absolute top-4 right-4 bg-white/95 dark:bg-zinc-900/95 text-[var(--text)] rounded-[var(--radius-sm)] p-2.5 shadow-lg backdrop-blur-xs flex items-center gap-2 border border-[var(--border)]">
+            <div className="w-5 h-5 rounded-full bg-[var(--success)] flex items-center justify-center text-white text-[10px] font-bold">
+              ✓
             </div>
-            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-zinc-950 to-transparent" />
+            <div>
+              <p className="text-[11px] font-bold leading-none text-[var(--heading)]">Offer Received</p>
+              <p className="text-[9.5px] text-[var(--text-3)] leading-tight mt-0.5">Software Engineer Intern</p>
+            </div>
+          </div>
+          {/* Subtle bottom fade matching background */}
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/70 to-transparent pointer-events-none" />
+        </div>
+
+        {/* Hero Branding Content */}
+        <div className="w-full max-w-2xl mx-auto px-5 sm:px-8 -mt-10 sm:-mt-14 relative z-10 space-y-3 pb-56">
+          {/* Big iFind Logo */}
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-clean.svg" alt="iFind" className="h-12 sm:h-16 w-auto logo-art-light drop-shadow-sm" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-clean-dark.svg" alt="iFind" className="h-12 sm:h-16 w-auto logo-art-dark drop-shadow-sm" />
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-            <span className="text-emerald-400">i</span>Find
-          </h1>
-          <p className="text-sm font-medium text-zinc-300 leading-snug">
+          <p className="text-base sm:text-lg font-medium text-[var(--text)] leading-snug">
             Your skills. Real opportunities. A brighter future.
           </p>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="pt-2 flex flex-wrap items-center gap-3">
             <Link
               href="/internships"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors group"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[var(--primary-dk)] transition-colors shadow-sm group"
             >
               Browse internships <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <button
               onClick={() => openAuth("employer", "login")}
-              className="text-xs font-bold font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 px-3.5 py-1.5 rounded-full transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-[var(--primary)] bg-[var(--primary-bg)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white text-xs font-bold font-mono uppercase tracking-wider transition-all"
             >
               Employer ?
             </button>
@@ -238,68 +248,66 @@ export default function PhoneLandingPage() {
         </div>
       </div>
 
-      {/* ── Swipable Bottom Sheet Card ─────────────────────────────────────── */}
+      {/* ── Swipable Bottom Sheet Card (100% width edge-to-edge) ─────────── */}
       <div
-        className={`fixed inset-x-0 bottom-0 max-w-md mx-auto z-40 bg-zinc-900 border-t border-zinc-700/80 rounded-t-3xl shadow-[0_-12px_40px_rgba(0,0,0,0.85)] transition-all duration-300 ease-out flex flex-col ${
-          expanded ? "h-[85dvh]" : "h-48"
+        className={`fixed inset-x-0 bottom-0 w-full z-40 bg-[var(--surface)] border-t-2 border-[var(--rule)] rounded-t-[var(--radius-2xl)] sm:rounded-t-[var(--radius-3xl)] shadow-[var(--shadow-lg)] transition-all duration-300 ease-out flex flex-col ${
+          expanded ? "h-[86dvh] sm:h-[80dvh]" : "h-44 sm:h-48"
         }`}
       >
-        {/* Handle Bar & Drag Touch Target */}
+        {/* Handle Bar & Touch Drag Target */}
         <div
           onClick={() => setExpanded(!expanded)}
-          className="pt-3 pb-2 cursor-pointer flex flex-col items-center shrink-0"
+          className="pt-3 pb-2 cursor-pointer flex flex-col items-center shrink-0 w-full"
         >
-          <div className="w-12 h-1.5 bg-zinc-600 rounded-full" />
+          <div className="w-14 h-1.5 bg-[var(--border-2)] rounded-full hover:bg-[var(--primary)] transition-colors" />
           {!expanded && (
-            <p className="text-[11px] font-mono text-zinc-400 mt-2 font-medium">
+            <p className="text-[11px] font-mono text-[var(--text-3)] mt-2 font-medium">
               Swipe up to sign in
             </p>
           )}
         </div>
 
-        {/* ── Collapsed Content: Big Register & Login Buttons ──────────────── */}
+        {/* ── Collapsed Content (100% width buttons) ─────────────────────── */}
         {!expanded ? (
-          <div className="flex-1 px-6 pb-6 pt-1 flex flex-col justify-center gap-3">
+          <div className="w-full max-w-xl mx-auto flex-1 px-5 sm:px-8 pb-5 pt-1 flex flex-col justify-center gap-3">
             <button
               onClick={() => openAuth("student", "register")}
-              className="w-full py-3.5 rounded-xl border-2 border-emerald-500 text-emerald-400 font-bold uppercase tracking-wider text-sm hover:bg-emerald-500 hover:text-zinc-950 transition-colors shadow-lg active:scale-98"
+              className="w-full py-3.5 rounded-[var(--radius-sm)] border-2 border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-bg)] hover:bg-[var(--primary)] hover:text-white font-bold font-mono uppercase tracking-wider text-sm transition-all shadow-xs active:scale-98 cursor-pointer"
             >
               Register
             </button>
             <button
               onClick={() => openAuth("student", "login")}
-              className="w-full py-3.5 rounded-xl bg-zinc-800 text-white font-bold uppercase tracking-wider text-sm hover:bg-zinc-700 transition-colors shadow-md active:scale-98"
+              className="w-full py-3.5 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white hover:bg-[var(--primary-dk)] font-bold font-mono uppercase tracking-wider text-sm transition-all shadow-sm active:scale-98 cursor-pointer"
             >
               Login
             </button>
           </div>
         ) : (
-          /* ── Expanded Content: Full Sign In / Register Form ───────────────── */
-          <div className="flex-1 overflow-y-auto px-6 pb-8 pt-2 flex flex-col">
+          /* ── Expanded Content (Full Sign In / Register Form) ────────────── */
+          <div className="w-full max-w-xl mx-auto flex-1 overflow-y-auto px-5 sm:px-8 pb-8 pt-1 flex flex-col">
             {/* Header row in sheet */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="p-1.5 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)]">
                   {role === "student" ? <GraduationCap className="h-4 w-4" /> : <Briefcase className="h-4 w-4" />}
                 </span>
-                <div>
-                  <h2 className="text-base font-bold uppercase tracking-wide text-white">
-                    {role === "student" ? "STUDENT" : "EMPLOYER"} {tab === "login" ? "SIGN IN" : "REGISTER"}
-                  </h2>
-                </div>
+                <h2 className="text-sm sm:text-base font-bold font-mono uppercase tracking-wide text-[var(--heading)]">
+                  {role === "student" ? "STUDENT" : "EMPLOYER"} {tab === "login" ? "SIGN IN" : "REGISTER"}
+                </h2>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={() => setRole(role === "student" ? "employer" : "student")}
-                  className="text-[11px] font-mono font-medium text-zinc-400 hover:text-emerald-400 underline underline-offset-2"
+                  className="text-[11px] font-mono font-bold uppercase text-[var(--primary)] hover:underline"
                 >
-                  {role === "student" ? "Employer?" : "Student?"}
+                  Switch to {role === "student" ? "Employer" : "Student"}
                 </button>
                 <button
                   onClick={() => setExpanded(false)}
-                  className="p-1 text-zinc-400 hover:text-white rounded-md"
+                  className="p-1.5 text-[var(--text-3)] hover:text-[var(--heading)] rounded-[var(--radius-sm)]"
                   aria-label="Collapse"
                 >
                   <ChevronDown className="h-5 w-5" />
@@ -308,14 +316,14 @@ export default function PhoneLandingPage() {
             </div>
 
             {/* Segment Tab Toggle */}
-            <div className="grid grid-cols-2 p-1 bg-zinc-950 border border-zinc-800 rounded-xl mb-4 text-xs font-bold font-mono uppercase tracking-wider">
+            <div className="grid grid-cols-2 p-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] mb-4 text-xs font-bold font-mono uppercase tracking-wider">
               <button
                 type="button"
                 onClick={() => setTab("login")}
-                className={`py-2 rounded-lg transition-all ${
+                className={`py-2 rounded-[var(--radius-sm)] transition-all ${
                   tab === "login"
-                    ? "bg-emerald-500 text-zinc-950 shadow-md"
-                    : "text-zinc-400 hover:text-white"
+                    ? "bg-[var(--primary)] text-white shadow-xs"
+                    : "text-[var(--text-2)] hover:text-[var(--heading)]"
                 }`}
               >
                 Login
@@ -323,10 +331,10 @@ export default function PhoneLandingPage() {
               <button
                 type="button"
                 onClick={() => setTab("register")}
-                className={`py-2 rounded-lg transition-all ${
+                className={`py-2 rounded-[var(--radius-sm)] transition-all ${
                   tab === "register"
-                    ? "bg-emerald-500 text-zinc-950 shadow-md"
-                    : "text-zinc-400 hover:text-white"
+                    ? "bg-[var(--primary)] text-white shadow-xs"
+                    : "text-[var(--text-2)] hover:text-[var(--heading)]"
                 }`}
               >
                 Register
@@ -335,9 +343,9 @@ export default function PhoneLandingPage() {
 
             {/* LinkedIn required banner */}
             {needsLinkedIn && (
-              <div role="alert" className="mb-4 rounded-xl border border-red-500/40 bg-red-950/30 p-3 text-xs text-red-400">
+              <div role="alert" className="mb-4 rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 p-3 text-xs text-[var(--danger)]">
                 <p className="font-semibold">Sign in with LinkedIn required.</p>
-                <p className="mt-0.5 text-zinc-400">Accounts with both password and LinkedIn must authenticate via LinkedIn once a month. Use LinkedIn below.</p>
+                <p className="mt-0.5 text-[var(--text-2)]">Accounts with both password and LinkedIn must authenticate via LinkedIn once a month. Use LinkedIn below.</p>
               </div>
             )}
 
@@ -345,11 +353,11 @@ export default function PhoneLandingPage() {
             {tab === "login" ? (
               <form onSubmit={role === "student" ? handleStudentLogin : handleEmployerLogin} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     {role === "student" ? "Email or Username" : "Work Email"}
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-zinc-500 pointer-events-none">
+                    <span className="absolute inset-y-0 left-3 flex items-center text-[var(--text-3)] pointer-events-none">
                       <Mail className="h-4 w-4" />
                     </span>
                     <input
@@ -358,15 +366,15 @@ export default function PhoneLandingPage() {
                       value={emailOrUser}
                       onChange={(e) => setEmailOrUser(e.target.value)}
                       placeholder={role === "student" ? "student@example.com or username" : "employer@company.com"}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white placeholder-zinc-600 focus:outline-hidden focus:border-emerald-500 transition-colors"
+                      className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] py-2.5 pl-9 pr-3 text-sm text-[var(--text)] placeholder-[var(--text-3)] focus:outline-hidden focus:border-[var(--primary)] transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Password</label>
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Password</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-zinc-500 pointer-events-none">
+                    <span className="absolute inset-y-0 left-3 flex items-center text-[var(--text-3)] pointer-events-none">
                       <Lock className="h-4 w-4" />
                     </span>
                     <input
@@ -375,12 +383,12 @@ export default function PhoneLandingPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2.5 pl-9 pr-10 text-sm text-white placeholder-zinc-600 focus:outline-hidden focus:border-emerald-500 transition-colors"
+                      className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] py-2.5 pl-9 pr-10 text-sm text-[var(--text)] placeholder-[var(--text-3)] focus:outline-hidden focus:border-[var(--primary)] transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-zinc-300"
+                      className="absolute inset-y-0 right-3 flex items-center text-[var(--text-3)] hover:text-[var(--text)]"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -390,15 +398,15 @@ export default function PhoneLandingPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold uppercase tracking-wider text-xs transition-colors shadow-lg active:scale-98 disabled:opacity-50 mt-1"
+                  className="w-full py-3 rounded-[var(--radius-sm)] bg-[var(--primary)] hover:bg-[var(--primary-dk)] text-white font-bold font-mono uppercase tracking-wider text-xs transition-colors shadow-sm active:scale-98 disabled:opacity-50 mt-1 cursor-pointer"
                 >
                   {loading ? "Signing in…" : "Sign In"}
                 </button>
 
-                <div className="flex items-center gap-3 my-3 text-xs text-zinc-500">
-                  <span className="h-px flex-1 bg-zinc-800" />
+                <div className="flex items-center gap-3 my-3 text-xs text-[var(--text-3)]">
+                  <span className="h-px flex-1 bg-[var(--border)]" />
                   <span>or continue with</span>
-                  <span className="h-px flex-1 bg-zinc-800" />
+                  <span className="h-px flex-1 bg-[var(--border)]" />
                 </div>
 
                 <LinkedInButton as={role === "employer" ? "employer" : undefined} />
@@ -406,9 +414,9 @@ export default function PhoneLandingPage() {
             ) : (
               <form onSubmit={role === "student" ? handleStudentRegister : handleEmployerRegister} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Full Name</label>
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Full Name</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-zinc-500 pointer-events-none">
+                    <span className="absolute inset-y-0 left-3 flex items-center text-[var(--text-3)] pointer-events-none">
                       <User className="h-4 w-4" />
                     </span>
                     <input
@@ -417,61 +425,61 @@ export default function PhoneLandingPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Full Name"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white placeholder-zinc-600 focus:outline-hidden focus:border-emerald-500"
+                      className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] py-2 pl-9 pr-3 text-sm text-[var(--text)] placeholder-[var(--text-3)] focus:outline-hidden focus:border-[var(--primary)]"
                     />
                   </div>
                 </div>
 
                 {role === "student" && (
                   <div>
-                    <label className="block text-xs font-medium text-zinc-400 mb-1">Username</label>
+                    <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Username</label>
                     <input
                       type="text"
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value.toLowerCase())}
                       placeholder="lowercase_username"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2 px-3 text-sm text-white placeholder-zinc-600 focus:outline-hidden focus:border-emerald-500"
+                      className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] py-2 px-3 text-sm text-[var(--text)] placeholder-[var(--text-3)] focus:outline-hidden focus:border-[var(--primary)]"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Email</label>
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Email</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2 px-3 text-sm text-white placeholder-zinc-600 focus:outline-hidden focus:border-emerald-500"
+                    className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] py-2 px-3 text-sm text-[var(--text)] placeholder-[var(--text-3)] focus:outline-hidden focus:border-[var(--primary)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">Password</label>
+                  <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Password</label>
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min 8 chars, 1 uppercase, 1 number"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2 px-3 text-sm text-white placeholder-zinc-600 focus:outline-hidden focus:border-emerald-500"
+                    className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] py-2 px-3 text-sm text-[var(--text)] placeholder-[var(--text-3)] focus:outline-hidden focus:border-[var(--primary)]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold uppercase tracking-wider text-xs transition-colors shadow-lg active:scale-98 disabled:opacity-50"
+                  className="w-full py-2.5 rounded-[var(--radius-sm)] bg-[var(--primary)] hover:bg-[var(--primary-dk)] text-white font-bold font-mono uppercase tracking-wider text-xs transition-colors shadow-sm active:scale-98 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? "Creating account…" : "Create Account"}
                 </button>
 
-                <div className="flex items-center gap-3 my-2 text-xs text-zinc-500">
-                  <span className="h-px flex-1 bg-zinc-800" />
+                <div className="flex items-center gap-3 my-2 text-xs text-[var(--text-3)]">
+                  <span className="h-px flex-1 bg-[var(--border)]" />
                   <span>or</span>
-                  <span className="h-px flex-1 bg-zinc-800" />
+                  <span className="h-px flex-1 bg-[var(--border)]" />
                 </div>
 
                 <LinkedInButton as={role === "employer" ? "employer" : undefined} text="Sign up with LinkedIn" />
