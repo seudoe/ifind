@@ -16,7 +16,7 @@ export type CampusFormData = Omit<CampusProfileInput, "batches" | "policy"> & {
 };
 
 export const EMPTY_CAMPUS: CampusFormData = {
-    name: "", description: "", listing: "listed", courses: [], batches: [], uidLabel: "College ID",
+    name: "", description: "", listing: "listed", courses: [], batches: [], uidLabel: "Unique student ID given by college",
     policy: { oneStudentOneOffer: false },
 };
 

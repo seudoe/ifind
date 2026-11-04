@@ -21,7 +21,7 @@ export const campusProfileSchema = z.object({
         .max(30)
         .default([]),
     batches: z.array(z.coerce.number().int().min(thisYear - 1).max(thisYear + 8)).max(10).default([]),
-    uidLabel: text(40).min(1).default("College ID"),
+    uidLabel: text(40).min(1).default("Unique student ID given by college"),
     policy: z
         .object({
             oneStudentOneOffer: z.boolean().default(false),

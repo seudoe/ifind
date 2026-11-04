@@ -33,7 +33,7 @@ export function CollegeDetailsForm({ initial, college: initialCollege, current, 
 
     const courses = current?.courses ?? [];
     const departments = [...new Set(courses.filter((c) => !f.course || c.name.toLowerCase() === f.course.toLowerCase()).flatMap((c) => c.departments))];
-    const uidLabel = current?.uidLabel ?? "College ID";
+    const uidLabel = !current?.uidLabel || current.uidLabel === "College ID" ? "Unique student ID given by college" : current.uidLabel; // "College ID" is the old default
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();

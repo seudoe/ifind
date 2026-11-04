@@ -54,7 +54,7 @@ export async function buildExport(entityId: unknown, internshipId?: string | nul
     const single = internshipId ? byId.get(internshipId) : undefined;
     const qCols = single ? single.screeningQuestions.map((q) => ({ id: String(q._id), title: q.question })) : [];
     const header = [
-        "Name", "College ID", "Course", "Department", "Batch", "CGPA", "Active backlogs", "Email", "Phone",
+        "Name", "Student ID (given by college)", "Course", "Department", "Batch", "CGPA", "Active backlogs", "Email", "Phone",
         "Company", "Designation", "Status", "Rounds", "Applied at (IST)",
         ...(single ? qCols.map((q) => `Q: ${q.title}`) : ["Screening answers"]),
     ];

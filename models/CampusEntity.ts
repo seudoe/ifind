@@ -66,7 +66,7 @@ const CampusEntitySchema = new Schema<ICampusEntity>(
             default: [],
         },
         batches: { type: [Number], default: [] },
-        uidLabel: { type: String, default: "College ID", trim: true, maxlength: 40 },
+        uidLabel: { type: String, default: "Unique student ID given by college", trim: true, maxlength: 40 },
         policy: {
             type: new Schema({ oneStudentOneOffer: { type: Boolean, default: false }, acceptWindowHours: { type: Number, default: null } }, { _id: false }),
             default: () => ({ oneStudentOneOffer: false }),
