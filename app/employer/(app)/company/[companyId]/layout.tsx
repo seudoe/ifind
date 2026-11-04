@@ -38,7 +38,7 @@ export default async function CompanyLayout({
                 role={role}
                 companies={mine.map((c) => ({ _id: String(c._id), name: c.name }))}
             />
-            <main className="flex-1 min-w-0 p-4 md:p-8">
+            <main className="flex-1 min-w-0 p-4 md:p-8 pb-20 md:pb-8">
                 {restriction.status !== "none" && (
                     <div role="alert" className="mb-6 flex items-start gap-3 rounded-[var(--radius)] border border-[var(--danger)]/30 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--danger)]">
                         <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />

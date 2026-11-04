@@ -74,19 +74,19 @@ export function CampusSidebar({ entityId, name, logo, collegeName, role }: Props
                 <p className="mt-auto px-6 pt-4"><Badge variant="outline" className="capitalize">{role}</Badge></p>
             </aside>
 
-            {/* Mobile: scrollable tab strip */}
-            <nav className="md:hidden sticky top-14 z-20 flex items-stretch overflow-x-auto border-b border-[var(--border)] bg-[var(--surface)]" aria-label="Campus sections">
-                <Link href="/employer/institutes" className="flex items-center gap-2 border-r border-[var(--border)] px-3 max-w-[40%] shrink-0" title="All institutes">
+            {/* Mobile: horizontal scrolling lower navbar */}
+            <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 h-14 flex items-center overflow-x-auto border-t-2 border-[var(--rule)] bg-[var(--surface)] px-2 gap-1.5 shadow-lg" aria-label="Campus sections">
+                <Link href="/employer/institutes" className="flex items-center gap-1.5 border-r border-[var(--border)] pr-2.5 shrink-0 py-1 text-xs text-[var(--text-3)] hover:text-[var(--text)]" title="All institutes">
                     <GraduationCap className="h-4 w-4 shrink-0 text-[var(--campus)]" />
-                    <span className="truncate text-xs font-semibold text-[var(--heading)]">{name}</span>
+                    <span className="truncate max-w-[90px] font-semibold text-[var(--heading)]">{name}</span>
                 </Link>
                 {tabs.map(({ label, segment, icon: Icon }) => (
                     <Link
                         key={segment}
                         href={`${base}/${segment}`}
                         className={cn(
-                            "flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 font-mono text-[10.5px] font-bold uppercase tracking-[0.05em] transition-colors",
-                            isActive(segment) ? "border-[var(--campus)] text-[var(--campus)] bg-[var(--campus-bg)]" : "border-transparent text-[var(--text-2)]",
+                            "flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-[var(--radius-sm)] font-mono text-[11px] font-bold uppercase tracking-[0.04em] transition-colors",
+                            isActive(segment) ? "bg-[var(--campus)] text-white" : "text-[var(--text-2)] hover:bg-[var(--campus-bg)]",
                         )}
                     >
                         <Icon size={14} className="shrink-0" />
