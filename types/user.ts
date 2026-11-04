@@ -32,6 +32,7 @@ export interface User {
     linkedinLinkedAt?: string | null;
     linkedinReviewedAt?: string | null;
     linkedinLastAuthAt?: string | null;
+    linkedinVerification?: { identity: boolean; workplace: boolean; checkedAt: string } | null;
     /** Computed by the dashboard API while a LinkedIn connection awaits confirmation. */
     linkedinPending?: { name?: string; email?: string; picture?: string; emailVerified: boolean; currentEmail: string; changesEmail: boolean } | null;
     /** Computed by the dashboard API; the hash itself never leaves the server. */

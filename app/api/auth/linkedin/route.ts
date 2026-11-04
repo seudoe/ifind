@@ -1,6 +1,7 @@
 import { publicOrigin } from "@/lib/publicOrigin";
 import { NextRequest, NextResponse } from "next/server";
 import { safeNextPath } from "@/lib/authRedirect";
+import { linkedinScope } from "@/lib/linkedinVerification";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
   const as = request.nextUrl.searchParams.get("as");
   const intent = as === "employer" || as === "employer-link" || as === "student-link" || as === "student-setpw" ? as : "student";
 
-  const scope = process.env.LINKEDIN_SCOPE || "openid profile email";
+  const scope = linkedinScope(intent === "student" || intent === "student-link" || intent === "student-setpw");
 
   const params = new URLSearchParams({
     response_type: "code",

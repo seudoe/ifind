@@ -39,6 +39,7 @@ export async function POST(request: Request) {
   const email = typeof profile.email === "string" ? profile.email.toLowerCase() : "";
   const set: Record<string, unknown> = {
     linkedinId: profile.sub, linkedinDetails: profile, linkedinLinkedAt: new Date(), linkedinLastAuthAt: new Date(), linkedinReviewedAt: null, linkedinPending: null,
+    ...(pending.verification ? { linkedinVerification: pending.verification } : {}),
   };
   if (email && email !== user.email) set.email = email;
   try {

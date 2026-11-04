@@ -5,10 +5,12 @@ import type { User as StudentUser } from "@/types";
 
 interface Props {
   linkedinDetails?: StudentUser["linkedinDetails"];
+  /** LinkedIn's own ID/selfie verification (not the email flag). */
+  identityVerified?: boolean;
   className?: string;
 }
 
-export function LinkedInVerificationBanner({ linkedinDetails, className = "" }: Props) {
+export function LinkedInVerificationBanner({ linkedinDetails, identityVerified = false, className = "" }: Props) {
   if (!linkedinDetails) {
     // Yellow for not connected
     return (
@@ -29,7 +31,7 @@ export function LinkedInVerificationBanner({ linkedinDetails, className = "" }: 
     );
   }
 
-  if (linkedinDetails.email_verified) {
+  if (identityVerified) {
     // Green for verified
     return (
       <div className={`p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 ${className}`}>

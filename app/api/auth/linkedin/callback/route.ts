@@ -7,6 +7,7 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, getSession, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { fetchVerification } from "@/lib/linkedinVerification";
 import { createHash, randomBytes } from "node:crypto";
 import { EMP_COOKIE_NAME, empAuthCookie, signEmpToken, verifyEmpToken } from "@/lib/employerAuth";
 import Employer from "@/models/Employer";
@@ -115,6 +116,9 @@ export async function GET(request: NextRequest) {
     const email = (profile.email || `${profile.sub}@linkedin.user`).toLowerCase();
     const name = profile.name || [profile.given_name, profile.family_name].filter(Boolean).join(" ") || "Student";
     const profilePicture = profile.picture || null;
+    // LinkedIn's ID/selfie verification, re-read on every student sign-in so the stored state follows LinkedIn both ways
+    const verification = isEmployer ? null : await fetchVerification(accessToken);
+    const verifSet = verification ? { linkedinVerification: verification } : {};
 
     await connectDB();
 
@@ -176,10 +180,10 @@ export async function GET(request: NextRequest) {
         if (liEmail && (await User.exists({ email: liEmail, _id: { $ne: me._id } }))) {
           return clean(NextResponse.redirect(`${back}?error=${encodeURIComponent("Another iFind account already uses your LinkedIn email, so this LinkedIn cannot be connected.")}`));
         }
-        await User.updateOne({ _id: me._id }, { $set: { linkedinPending: { profile, expiresAt: new Date(Date.now() + 15 * 60_000) } } });
+        await User.updateOne({ _id: me._id }, { $set: { linkedinPending: { profile, verification, expiresAt: new Date(Date.now() + 15 * 60_000) } } });
         return clean(NextResponse.redirect(`${back}?linkedin=confirm`));
       }
-      await User.updateOne({ _id: me._id }, { $set: { linkedinDetails: profile, linkedinLastAuthAt: new Date() } });
+      await User.updateOne({ _id: me._id }, { $set: { linkedinDetails: profile, linkedinLastAuthAt: new Date(), ...verifSet } });
       const linked = NextResponse.redirect(`${back}?linked=1`);
       linked.cookies.delete("linkedin_oauth_state");
       linked.cookies.delete("linkedin_oauth_intent");
@@ -270,6 +274,7 @@ export async function GET(request: NextRequest) {
       user.linkedinId = profile.sub;
       user.linkedinDetails = profile;
       user.linkedinLastAuthAt = new Date();
+      if (verification) user.linkedinVerification = verification;
       if (profilePicture && !user.profilePicture) {
         user.profilePicture = profilePicture;
       }
@@ -341,6 +346,7 @@ export async function GET(request: NextRequest) {
         linkedinId: profile.sub,
         linkedinDetails: profile,
         linkedinLastAuthAt: new Date(),
+        ...verifSet,
         profilePicture: profilePicture || null,
         role: "student",
         phone: null,

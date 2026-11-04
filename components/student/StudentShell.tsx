@@ -11,17 +11,19 @@ import { Logo as LogoBadge } from "@/components/ui/Logo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
+import { linkedinState } from "@/lib/linkedinState";
 import type { User as StudentUser } from "@/types";
 
-function LinkedInStatusIndicator({ linkedinDetails }: { linkedinDetails?: StudentUser["linkedinDetails"] }) {
-  if (!linkedinDetails) {
+function LinkedInStatusIndicator({ user }: { user: StudentUser }) {
+  const state = linkedinState(user);
+  if (state === "normal") {
     return (
       <span title="User is not connected through LinkedIn" className="inline-flex items-center text-gray-400 hover:text-gray-500 transition-colors">
         <Link2Off className="h-3.5 w-3.5" />
       </span>
     );
   }
-  if (linkedinDetails.email_verified) {
+  if (state === "verified") {
     return (
       <span title="User is LinkedIn verified" className="inline-flex items-center text-[#0a66c2] hover:opacity-85 transition-opacity">
         <BadgeCheck className="h-4 w-4 fill-[#0a66c2]/10" />
@@ -123,7 +125,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
             <Link href={`${base}/profile`} className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] transition-colors">
               <Avatar src={user.profilePicture} name={user.name} size="xs" />
               <span className="text-sm font-medium text-[var(--text)] truncate">{user.name}</span>
-              <LinkedInStatusIndicator linkedinDetails={user.linkedinDetails} />
+              <LinkedInStatusIndicator user={user} />
             </Link>
             <button onClick={handleLogout} title="Logout" className="p-2 rounded-[var(--radius-sm)] text-[var(--text-3)] hover:text-[var(--danger)] hover:bg-[var(--surface-2)] transition-colors">
               <LogOut className="h-4 w-4" />

@@ -53,7 +53,7 @@ export function LinkedInReviewDialog({ user }: { user: User }) {
         <div className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] p-3 text-xs text-[var(--text-2)] space-y-1">
           <p>LinkedIn email: <strong className="text-[var(--text)]">{li.email ?? "not shared"}</strong></p>
           <p className="flex items-center gap-1.5">
-            {li.email_verified ? <><BadgeCheck className="h-4 w-4 text-[#0a66c2]" /> Verified on LinkedIn</> : <><AlertTriangle className="h-4 w-4 text-amber-500" /> Not verified on LinkedIn</>}
+            {user.linkedinVerification?.identity ? <><BadgeCheck className="h-4 w-4 text-[#0a66c2]" /> Identity verified on LinkedIn</> : <><AlertTriangle className="h-4 w-4 text-amber-500" /> Identity not verified on LinkedIn</>}
           </p>
           <p>Your sign-in email is <strong className="text-[var(--text)]">{user.email}</strong>.</p>
         </div>

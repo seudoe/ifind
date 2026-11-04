@@ -25,8 +25,8 @@ function Card({ icon, title, desc, children }: { icon: React.ReactNode; title: s
 
 const STATES: { key: LinkedInState; title: string; text: string; icon: typeof Link2Off }[] = [
   { key: "normal", title: "Normal", text: "Email and password. Nothing about you has been checked by iFind or LinkedIn.", icon: Link2Off },
-  { key: "connected", title: "LinkedIn connected", text: "Your LinkedIn account is linked, but LinkedIn has not verified your email.", icon: Link2 },
-  { key: "verified", title: "Verified on LinkedIn", text: "Your LinkedIn account is linked and LinkedIn has verified your email.", icon: BadgeCheck },
+  { key: "connected", title: "LinkedIn connected", text: "Your LinkedIn account is linked, but LinkedIn has not verified your identity (government ID and selfie).", icon: Link2 },
+  { key: "verified", title: "Verified on LinkedIn", text: "Your LinkedIn account is linked and LinkedIn has verified your identity (government ID and selfie). Re-checked on every LinkedIn sign-in.", icon: BadgeCheck },
 ];
 
 const fmt = (d: Date) => d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });

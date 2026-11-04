@@ -1,8 +1,9 @@
 /**
  * A student account's LinkedIn standing, derived from stored fields (never stored itself):
  *  normal    - no LinkedIn connected (email + password)
- *  connected - LinkedIn connected, LinkedIn has not verified the email
- *  verified  - LinkedIn connected and LinkedIn reports email_verified
+ *  connected - LinkedIn connected, but LinkedIn has not verified the person's identity (or we could not check)
+ *  verified  - LinkedIn connected and LinkedIn's Verification Report lists IDENTITY (government ID + selfie).
+ *              The sign-in's email_verified flag is only an email check and never counts.
  */
 export type LinkedInState = "normal" | "connected" | "verified";
 
@@ -12,7 +13,7 @@ const DAY = 86_400_000;
 
 interface Shape {
   linkedinId?: string | null;
-  linkedinDetails?: { email_verified?: boolean } | null;
+  linkedinVerification?: { identity?: boolean } | null;
   hasPassword?: boolean;
   password?: string | null;
   linkedinLastAuthAt?: Date | string | null;
@@ -21,7 +22,7 @@ interface Shape {
 
 export function linkedinState(u: Shape): LinkedInState {
   if (!u.linkedinId) return "normal";
-  return u.linkedinDetails?.email_verified === true ? "verified" : "connected";
+  return u.linkedinVerification?.identity === true ? "verified" : "connected";
 }
 
 export const hasBothMethods = (u: Shape): boolean => Boolean(u.linkedinId) && Boolean(u.hasPassword ?? u.password);

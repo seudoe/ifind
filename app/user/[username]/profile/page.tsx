@@ -66,7 +66,7 @@ export default function ProfilePage() {
   return (
     <>
       <div className="space-y-5">
-        <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} />
+        <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} identityVerified={user.linkedinVerification?.identity === true} />
         <ProfileHeader 
           user={user} 
           education={education ? `${education.field.type} · ${education.field.course}` : "Student profile"} 

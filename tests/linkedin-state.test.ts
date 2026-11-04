@@ -8,9 +8,11 @@ const ago = (days: number) => new Date(now - days * DAY);
 
 test("three states: normal, connected, verified", () => {
     assert.equal(linkedinState({}), "normal");
-    assert.equal(linkedinState({ linkedinId: "x", linkedinDetails: { email_verified: false } }), "connected");
-    assert.equal(linkedinState({ linkedinId: "x", linkedinDetails: {} }), "connected");
-    assert.equal(linkedinState({ linkedinId: "x", linkedinDetails: { email_verified: true } }), "verified");
+    assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: false } }), "connected");
+    assert.equal(linkedinState({ linkedinId: "x" }), "connected"); // never checked (verification API off): not verified
+    assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: true } }), "verified");
+    // follows LinkedIn both ways: a later check downgrades or upgrades
+    assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: false } }), "connected");
 });
 
 test("the monthly LinkedIn sign-in applies only to accounts with both a password and LinkedIn", () => {
