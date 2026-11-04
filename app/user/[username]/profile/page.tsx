@@ -253,7 +253,8 @@ function ProfileHeader({ user, education, missing, onEditClick, onReview }: { us
 
   const github = meta?.github_profile;
   const linkedin = meta?.linkedin;
-  const extraLinks = meta?.extra_links || [];
+  // an email scraped from the resume as a "link" would repeat the email line below
+  const extraLinks = (meta?.extra_links || []).filter((l) => !/^mailto:/i.test(l.link ?? "") && !(l.link ?? "").toLowerCase().includes((email ?? "").toLowerCase()) && !(l.name ?? "").includes("@"));
 
   return (
     <section className="plasma-card grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)] lg:grid-cols-[110px_minmax(0,1fr)_235px]">

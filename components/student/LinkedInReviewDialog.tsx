@@ -55,7 +55,7 @@ export function LinkedInReviewDialog({ user }: { user: User }) {
           <p className="flex items-center gap-1.5">
             {li.email_verified ? <><BadgeCheck className="h-4 w-4 text-[#0a66c2]" /> Verified on LinkedIn</> : <><AlertTriangle className="h-4 w-4 text-amber-500" /> Not verified on LinkedIn</>}
           </p>
-          <p>Your sign-in email stays <strong className="text-[var(--text)]">{user.email}</strong>.</p>
+          <p>Your sign-in email is <strong className="text-[var(--text)]">{user.email}</strong>.</p>
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" size="sm" disabled={busy} onClick={() => void done(false)}>Keep my details</Button>

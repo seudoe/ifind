@@ -10,7 +10,7 @@ import { Eye, EyeOff, ArrowRight, Check, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
-import { AuthShell, GoogleButton } from "@/app/user/login/page";
+import { AuthShell } from "@/app/user/login/page";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { resolveNext } from "@/lib/authRedirect";
 
@@ -159,7 +159,6 @@ export default function UserRegisterPage() {
                 </div>
 
                 <LinkedInButton />
-                <GoogleButton />
             </div>
 
             <p className="text-xs text-[var(--text-3)] text-center">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { StudentProvider, useStudent } from "@/components/student/StudentProvider";
 import { StudentShell } from "@/components/student/StudentShell";
+import { LinkedInConnectDialog } from "@/components/student/LinkedInConnectDialog";
 import { LinkedInReviewDialog } from "@/components/student/LinkedInReviewDialog";
 
 type Notice = { kind: "error" | "ok"; text: string } | null;
@@ -43,6 +44,7 @@ function Gate({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {children}
+      <LinkedInConnectDialog user={data.user} />
       <LinkedInReviewDialog user={data.user} />
     </StudentShell>
   );

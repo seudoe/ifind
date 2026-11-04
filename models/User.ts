@@ -62,6 +62,8 @@ export interface IUser extends Document {
     linkedinReviewedAt?: Date | null;
     /** Last LinkedIn sign-in/link. Accounts with a password AND LinkedIn must refresh this monthly (lib/linkedinState.ts). */
     linkedinLastAuthAt?: Date | null;
+    /** LinkedIn profile waiting for the student's confirmation (connecting replaces the account email). Expires in 15 minutes. */
+    linkedinPending?: { profile: any; expiresAt: Date } | null;
     /** One-time proof (sha256) that the LinkedIn owner asked to set a password; consumed by POST /api/user/password. */
     passwordSetupTokenHash?: string | null;
     passwordSetupExpiresAt?: Date | null;
@@ -193,6 +195,7 @@ const UserSchema = new Schema<IUser>(
         linkedinLinkedAt: { type: Date, default: null },
         linkedinReviewedAt: { type: Date, default: null },
         linkedinLastAuthAt: { type: Date, default: null },
+        linkedinPending: { type: Schema.Types.Mixed, default: null, select: false },
         passwordSetupTokenHash: { type: String, default: null, select: false },
         passwordSetupExpiresAt: { type: Date, default: null, select: false },
         profilePicture: { type: String, default: null },

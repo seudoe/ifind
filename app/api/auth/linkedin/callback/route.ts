@@ -164,8 +164,22 @@ export async function GET(request: NextRequest) {
         ready.cookies.delete("linkedin_oauth_intent");
         return ready;
       }
-      const firstLink = !me.linkedinId;
-      await User.updateOne({ _id: me._id }, { $set: { linkedinId: profile.sub, linkedinDetails: profile, linkedinLastAuthAt: new Date(), ...(firstLink ? { linkedinLinkedAt: new Date(), linkedinReviewedAt: null } : {}) } });
+      const clean = (res: NextResponse) => {
+        res.cookies.delete("linkedin_oauth_state");
+        res.cookies.delete("linkedin_oauth_intent");
+        res.cookies.delete("linkedin_oauth_next");
+        return res;
+      };
+      if (!me.linkedinId) {
+        // First connection replaces the account email with LinkedIn's, so nothing is saved until the student confirms
+        const liEmail = profile.email?.toLowerCase();
+        if (liEmail && (await User.exists({ email: liEmail, _id: { $ne: me._id } }))) {
+          return clean(NextResponse.redirect(`${back}?error=${encodeURIComponent("Another iFind account already uses your LinkedIn email, so this LinkedIn cannot be connected.")}`));
+        }
+        await User.updateOne({ _id: me._id }, { $set: { linkedinPending: { profile, expiresAt: new Date(Date.now() + 15 * 60_000) } } });
+        return clean(NextResponse.redirect(`${back}?linkedin=confirm`));
+      }
+      await User.updateOne({ _id: me._id }, { $set: { linkedinDetails: profile, linkedinLastAuthAt: new Date() } });
       const linked = NextResponse.redirect(`${back}?linked=1`);
       linked.cookies.delete("linkedin_oauth_state");
       linked.cookies.delete("linkedin_oauth_intent");

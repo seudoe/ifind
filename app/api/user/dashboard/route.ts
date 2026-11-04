@@ -27,6 +27,12 @@ export async function GET() {
     // The hash itself never leaves the server; the page only learns whether a password exists
     user.hasPassword = typeof user.password === "string" && user.password.length > 0;
     delete user.password;
+    const pend = user.linkedinPending as { profile?: { name?: string; email?: string; picture?: string; email_verified?: boolean }; expiresAt?: Date } | null | undefined;
+    delete user.linkedinPending;
+    if (pend?.profile && pend.expiresAt && new Date(pend.expiresAt).getTime() > Date.now()) {
+      const liEmail = pend.profile.email?.toLowerCase();
+      user.linkedinPending = { name: pend.profile.name, email: pend.profile.email, picture: pend.profile.picture, emailVerified: pend.profile.email_verified === true, currentEmail: user.email, changesEmail: Boolean(liEmail) && liEmail !== String(user.email).toLowerCase() };
+    }
 
     const toIds = (values: unknown[]) => values
       .map((value) => String(value))
