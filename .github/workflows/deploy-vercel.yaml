@@ -56,14 +56,14 @@ jobs:
       matrix:
         include:
         # changed to particular names
-          - target: ifind
-            token_secret: VERCEL_TOKEN_IFIND
-            org_secret: VERCEL_ORG_ID_IFIND
-            project_secret: VERCEL_PROJECT_ID_IFIND
           - target: maharaj
             token_secret: VERCEL_TOKEN_MAHARAJ
             org_secret: VERCEL_ORG_ID_MAHARAJ
             project_secret: VERCEL_PROJECT_ID_MAHARAJ
+          - target: ifind
+            token_secret: VERCEL_TOKEN_IFIND
+            org_secret: VERCEL_ORG_ID_IFIND
+            project_secret: VERCEL_PROJECT_ID_IFIND
           - target: usen
             token_secret: VERCEL_TOKEN_USEN
             org_secret: VERCEL_ORG_ID_USEN
