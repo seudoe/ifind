@@ -87,7 +87,7 @@ export function AuthLayout({ variant, heading, sub, back = { href: "/", label: "
           <div className="absolute top-1/2 right-1/4 h-40 w-40 rounded-full bg-black/10" />
         </div>
 
-        <Link href="/" className="relative self-start" aria-label="iFind home"><Logo size="md" suffix={panel.logoSuffix} className="border border-white/25" /></Link>
+        <Link href="/" className="relative self-start" aria-label="iFind home"><Logo size="md" suffix={panel.logoSuffix} onDark /></Link>
 
         <div className={`relative z-10 ${textW}`}>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-white/70 mb-4">{panel.eyebrow}</p>

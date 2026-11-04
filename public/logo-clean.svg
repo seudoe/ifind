@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 72" width="280" height="72" fill="none">
+  <defs>
+    <linearGradient id="clean-lens-grad" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#8B7BFF"/>
+      <stop offset="50%" stop-color="#6D5AE6"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="clean-spark-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#6D5AE6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Logo Mark -->
+  <g transform="translate(4, 2)">
+    <circle cx="34" cy="34" r="22" stroke="url(#clean-lens-grad)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 50 50 L 68 68" stroke="url(#clean-lens-grad)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 34 13 Q 34 19 40 19 Q 34 19 34 25 Q 34 19 28 19 Q 34 19 34 13 Z" fill="url(#clean-spark-grad)"/>
+    <rect x="31" y="32" width="6" height="14" rx="3" fill="#172554"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(86, 48)">
+    <text x="0" y="0" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="40" font-weight="800" letter-spacing="-0.02em">
+      <tspan fill="#6D5AE6">i</tspan><tspan fill="#172554">Find</tspan>
+    </text>
+  </g>
+</svg>

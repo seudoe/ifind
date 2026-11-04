@@ -19,6 +19,14 @@ export const metadata: Metadata = {
   description:
     "India's smartest internship platform. AI-powered matching connects students with top companies.",
   keywords: ["internship", "jobs", "students", "placement", "career"],
+  // The tab icon follows the browser's light/dark mode
+  icons: {
+    icon: [
+      { url: "/logo-mark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+      { url: "/logo-mark-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+    ],
+    apple: "/favicon.svg",
+  },
 };
 
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/components/theme/ThemeProvider";

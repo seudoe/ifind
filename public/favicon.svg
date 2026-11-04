@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="fav-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B7BFF"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle/disc for contrast -->
+  <circle cx="24" cy="24" r="23" fill="#172554"/>
+  <!-- Search Lens Ring -->
+  <circle cx="21" cy="20" r="11" stroke="url(#fav-grad)" stroke-width="3.5"/>
+  <!-- Handle -->
+  <path d="M 29 28 L 38 37" stroke="url(#fav-grad)" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Dot -->
+  <circle cx="21" cy="15" r="2.2" fill="#FFFFFF"/>
+  <!-- Stem -->
+  <rect x="19.25" y="19" width="3.5" height="7" rx="1.75" fill="#FFFFFF"/>
+</svg>

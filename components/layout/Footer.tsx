@@ -31,7 +31,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-flex items-center mb-4" aria-label="iFind home">
-              <Logo size="md" className="border border-white/20" />
+              <Logo size="md" onDark />
             </Link>
             <p className="text-sm leading-relaxed text-white/60 max-w-xs">
               India&apos;s smartest internship platform. AI-powered matching connects students
