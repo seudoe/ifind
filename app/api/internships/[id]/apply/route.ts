@@ -42,7 +42,10 @@ export async function POST(req: NextRequest, { params }: Ctx) {
         const platform = await PlatformInternship.findOne({ _id: oid, ...visibleToStudentsFilter() });
         if (!platform) {
             const scraped = await db.collection("internships").findOne({ _id: oid, isActive: true }, { projection: { deadlineDate: 1 } });
-            if (!scraped) return fail("Internship not found", 404);
+            if (!scraped) {
+                if (await db.collection("internships.expired").countDocuments({ _id: oid }, { limit: 1 })) return fail("The application deadline has passed", 400);
+                return fail("Internship not found", 404);
+            }
             if (deadlineState(scraped.deadlineDate).passed) return fail("The application deadline has passed", 400);
             await record();
             return NextResponse.json({ success: true });

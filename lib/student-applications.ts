@@ -24,8 +24,9 @@ export async function loadApplied(userId: string, onlyId?: string): Promise<Appl
 
   const ids = applied.map((a) => a.internshipId);
   const noVectors = { bert_vector: 0, tfidf_vector: 0, moderation: 0 };
-  const [scraped, platform, apps] = await Promise.all([
+  const [scrapedLive, expired, platform, apps] = await Promise.all([
     db.collection("internships").find({ _id: { $in: ids } }, { projection: noVectors }).toArray(),
+    db.collection("internships.expired").find({ _id: { $in: ids } }, { projection: noVectors }).toArray(), // deadline passed: moved out of 'internships' but still the student's history
     db.collection("internships.this-platform").find({ _id: { $in: ids } }, { projection: noVectors }).toArray(),
     Application.find({ studentId: oid(userId), internshipId: { $in: ids } }).lean(),
   ]);
@@ -34,7 +35,7 @@ export async function loadApplied(userId: string, onlyId?: string): Promise<Appl
     (companyIds.length ? await Company.find({ _id: { $in: companyIds } }).select("logo").lean() : []).map((c) => [String(c._id), c.logo ?? null]),
   );
   const internships = new Map<string, { doc: Record<string, unknown>; platform: boolean }>([
-    ...scraped.map((d) => [String(d._id), { doc: d as Record<string, unknown>, platform: false }] as const),
+    ...[...scrapedLive, ...expired].map((d) => [String(d._id), { doc: d as Record<string, unknown>, platform: false }] as const),
     ...platform.map((d) => [String(d._id), { doc: d as Record<string, unknown>, platform: true }] as const),
   ]);
   const appByInternship = new Map(apps.map((a) => [String(a.internshipId), a]));

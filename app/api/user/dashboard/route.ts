@@ -46,11 +46,13 @@ export async function GET() {
 
     const projection = { bert_vector: 0, tfidf_vector: 0, moderation: 0 };
     const visible = visibleToStudentsFilter() as Record<string, unknown>;
-    const [scraped, platform, linkedScraped, linkedPlatform] = await Promise.all([
+    const [scraped, platform, linkedScraped, linkedPlatform, linkedExpired] = await Promise.all([
       db.collection("internships").find({ isActive: true }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).sort({ datePublished: -1 }).limit(1000).toArray(),
       db.collection("internships.this-platform").find(visible, { projection }).sort({ datePublished: -1 }).limit(200).toArray(),
       linkedIds.length ? db.collection("internships").find({ _id: { $in: linkedIds } }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).toArray() : [],
       linkedIds.length ? db.collection("internships.this-platform").find({ _id: { $in: linkedIds }, "moderation.status": { $in: ["auto_approved", "manually_approved"] } }, { projection }).toArray() : [],
+      // expired scraped listings live in internships.expired: still shown under Saved / Applied, never in Browse or Recommended
+      savedIds.length + appliedIds.length ? db.collection("internships.expired").find({ _id: { $in: [...savedIds, ...appliedIds] } }, { projection: { bert_vector: 0, tfidf_vector: 0 } }).toArray() : [],
     ]);
     const companyIds = [...new Set([...platform, ...linkedPlatform].map((i) => String(i.companyId)))].map((id) => new mongoose.Types.ObjectId(id));
     const logos = new Map(
@@ -60,7 +62,8 @@ export async function GET() {
     const shape = (i: Record<string, unknown>) => toStudentInternship(i, logos.get(String(i.companyId)));
     const time = (i: Record<string, unknown>) => new Date(String(i.datePublished ?? 0)).getTime() || 0;
     const browse = [...platform.map(shape), ...scraped].sort((x, y) => time(y) - time(x));
-    const linked = [...linkedScraped, ...linkedPlatform.map(shape)];
+    const linked = [...linkedScraped, ...linkedPlatform.map(shape), ...linkedExpired];
+    const expiredIds = new Set(linkedExpired.map((i) => String(i._id)));
     const byId = new Map(linked.map((internship) => [String(internship._id), internship]));
     const byOrder = (ids: mongoose.Types.ObjectId[]) => ids.map((id) => byId.get(String(id))).filter(Boolean);
 
@@ -71,7 +74,7 @@ export async function GET() {
         browse,
         saved: byOrder(savedIds),
         // a recommended employer post may have been paused or closed since the list was built
-        recommended: byOrder(recommendedIds).filter((i) => (i as { source?: string }).source !== "ifind" || (i as { status?: string }).status === "published"),
+        recommended: byOrder(recommendedIds).filter((i) => !expiredIds.has(String((i as { _id?: unknown })._id))).filter((i) => (i as { source?: string }).source !== "ifind" || (i as { status?: string }).status === "published"),
         applied: byOrder(appliedIds),
       }),
     });

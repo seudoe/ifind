@@ -95,6 +95,9 @@ export async function getPublicInternship(id: string): Promise<Internship | null
   const { scraped, platform, db } = await collections();
   const doc = await scraped.findOne({ _id, isActive: true }, { projection: PROJECTION });
   if (doc) return serialize(doc) as unknown as Internship;
+  // expired scraped listing (internships.expired): the page still opens and shows the passed deadline
+  const old = await db.collection("internships.expired").findOne({ _id }, { projection: PROJECTION });
+  if (old) return serialize(old) as unknown as Internship;
   const post = await platform.findOne({ _id, ...(visibleToStudentsFilter() as Record<string, unknown>) }, { projection: PLATFORM_PROJECTION });
   if (!post) return null;
   const [shaped] = await withLogos(db, [post as Record<string, unknown>]);
