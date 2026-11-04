@@ -23,10 +23,10 @@ const QUICK_LINKS = [
   ["employment", "Employment"], ["resume", "Resume"],
 ] as const;
 
-function emptyResume(user: User): ParsedResumeData {
+function emptyResume(): ParsedResumeData {
   return {
     summary: "",
-    metaDetails: { name: user.name, phone_no: user.phone ?? "", gender: null, email: user.email, github_profile: null, linkedin: null, address: { city: user.city ?? "", state: user.state ?? "", country: user.country ?? "", postal_code: "" }, extra_links: [] },
+    metaDetails: { name: "", phone_no: "", gender: null, email: "", github_profile: null, linkedin: null, address: { city: "", state: "", country: "", postal_code: "" }, extra_links: [] },
     workHistory: [], education: [], skills: [], projects: [], certifications: [], languages: [], publications: [], affiliations: [], awards: [], interests: [],
   };
 }
@@ -42,7 +42,7 @@ export default function ProfilePage() {
   if (!data) return <main className="min-h-screen grid place-items-center text-sm text-[var(--text-2)]">{error ?? "Loading profile…"}</main>;
 
   const user = data.user;
-  const resume = user.resume?.parsedData ?? emptyResume(user);
+  const resume = user.resume?.parsedData ?? emptyResume();
   const education = resume.education[0];
   const internships = resume.workHistory.filter((entry) => entry.type === "internship");
   const employment = resume.workHistory.filter((entry) => entry.type !== "internship");
@@ -96,7 +96,7 @@ export default function ProfilePage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <Detail label="Preferred work" value="Internships" />
                 <Detail label="Availability" value="Add work availability" accent />
-                <Detail label="Preferred location" value={[resume.metaDetails?.address?.city || user.city, resume.metaDetails?.address?.state || user.state, resume.metaDetails?.address?.country || user.country].filter(Boolean).join(", ") || "Add preferred location"} />
+                <Detail label="Preferred location" value={[user.city, user.state, user.country].filter(Boolean).join(", ") || "Add preferred location"} />
               </div>
             </Panel>
 
@@ -243,18 +243,25 @@ export default function ProfilePage() {
 
 function ProfileHeader({ user, education, missing, onEditClick, onReview }: { user: User; education: string; missing: string[]; onEditClick: () => void; onReview: () => void }) {
   const meta = user.resume?.parsedData?.metaDetails;
-  const name = meta?.name || user.name;
-  const email = meta?.email || user.email;
-  const phone = meta?.phone_no || user.phone;
-  const gender = meta?.gender || user.gender;
+  // The recruiter-facing profile shows only what the resume (or the student's edits to it) holds, never the account fields
+  const name = meta?.name || "Add your name";
+  const email = meta?.email || "";
+  const phone = meta?.phone_no || "";
+  const gender = meta?.gender || "";
   const location = meta?.address?.city || meta?.address?.state || meta?.address?.country
     ? [meta.address.city, meta.address.state, meta.address.country].filter(Boolean).join(", ")
-    : [user.city, user.state, user.country].filter(Boolean).join(", ");
+    : "";
 
   const github = meta?.github_profile;
   const linkedin = meta?.linkedin;
   // an email scraped from the resume as a "link" would repeat the email line below
-  const extraLinks = (meta?.extra_links || []).filter((l) => !/^mailto:/i.test(l.link ?? "") && !(l.link ?? "").toLowerCase().includes((email ?? "").toLowerCase()) && !(l.name ?? "").includes("@"));
+  const digits = (v: string) => v.replace(/\D/g, "");
+  const dupContact = (l: { name?: string; link?: string }) => {
+    const text = `${l.link ?? ""} ${l.name ?? ""}`.toLowerCase();
+    if (/^(mailto|tel):/i.test(l.link ?? "") || /\S+@\S+\.\S+/.test(text)) return true; // a contact detail, shown on its own line
+    return phone.length > 0 && digits(text).length >= 7 && digits(text).includes(digits(phone));
+  };
+  const extraLinks = (meta?.extra_links || []).filter((l) => !dupContact(l));
 
   return (
     <section className="plasma-card grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)] lg:grid-cols-[110px_minmax(0,1fr)_235px]">
@@ -294,7 +301,7 @@ function ProfileHeader({ user, education, missing, onEditClick, onReview }: { us
           <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--text-3)]" />{location || "Add address"}</span>
           <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--text-3)]" />{phone || "Add phone number"}</span>
           <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-[var(--text-3)]" />{gender || "Add gender"}</span>
-          <span className="flex items-center gap-1.5 sm:col-span-2 lg:col-span-3"><Mail className="h-3.5 w-3.5 text-[var(--text-3)]" />{email}</span>
+          <span className="flex items-center gap-1.5 sm:col-span-2 lg:col-span-3"><Mail className="h-3.5 w-3.5 text-[var(--text-3)]" />{email || "Add email"}</span>
         </div>
       </div>
       <div className="rounded-[var(--radius-sm)] bg-[var(--primary-bg)] p-4 sm:col-span-2 lg:col-span-1">
@@ -408,16 +415,16 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
 
     // Personal details (recruiter-facing metaDetails)
     const meta = user.resume?.parsedData?.metaDetails;
-    setName(meta?.name || user.name || "");
+    setName(meta?.name || "");
     setUsername(user.username || "");
-    setEmail(meta?.email || user.email || "");
+    setEmail(meta?.email || "");
     setProfilePicture(user.profilePicture || "");
-    setPhone(meta?.phone_no || user.phone || "");
+    setPhone(meta?.phone_no || "");
     setDateOfBirth(user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split("T")[0] : "");
-    setGender(meta?.gender || user.gender || "");
-    setCity(meta?.address?.city || user.city || "");
-    setState(meta?.address?.state || user.state || "");
-    setCountry(meta?.address?.country || user.country || "");
+    setGender(meta?.gender || "");
+    setCity(meta?.address?.city || "");
+    setState(meta?.address?.state || "");
+    setCountry(meta?.address?.country || "");
     setGithub(meta?.github_profile || "");
     setLinkedin(meta?.linkedin || "");
     setExtraLinks(meta?.extra_links ? JSON.parse(JSON.stringify(meta.extra_links)) : []);
@@ -428,7 +435,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
     setPrefCountry(user.country || "");
 
     // Arrays/Sub-docs from MongoDB resume data
-    const resume = user.resume?.parsedData || emptyResume(user);
+    const resume = user.resume?.parsedData || emptyResume();
     setEducationList(resume.education ? JSON.parse(JSON.stringify(resume.education)) : []);
     setSkillsGroupList(resume.skills ? JSON.parse(JSON.stringify(resume.skills)) : []);
     setLanguagesList(resume.languages ? JSON.parse(JSON.stringify(resume.languages)) : []);

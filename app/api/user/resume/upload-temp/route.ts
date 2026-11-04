@@ -1,3 +1,4 @@
+import { keepMeta } from "@/lib/resume/keepMeta";
 import { paidAiAllowed } from "@/lib/aiExtractionQuota";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
@@ -113,6 +114,8 @@ async function handlePost(req: NextRequest) {
 
         // 3. Check if user already has existing resume data
         const existingParsedData = user.resume?.parsedData ?? null;
+        // contact details and links the new resume lacks keep their old values; everything else is replaced
+        pendingParsedData = keepMeta(existingParsedData, pendingParsedData);
         const oldDriveFileId = user.resume?.driveFileId ?? null;
         const hasExistingResume = Boolean(oldDriveFileId || existingParsedData);
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { notify } from "@/lib/employer/notify";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { keepMeta } from "@/lib/resume/keepMeta";
 import User from "@/models/User";
 import { deleteResumeFromImageKit } from "@/lib/imagekit";
 
@@ -35,7 +36,7 @@ export async function POST() {
     // Promote pending -> live
     user.resume.driveFileId = pendingFileId;
     user.resume.driveViewLink = pendingViewLink;
-    user.resume.parsedData = pendingParsedData;
+    user.resume.parsedData = keepMeta(user.resume.parsedData, pendingParsedData);
     user.resume.uploadedAt = new Date();
 
     // Clear pending fields

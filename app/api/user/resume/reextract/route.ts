@@ -1,3 +1,4 @@
+import { keepMeta } from "@/lib/resume/keepMeta";
 import { paidAiAllowed } from "@/lib/aiExtractionQuota";
 import { isImageKitUrl } from "@/lib/uploads";
 import { NextResponse } from "next/server";
@@ -72,14 +73,14 @@ async function handlePost() {
             extractorUsed = "hf";
         }
 
-        user.resume.parsedData = parsedData;
+        user.resume.parsedData = keepMeta(user.resume.parsedData, parsedData);
         if (parsedData) user.vectorizationStatus = "processing";
         await user.save();
 
         // Trigger vectorization & recommendation scoring in background
         if (parsedData) {
             const { scheduleVectorize } = await import("@/lib/vectorizer");
-            await scheduleVectorize(session.userId, parsedData);
+            await scheduleVectorize(session.userId, user.resume.parsedData ?? parsedData);
         }
 
         return NextResponse.json({
