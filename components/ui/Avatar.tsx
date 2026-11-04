@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn, getInitials } from "@/lib/utils";
 
 interface AvatarProps {
@@ -17,13 +18,17 @@ const sizeClasses: Record<string, string> = {
 
 export function Avatar({ src, name, size = "md", className }: AvatarProps) {
   const initials = getInitials(name);
+  const [failed, setFailed] = useState<string | null>(null);
 
-  if (src) {
+  if (src && failed !== src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={name}
+        // LinkedIn and other CDNs refuse hot-linked images that carry a Referer; a dead link falls back to initials
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(src)}
         className={cn("rounded-[var(--radius-sm)] object-cover shrink-0", sizeClasses[size], className)}
       />
     );

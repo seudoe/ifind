@@ -757,6 +757,7 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                       <img
                         src={profilePicture}
                         alt={name || user.name}
+                        referrerPolicy="no-referrer"
                         className="h-20 w-20 rounded-[var(--radius-sm)] object-cover border-2 border-[var(--primary)] shadow-sm shrink-0"
                       />
                     ) : (
