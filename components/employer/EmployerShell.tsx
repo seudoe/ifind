@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Building2, LogOut, Settings, UserCircle, type LucideIcon } from "lucide-react";
+import { Bell, Building2, LogOut, Monitor, Moon, Settings, Sun, UserCircle, type LucideIcon } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Logo } from "@/components/ui/Logo";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { useTheme, type ThemePreference } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 
 const NAV: { label: string; href: string; icon: LucideIcon }[] = [
@@ -21,6 +22,21 @@ interface Props {
     picture?: string | null;
     unread: number;
     children: React.ReactNode;
+}
+
+const NEXT_THEME: Record<ThemePreference, ThemePreference> = { light: "dark", dark: "system", system: "light" };
+const THEME_ICON = { light: Sun, dark: Moon, system: Monitor };
+
+/** Icon-only theme toggle for the collapsed sidebar: cycles light, dark, system. */
+function ThemeCycle() {
+    const { preference, setPreference } = useTheme();
+    const Icon = THEME_ICON[preference];
+    return (
+        <button type="button" onClick={() => setPreference(NEXT_THEME[preference])} title={`Theme: ${preference} (click to change)`} aria-label="Change colour theme"
+            className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-2)] hover:text-[var(--heading)]">
+            <Icon className="h-4 w-4" />
+        </button>
+    );
 }
 
 export function EmployerShell({ name, picture, unread: initialUnread, children }: Props) {
@@ -66,7 +82,10 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
             >
                 <div className="flex w-56 flex-col">
                     <div className="h-14 px-4 flex items-center border-b-2 border-[var(--rule)]">
-                        <Link href="/employer/institutes" title="iFind for Employers" aria-label="iFind for Employers"><Logo size="md" className={collapsed ? "!px-2.5" : ""} /></Link>
+                        <Link href="/employer/institutes" title="iFind for Employers" aria-label="iFind for Employers">
+                            {collapsed && <Logo size="md" suffix="" className="md:group-hover:hidden" />}
+                            <Logo size="md" className={collapsed ? "hidden md:group-hover:inline-flex" : ""} />
+                        </Link>
                     </div>
                     <p className={cn("label px-4 pt-4 pb-3 !text-[10px] !text-[var(--text-2)] whitespace-nowrap transition-opacity duration-300", labelCls)}>Employer portal</p>
 
@@ -93,7 +112,17 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
                     </nav>
                 </div>
 
-                <div className="w-56 border-t border-[var(--border)] p-3 space-y-3">
+                <div className="w-56 border-t border-[var(--border)] p-3">
+                  {collapsed && (
+                    <div className="flex w-10 flex-col items-center gap-3 md:group-hover:hidden">
+                        <Avatar src={picture} name={name} size="sm" />
+                        <ThemeCycle />
+                        <button onClick={logout} title="Log out" aria-label="Log out" className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--danger)] hover:text-[var(--danger)]">
+                            <LogOut className="h-4 w-4" />
+                        </button>
+                    </div>
+                  )}
+                  <div className={cn("space-y-3", collapsed && "hidden md:group-hover:block")}>
                     <div className="flex items-center gap-2 px-1">
                         <Avatar src={picture} name={name} size="sm" />
                         <span className={cn("truncate text-sm font-medium text-[var(--text)] transition-opacity duration-300", labelCls)}>{name}</span>
@@ -103,8 +132,9 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
                         onClick={logout}
                         className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--text)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)]"
                     >
-                        <LogOut className="h-3.5 w-3.5 shrink-0" /> <span className={cn("whitespace-nowrap transition-opacity duration-300", labelCls)}>Log out</span>
+                        <LogOut className="h-3.5 w-3.5 shrink-0" /> <span className="whitespace-nowrap">Log out</span>
                     </button>
+                  </div>
                 </div>
             </aside>
 
