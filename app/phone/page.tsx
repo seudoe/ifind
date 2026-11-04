@@ -193,54 +193,57 @@ export default function PhoneLandingPage() {
 
       {/* ── Hero Section (100% width edge-to-edge image & big iFind logo) ─ */}
       <div className="w-full flex-1 flex flex-col justify-start">
-        {/* Edge-to-edge image (100% width) */}
-        <div className="w-full h-72 sm:h-96 relative overflow-hidden bg-[var(--surface-3)]">
+        {/* Edge-to-edge image (100% width) with graduate guy holding laptop */}
+        <div className="w-full h-80 sm:h-96 md:h-[400px] relative overflow-hidden bg-[var(--surface-3)]">
           <Image
-            src="/hero-graduate.png"
-            alt="Graduate receiving offer"
+            src="/hero-student.png"
+            alt="Graduate student with laptop and offer notification"
             fill
             className="object-cover object-top"
             priority
           />
-          {/* Offer Received badge */}
-          <div className="absolute top-4 right-4 bg-white/95 dark:bg-zinc-900/95 text-[var(--text)] rounded-[var(--radius-sm)] p-2.5 shadow-lg backdrop-blur-xs flex items-center gap-2 border border-[var(--border)]">
-            <div className="w-5 h-5 rounded-full bg-[var(--success)] flex items-center justify-center text-white text-[10px] font-bold">
-              ✓
-            </div>
-            <div>
-              <p className="text-[11px] font-bold leading-none text-[var(--heading)]">Offer Received</p>
-              <p className="text-[9.5px] text-[var(--text-3)] leading-tight mt-0.5">Software Engineer Intern</p>
-            </div>
-          </div>
-          {/* Subtle bottom fade matching background */}
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/70 to-transparent pointer-events-none" />
+          {/* Subtle bottom fade matching background perfectly */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/80 to-transparent pointer-events-none" />
         </div>
 
         {/* Hero Branding Content */}
-        <div className="w-full max-w-2xl mx-auto px-5 sm:px-8 -mt-10 sm:-mt-14 relative z-10 space-y-3 pb-56">
+        <div className="w-full max-w-2xl mx-auto px-5 sm:px-8 -mt-8 sm:-mt-12 relative z-10 space-y-4 pb-52">
           {/* Big iFind Logo */}
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-clean.svg" alt="iFind" className="h-12 sm:h-16 w-auto logo-art-light drop-shadow-sm" />
+            <img src="/logo-clean.svg" alt="iFind" className="h-16 sm:h-20 w-auto logo-art-light drop-shadow-md" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-clean-dark.svg" alt="iFind" className="h-12 sm:h-16 w-auto logo-art-dark drop-shadow-sm" />
+            <img src="/logo-clean-dark.svg" alt="iFind" className="h-16 sm:h-20 w-auto logo-art-dark drop-shadow-md" />
           </div>
 
-          <p className="text-base sm:text-lg font-medium text-[var(--text)] leading-snug">
-            Your skills. Real opportunities. A brighter future.
-          </p>
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--heading)] tracking-tight leading-snug">
+              Your skills. Real opportunities. A brighter future.
+            </h1>
+            <p className="text-sm sm:text-base text-[var(--text-2)] leading-relaxed max-w-lg">
+              Find verified internships, connect with industry hiring teams, and launch your career in tech.
+            </p>
+          </div>
+
+          {/* Feature chips */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="pill text-[11px] font-mono">⚡ 1,200+ Active Roles</span>
+            <span className="pill text-[11px] font-mono">✓ Verified Companies</span>
+            <span className="pill text-[11px] font-mono">💼 Paid Stipends</span>
+          </div>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <Link
               href="/internships"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[var(--primary-dk)] transition-colors shadow-sm group"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-dk)] transition-colors shadow-sm group"
             >
-              Browse internships <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+              <span>Browse internships</span>
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <button
               onClick={() => openAuth("employer", "login")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-[var(--primary)] bg-[var(--primary-bg)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white text-xs font-bold font-mono uppercase tracking-wider transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border-2 border-[var(--primary)] bg-[var(--primary-bg)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white text-xs font-bold font-mono uppercase tracking-wider transition-all"
             >
               Employer ?
             </button>
