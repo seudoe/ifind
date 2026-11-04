@@ -14,7 +14,7 @@ export const verificationEnabled = () => process.env.LINKEDIN_VERIFY === "on";
 /** Scope string for student sign-in/connect, with the verification scope added when enabled. */
 export function linkedinScope(forStudent: boolean): string {
   const base = process.env.LINKEDIN_SCOPE || "openid profile email";
-  return forStudent && verificationEnabled() && !base.includes("r_verify") ? `${base} r_verify_details` : base;
+  return forStudent && verificationEnabled() && !base.includes("r_verify") ? `${base} r_verify` : base;
 }
 
 /** Null when disabled or the call failed: callers keep the previously stored result rather than downgrading on an outage. */
