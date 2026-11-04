@@ -17,7 +17,7 @@ const COMPANY_LINKS = [
 ];
 
 const LEGAL_LINKS = [
-  { label: "Privacy Policy",  href: "#" },
+  { label: "Privacy Policy",  href: "/privacy-policy" },
   { label: "Terms of Service", href: "#" },
   { label: "Cookie Policy",   href: "#" },
 ];
@@ -66,9 +66,15 @@ export function Footer() {
           <p className="text-xs text-white/60">
             © {new Date().getFullYear()} iFind. All rights reserved.
           </p>
-          <p className="text-xs text-white/60">
-            Made with ♥ for students across India
-          </p>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/privacy-policy"
+              className="inline-flex items-center rounded-[var(--radius-sm)] border border-white/25 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <p className="text-xs text-white/60">Made with ♥ for students across India</p>
+          </div>
         </div>
       </div>
     </footer>
