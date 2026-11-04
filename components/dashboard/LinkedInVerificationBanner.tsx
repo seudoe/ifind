@@ -53,10 +53,12 @@ export function LinkedInVerificationBanner({ linkedinDetails, identityVerified =
         </span>
       </div>
       <a
-        href="/api/auth/linkedin?as=student-link"
+        href="https://www.linkedin.com/in/me/"
+        target="_blank"
+        rel="noopener noreferrer"
         className="px-2.5 py-1 rounded bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shrink-0 text-[11px]"
       >
-        Re-verify LinkedIn
+        Verify on LinkedIn
       </a>
     </div>
   );
