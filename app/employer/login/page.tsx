@@ -44,7 +44,8 @@ export default function EmployerLoginPage() {
       if (json.code === "linkedin_required") { setNeedsLinkedIn(true); return; }
       if (!res.ok) throw new Error(json.error || "Login failed");
       toast.success("Welcome back!");
-      router.push("/employer/institutes");
+      const storedTab = typeof window !== "undefined" ? localStorage.getItem("ifind_employer_last_tab") : null;
+      router.push(storedTab && storedTab.startsWith("/employer/") ? storedTab : "/employer/institutes");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid credentials");
     }

@@ -69,6 +69,20 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
         }
     }, [pathname]);
 
+    // On fresh session start, restore last opened tab if user previously had another tab open
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        if (sessionStorage.getItem("ifind_employer_resumed") === "true") return;
+        sessionStorage.setItem("ifind_employer_resumed", "true");
+
+        if (pathname === "/employer/institutes") {
+            const stored = localStorage.getItem("ifind_employer_last_tab");
+            if (stored && stored.startsWith("/employer/") && stored !== pathname) {
+                router.replace(stored);
+            }
+        }
+    }, [pathname, router]);
+
     // Refresh the bell count on navigation and every 60 s
     useEffect(() => {
         const refresh = () =>

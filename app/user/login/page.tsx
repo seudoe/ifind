@@ -74,8 +74,15 @@ function UserLoginForm() {
       } else {
         toast.success("Welcome back!");
       }
-      // Back to where the visitor was heading (e.g. the internship they tried to apply to), else the dashboard
-      router.push(resolveNext(new URLSearchParams(window.location.search).get("next"), json.data?.username ?? "me"));
+      // Back to where the visitor was heading, else last active tab from localStorage, else the overview
+      const nextParam = new URLSearchParams(window.location.search).get("next");
+      const storedTab = typeof window !== "undefined" ? localStorage.getItem("ifind_student_last_tab") : null;
+      const uname = json.data?.username ?? "me";
+      if (!nextParam && storedTab && storedTab.startsWith(`/user/${uname}/`)) {
+        router.push(storedTab);
+      } else {
+        router.push(resolveNext(nextParam, uname));
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid credentials");
     }
