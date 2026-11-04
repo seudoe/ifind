@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { linkedinTrusted } from "@/lib/linkedinState";
 import { safeHref } from "@/lib/safeUrl";
 import {
   Award, BookOpen, Copy, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
@@ -66,7 +67,7 @@ export default function ProfilePage() {
   return (
     <>
       <div className="space-y-5">
-        <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} identityVerified={user.linkedinVerification?.identity === true} />
+        <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} identityVerified={linkedinTrusted(user)} />
         <ProfileHeader 
           user={user} 
           education={education ? `${education.field.type} · ${education.field.course}` : "Student profile"} 

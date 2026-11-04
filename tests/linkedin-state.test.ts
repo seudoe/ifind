@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hasBothMethods, linkedinReauthDue, linkedinReauthDueAt, linkedinState } from "../lib/linkedinState";
+import { merged, hasBothMethods, linkedinReauthDue, linkedinReauthDueAt, linkedinState } from "../lib/linkedinState";
 
 const DAY = 86_400_000;
 const now = Date.now();
@@ -10,7 +10,7 @@ test("three states: normal, connected, verified", () => {
     assert.equal(linkedinState({}), "normal");
     assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: false } }), "connected");
     assert.equal(linkedinState({ linkedinId: "x" }), "connected"); // never checked (verification API off): not verified
-    assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: true } }), "verified");
+    assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: true } }), merged ? "connected" : "verified"); // merged: one state
     // follows LinkedIn both ways: a later check downgrades or upgrades
     assert.equal(linkedinState({ linkedinId: "x", linkedinVerification: { identity: false } }), "connected");
 });

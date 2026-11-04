@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, BadgeCheck, Link2Off } from "lucide-react";
+import { merged } from "@/lib/linkedinState";
 import type { User as StudentUser } from "@/types";
 
 interface Props {
@@ -37,7 +38,7 @@ export function LinkedInVerificationBanner({ linkedinDetails, identityVerified =
       <div className={`p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 ${className}`}>
         <BadgeCheck className="h-4 w-4 text-emerald-600 shrink-0" />
         <span>
-          <strong className="font-semibold">LinkedIn Status:</strong> User is LinkedIn verified
+          <strong className="font-semibold">LinkedIn Status:</strong> {merged ? "LinkedIn connected" : "User is LinkedIn verified"}
         </span>
       </div>
     );

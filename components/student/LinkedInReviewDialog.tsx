@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Avatar } from "@/components/ui/Avatar";
 import { useStudent } from "@/components/student/StudentProvider";
+import { linkedinTrusted, merged } from "@/lib/linkedinState";
 import type { User } from "@/types";
 
 /** Shown once, right after an existing account connects LinkedIn: review what LinkedIn gave us, optionally apply it. */
@@ -53,7 +54,7 @@ export function LinkedInReviewDialog({ user }: { user: User }) {
         <div className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] p-3 text-xs text-[var(--text-2)] space-y-1">
           <p>LinkedIn email: <strong className="text-[var(--text)]">{li.email ?? "not shared"}</strong></p>
           <p className="flex items-center gap-1.5">
-            {user.linkedinVerification?.identity ? <><BadgeCheck className="h-4 w-4 text-[#0a66c2]" /> Identity verified on LinkedIn</> : <><AlertTriangle className="h-4 w-4 text-amber-500" /> Identity not verified on LinkedIn</>}
+            {linkedinTrusted(user) ? <><BadgeCheck className="h-4 w-4 text-[#0a66c2]" /> {merged ? "LinkedIn connected" : "Identity verified on LinkedIn"}</> : <><AlertTriangle className="h-4 w-4 text-amber-500" /> Identity not verified on LinkedIn</>}
           </p>
           <p>Your sign-in email is <strong className="text-[var(--text)]">{user.email}</strong>.</p>
         </div>

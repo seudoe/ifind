@@ -11,7 +11,7 @@ import { Logo as LogoBadge } from "@/components/ui/Logo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
-import { linkedinState } from "@/lib/linkedinState";
+import { linkedinState, linkedinTrusted, merged } from "@/lib/linkedinState";
 import type { User as StudentUser } from "@/types";
 
 function LinkedInStatusIndicator({ user }: { user: StudentUser }) {
@@ -23,9 +23,9 @@ function LinkedInStatusIndicator({ user }: { user: StudentUser }) {
       </span>
     );
   }
-  if (state === "verified") {
+  if (linkedinTrusted(user)) {
     return (
-      <span title="User is LinkedIn verified" className="inline-flex items-center text-[#0a66c2] hover:opacity-85 transition-opacity">
+      <span title={merged ? "LinkedIn connected" : "User is LinkedIn verified"} className="inline-flex items-center text-[#0a66c2] hover:opacity-85 transition-opacity">
         <BadgeCheck className="h-4 w-4 fill-[#0a66c2]/10" />
       </span>
     );

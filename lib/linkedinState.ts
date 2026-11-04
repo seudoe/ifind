@@ -5,6 +5,13 @@
  *  verified  - LinkedIn connected and LinkedIn's Verification Report lists IDENTITY (government ID + selfie).
  *              The sign-in's email_verified flag is only an email check and never counts.
  */
+/**
+ * merged = true : "connected" and "verified" are one state. Any account with LinkedIn linked is treated as verified and shown
+ *                 as "LinkedIn connected" everywhere (use while LinkedIn's Verification API is unavailable).
+ * merged = false: three separate states, verified only when LinkedIn's Verification Report lists IDENTITY.
+ */
+export const merged: boolean = true;
+
 export type LinkedInState = "normal" | "connected" | "verified";
 
 /** Accounts with BOTH a password and LinkedIn must sign in with LinkedIn at least this often to keep using the password. */
@@ -22,8 +29,11 @@ interface Shape {
 
 export function linkedinState(u: Shape): LinkedInState {
   if (!u.linkedinId) return "normal";
-  return u.linkedinVerification?.identity === true ? "verified" : "connected";
+  return !merged && u.linkedinVerification?.identity === true ? "verified" : "connected";
 }
+
+/** True when the account should get the trusted LinkedIn treatment (badge, green banner): linked, and verified unless merged. */
+export const linkedinTrusted = (u: Shape): boolean => Boolean(u.linkedinId) && (merged || u.linkedinVerification?.identity === true);
 
 export const hasBothMethods = (u: Shape): boolean => Boolean(u.linkedinId) && Boolean(u.hasPassword ?? u.password);
 

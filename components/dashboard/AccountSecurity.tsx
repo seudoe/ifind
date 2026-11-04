@@ -5,7 +5,7 @@ import { BadgeCheck, Eye, EyeOff, KeyRound, Link2, Link2Off, Lock, ShieldCheck }
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { hasBothMethods, linkedinReauthDueAt, linkedinState, LINKEDIN_REAUTH_DAYS, type LinkedInState } from "@/lib/linkedinState";
+import { hasBothMethods, linkedinReauthDueAt, linkedinState, LINKEDIN_REAUTH_DAYS, merged, type LinkedInState } from "@/lib/linkedinState";
 import type { User as StudentUser } from "@/types";
 
 function Card({ icon, title, desc, children }: { icon: React.ReactNode; title: string; desc: string; children: React.ReactNode }) {
@@ -25,7 +25,7 @@ function Card({ icon, title, desc, children }: { icon: React.ReactNode; title: s
 
 const STATES: { key: LinkedInState; title: string; text: string; icon: typeof Link2Off }[] = [
   { key: "normal", title: "Normal", text: "Email and password. Nothing about you has been checked by iFind or LinkedIn.", icon: Link2Off },
-  { key: "connected", title: "LinkedIn connected", text: "Your LinkedIn account is linked, but LinkedIn has not verified your identity (government ID and selfie).", icon: Link2 },
+  { key: "connected", title: "LinkedIn connected", text: merged ? "Your LinkedIn account is linked to your iFind account." : "Your LinkedIn account is linked, but LinkedIn has not verified your identity (government ID and selfie).", icon: Link2 },
   { key: "verified", title: "Verified on LinkedIn", text: "Your LinkedIn account is linked and LinkedIn has verified your identity (government ID and selfie). Re-checked on every LinkedIn sign-in.", icon: BadgeCheck },
 ];
 
@@ -38,8 +38,8 @@ export function AccountStatesCard({ user }: { user: StudentUser }) {
   const due = linkedinReauthDueAt(user);
   return (
     <Card icon={<ShieldCheck className="h-4 w-4" />} title="Account status" desc="How your account is verified and how you can sign in">
-      <div className="grid gap-2 sm:grid-cols-3">
-        {STATES.map(({ key, title, text, icon: Icon }) => {
+      <div className={`grid gap-2 ${merged ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+        {STATES.filter((s) => !merged || s.key !== "verified").map(({ key, title, text, icon: Icon }) => {
           const on = key === state;
           return (
             <div key={key} className={`rounded-[var(--radius-sm)] border p-3 text-xs ${on ? "border-[var(--primary)] bg-[var(--primary-bg)]" : "border-[var(--border)] opacity-60"}`}>
