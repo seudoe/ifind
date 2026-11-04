@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { safeHref } from "@/lib/safeUrl";
 import {
-  Award, BookOpen, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
+  Award, BookOpen, Copy, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
   GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus, Upload, Camera
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
@@ -272,7 +272,7 @@ function ProfileHeader({ user, education, missing, onEditClick, onReview }: { us
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <h1 className="truncate text-lg font-bold text-[var(--heading)]">{name}</h1>
-          <Edit3 className="h-3.5 w-3.5 text-[var(--primary)] cursor-pointer hover:opacity-85" onClick={onEditClick} />
+          <button type="button" onClick={onEditClick} className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--primary)] bg-[var(--primary-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white"><Edit3 className="h-3.5 w-3.5" /> Edit</button>
         </div>
         <p className="mt-1 text-sm font-medium text-[var(--text-2)]">{education}</p>
         <p className="mt-0.5 text-xs text-[var(--text-3)]">@{user.username}</p>
@@ -817,6 +817,23 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                   </div>
                 </div>
               </FormField>
+
+              <div className="-mt-1 flex flex-wrap items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // fills only what the account has, and only the recruiter-facing fields; the account itself is not changed
+                    if (user.name) setName(user.name);
+                    if (user.email) setEmail(user.email);
+                    if (user.phone) setPhone(user.phone);
+                    toast.success("Copied from your account details. Review and save.");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--primary-bg)]"
+                >
+                  <Copy className="h-3.5 w-3.5 text-[var(--primary)]" /> Copy from account details
+                </button>
+                <span className="text-[11px] text-[var(--text-3)]">Fills name, email and phone from your iFind account.</span>
+              </div>
 
               <FormField label="Recruiter Contact Name" required>
                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="px-3 py-2 border border-[var(--border)] rounded bg-[var(--surface)] text-[var(--text)] outline-none focus:border-[var(--primary)] transition-all w-full text-xs" />
