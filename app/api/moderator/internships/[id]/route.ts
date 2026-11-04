@@ -139,21 +139,9 @@ export async function PATCH(
         const moderatorId = session.moderatorId;
 
         if (action === "approve") {
-            await StagedInternship.updateOne(
-                { _id: id },
-                {
-                    $set: {
-                        "moderation.status": "manually_approved",
-                        "moderation.reviewedBy": moderatorId,
-                        "moderation.reviewedAt": now,
-                        "moderation.rejectionReason": null,
-                    },
-                },
-            );
-
             // Vectorize → HNSW graph → move to `internships` → recommend to students.
-            // On failure the doc stays in staging as manually_approved and is retried.
-            const published = (await publishApprovedInternships([id])).includes(id);
+            // On failure the doc stays in staging as pending_review and can be retried.
+            const published = (await publishApprovedInternships([id], true, moderatorId)).includes(id);
             return NextResponse.json({ success: true, published }, { status: 200 });
         } else {
             // action === "reject"

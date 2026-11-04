@@ -10,6 +10,9 @@ interface ModerationQueueCardProps {
     item: ModerationQueueItem;
     onApprove: () => void;
     onReject: () => void;
+    selected?: boolean;
+    onToggleSelect?: () => void;
+    isApproving?: boolean;
 }
 
 function ScoreBadge({ score }: { score: number | null }) {
@@ -69,6 +72,9 @@ export function ModerationQueueCard({
     item,
     onApprove,
     onReject,
+    selected = false,
+    onToggleSelect,
+    isApproving = false,
 }: ModerationQueueCardProps) {
     const {
         name,
@@ -89,16 +95,34 @@ export function ModerationQueueCard({
         : "Unknown date";
 
     return (
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] p-4 space-y-3 hover:border-[var(--border-2)] transition-colors">
-            {/* Header: name + company */}
+        <div
+            className={cn(
+                "bg-[var(--surface)] border rounded-[var(--radius)] p-4 space-y-3 transition-colors",
+                selected
+                    ? "border-[var(--primary)] ring-1 ring-[var(--primary)] bg-[var(--surface-2)]"
+                    : "border-[var(--border)] hover:border-[var(--border-2)]",
+            )}
+        >
+            {/* Header: checkbox + name + company + score */}
             <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-[var(--heading)] truncate">
-                        {name}
-                    </h3>
-                    <p className="text-xs text-[var(--text-2)] mt-0.5">
-                        {company}
-                    </p>
+                <div className="flex items-start gap-3 min-w-0">
+                    {onToggleSelect && (
+                        <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={onToggleSelect}
+                            className="mt-0.5 h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer accent-[var(--primary)]"
+                            aria-label={`Select ${name}`}
+                        />
+                    )}
+                    <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-[var(--heading)] truncate">
+                            {name}
+                        </h3>
+                        <p className="text-xs text-[var(--text-2)] mt-0.5">
+                            {company}
+                        </p>
+                    </div>
                 </div>
                 <ScoreBadge score={moderation.score} />
             </div>
@@ -165,10 +189,10 @@ export function ModerationQueueCard({
 
             {/* Action buttons */}
             <div className="flex items-center gap-2 pt-1">
-                <Button variant="primary" size="sm" onClick={onApprove}>
+                <Button variant="primary" size="sm" onClick={onApprove} disabled={isApproving}>
                     Approve
                 </Button>
-                <Button variant="danger" size="sm" onClick={onReject}>
+                <Button variant="danger" size="sm" onClick={onReject} disabled={isApproving}>
                     Reject
                 </Button>
             </div>

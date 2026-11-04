@@ -49,14 +49,48 @@ interface PipelineStats {
   vectorized_ids?: string[];
 }
 
+export interface BatchPublishResult {
+  success: boolean;
+  indexedIds: string[];
+  processed: number;
+  errors: number;
+  skipped: number;
+}
+
 /**
  * Scraped internships a moderator approved (all approved staged ones when `ids` is omitted): vectorize,
  * insert into the graph, move to `internships`; the vectoriser then re-runs every student through the graph.
- * Returns the ids that were published. Failures leave the doc in staging, still approved, so the next run retries.
+ * Returns the ids that were published. Failures leave the doc in staging untouched, so the next run retries.
  */
-export async function publishApprovedInternships(ids?: string[], recommend = true): Promise<string[]> {
-  const r = await post<{ stats: PipelineStats }>("/vectorize-hnsw", { ...(ids ? { ids } : {}), recommend });
-  return r?.stats.indexed_ids ?? [];
+export async function publishApprovedInternships(
+  ids?: string[],
+  recommend = true,
+  moderatorId?: string,
+): Promise<string[]> {
+  const res = await batchPublishApprovedInternships(ids, recommend, moderatorId);
+  return res.indexedIds;
+}
+
+/**
+ * Batch publish approved staged internships. Vectorises one at a time and returns detailed stats.
+ */
+export async function batchPublishApprovedInternships(
+  ids?: string[],
+  recommend = true,
+  moderatorId?: string,
+): Promise<BatchPublishResult> {
+  const r = await post<{ status: string; stats: PipelineStats }>("/vectorize-hnsw", {
+    ...(ids ? { ids } : {}),
+    recommend,
+    ...(moderatorId ? { moderator_id: moderatorId } : {}),
+  });
+  return {
+    success: r?.status === "ok",
+    indexedIds: r?.stats?.indexed_ids ?? [],
+    processed: r?.stats?.processed ?? 0,
+    errors: r?.stats?.errors ?? 0,
+    skipped: r?.stats?.skipped ?? 0,
+  };
 }
 
 /**
