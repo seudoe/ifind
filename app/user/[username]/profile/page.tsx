@@ -826,13 +826,18 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
                     if (user.name) setName(user.name);
                     if (user.email) setEmail(user.email);
                     if (user.phone) setPhone(user.phone);
+                    const g = ["Male", "Female", "Other", "Prefer not to say"].find((o) => o.toLowerCase() === (user.gender ?? "").trim().toLowerCase());
+                    if (g) setGender(g);
+                    if (user.city) setCity(user.city);
+                    if (user.state) setState(user.state);
+                    if (user.country) setCountry(user.country);
                     toast.success("Copied from your account details. Review and save.");
                   }}
                   className="inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--text)] transition-colors hover:bg-[var(--primary-bg)]"
                 >
                   <Copy className="h-3.5 w-3.5 text-[var(--primary)]" /> Copy from account details
                 </button>
-                <span className="text-[11px] text-[var(--text-3)]">Fills name, email and phone from your iFind account.</span>
+                <span className="text-[11px] text-[var(--text-3)]">Fills name, email, phone, gender, city, state and country from your iFind account.</span>
               </div>
 
               <FormField label="Recruiter Contact Name" required>
