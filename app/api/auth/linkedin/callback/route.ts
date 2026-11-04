@@ -36,13 +36,15 @@ export async function GET(request: NextRequest) {
   const errorParam = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
   const intent = request.cookies.get("linkedin_oauth_intent")?.value;
+  const isEmployerSetPw = intent === "employer-setpw";
   const isLink = intent === "employer-link";
-  const isEmployer = intent === "employer" || isLink;
+  const isEmployerLink = isLink || isEmployerSetPw;
+  const isEmployer = intent === "employer" || isEmployerLink;
   const isStudentLink = intent === "student-link" || intent === "student-setpw";
   const isSetPassword = intent === "student-setpw";
   // A student connecting LinkedIn must land back in their own settings (with the reason), not on a sign-in page
   const linkUser = isStudentLink ? (await getSession())?.username : undefined;
-  const loginPath = isStudentLink ? (linkUser ? `/user/${linkUser}/settings` : "/user/login") : isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
+  const loginPath = isStudentLink ? (linkUser ? `/user/${linkUser}/settings` : "/user/login") : isEmployerLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
 
   if (errorParam) {
     console.error("[auth/linkedin/callback] LinkedIn returned error:", errorParam, errorDescription);
@@ -116,14 +118,49 @@ export async function GET(request: NextRequest) {
     const email = (profile.email || `${profile.sub}@linkedin.user`).toLowerCase();
     const name = profile.name || [profile.given_name, profile.family_name].filter(Boolean).join(" ") || "Student";
     const profilePicture = profile.picture || null;
-    // LinkedIn's ID/selfie verification, re-read on every student sign-in so the stored state follows LinkedIn both ways
-    const verification = isEmployer ? null : await fetchVerification(accessToken);
+    // LinkedIn's ID/selfie verification, re-read on every sign-in so the stored state follows LinkedIn both ways
+    const verification = await fetchVerification(accessToken);
     const verifSet = verification ? { linkedinVerification: verification } : {};
 
     await connectDB();
 
     // True when this request created the account (sign_up), false when it only signed in (login).
     let isNew = false;
+
+    if (isEmployerSetPw) {
+      // LinkedIn-only employer asking to set a password: the LinkedIn owner must be the one asking
+      const token = request.cookies.get(EMP_COOKIE_NAME)?.value;
+      const emp = token ? verifyEmpToken(token) : null;
+      if (!emp) return NextResponse.redirect(`${origin}/employer/login`);
+      const me = await Employer.findById(emp.employerId).select("linkedinId");
+      if (!me) return NextResponse.redirect(`${origin}/employer/login`);
+      if (me.linkedinId !== profile.sub) {
+        return NextResponse.redirect(`${origin}/employer/settings?error=${encodeURIComponent("Sign in with the LinkedIn account connected to this account")}`);
+      }
+      const secret = randomBytes(32).toString("hex");
+      await Employer.updateOne(
+        { _id: me._id },
+        {
+          $set: {
+            linkedinLastAuthAt: new Date(),
+            passwordSetupTokenHash: createHash("sha256").update(secret).digest("hex"),
+            passwordSetupExpiresAt: new Date(Date.now() + 10 * 60_000),
+            ...verifSet,
+          },
+        }
+      );
+      const ready = NextResponse.redirect(`${origin}/employer/settings?pw=ready`);
+      ready.cookies.set("pw_setup", secret, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 600,
+        path: "/api/employer/account/password",
+      });
+      ready.cookies.delete("linkedin_oauth_state");
+      ready.cookies.delete("linkedin_oauth_intent");
+      return ready;
+    }
 
     if (isLink) {
       // Logged-in employer linking LinkedIn from settings
@@ -134,7 +171,18 @@ export async function GET(request: NextRequest) {
       if (clash) {
         return NextResponse.redirect(`${origin}/employer/settings?error=${encodeURIComponent("This LinkedIn account is already linked to another employer")}`);
       }
-      await Employer.updateOne({ _id: emp.employerId }, { $set: { linkedinId: profile.sub, linkedinDetails: profile } });
+      await Employer.updateOne(
+        { _id: emp.employerId },
+        {
+          $set: {
+            linkedinId: profile.sub,
+            linkedinDetails: profile,
+            linkedinLinkedAt: new Date(),
+            linkedinLastAuthAt: new Date(),
+            ...verifSet,
+          },
+        }
+      );
       await notify({ recipientType: "employer", recipientIds: [emp.employerId], type: "account_security", title: "LinkedIn was linked to your account", body: "You can now sign in with LinkedIn too.", link: "/employer/settings" });
       const linkRes = NextResponse.redirect(`${origin}/employer/settings?linked=1`);
       linkRes.cookies.delete("linkedin_oauth_state");
@@ -220,6 +268,8 @@ export async function GET(request: NextRequest) {
         }
         employer.linkedinId = profile.sub;
         employer.linkedinDetails = profile;
+        employer.linkedinLastAuthAt = new Date();
+        if (verification) employer.linkedinVerification = verification;
         if (profilePicture && !employer.profilePicture) employer.profilePicture = profilePicture;
         if (profile.email_verified) employer.isEmailVerified = true;
         employer.lastLoginAt = new Date();
@@ -231,6 +281,9 @@ export async function GET(request: NextRequest) {
           email,
           linkedinId: profile.sub,
           linkedinDetails: profile,
+          linkedinLinkedAt: new Date(),
+          linkedinLastAuthAt: new Date(),
+          ...(verification ? { linkedinVerification: verification } : {}),
           profilePicture,
           isEmailVerified: !!profile.email_verified,
           lastLoginAt: new Date(),

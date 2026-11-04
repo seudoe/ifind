@@ -23,6 +23,16 @@ export async function GET() {
             isEmailVerified: e.isEmailVerified,
             hasPassword: !!e.password,
             linkedinLinked: !!e.linkedinId,
+            linkedinId: e.linkedinId ?? null,
+            linkedinVerification: e.linkedinVerification
+                ? {
+                    identity: Boolean(e.linkedinVerification.identity),
+                    workplace: Boolean(e.linkedinVerification.workplace),
+                    checkedAt: new Date(e.linkedinVerification.checkedAt).toISOString(),
+                }
+                : null,
+            linkedinLinkedAt: e.linkedinLinkedAt?.toISOString() ?? null,
+            linkedinLastAuthAt: e.linkedinLastAuthAt?.toISOString() ?? null,
             profilePicture: e.profilePicture,
             phone: e.phone,
             designation: e.designation,

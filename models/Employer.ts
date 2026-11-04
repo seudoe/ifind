@@ -7,6 +7,13 @@ export interface IEmployer extends Document {
     isEmailVerified: boolean;
     linkedinId?: string | null;
     linkedinDetails?: unknown;
+    linkedinLinkedAt?: Date | null;
+    linkedinReviewedAt?: Date | null;
+    linkedinLastAuthAt?: Date | null;
+    linkedinVerification?: { identity: boolean; workplace: boolean; checkedAt: Date } | null;
+    linkedinPending?: { profile: any; verification?: any; expiresAt: Date } | null;
+    passwordSetupTokenHash?: string | null;
+    passwordSetupExpiresAt?: Date | null;
     profilePicture?: string | null;
     phone?: string | null;
     designation?: string | null;
@@ -31,6 +38,13 @@ const EmployerSchema = new Schema<IEmployer>(
         isEmailVerified: { type: Boolean, default: false },
         linkedinId: { type: String, default: undefined },
         linkedinDetails: { type: Schema.Types.Mixed, default: null },
+        linkedinLinkedAt: { type: Date, default: null },
+        linkedinReviewedAt: { type: Date, default: null },
+        linkedinLastAuthAt: { type: Date, default: null },
+        linkedinVerification: { type: Schema.Types.Mixed, default: null },
+        linkedinPending: { type: Schema.Types.Mixed, default: null, select: false },
+        passwordSetupTokenHash: { type: String, default: null, select: false },
+        passwordSetupExpiresAt: { type: Date, default: null, select: false },
         profilePicture: { type: String, default: null },
         phone: { type: String, default: null, trim: true },
         designation: { type: String, default: null, trim: true },

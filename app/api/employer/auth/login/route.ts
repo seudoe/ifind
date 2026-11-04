@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { checkPassword } from "@/lib/passwords";
 import { limitAuth, RULES } from "@/lib/rateLimit";
 import { empAuthCookie, signEmpToken } from "@/lib/employerAuth";
+import { linkedinReauthDue } from "@/lib/linkedinState";
 import Employer from "@/models/Employer";
 
 export const runtime = "nodejs";
@@ -31,6 +32,11 @@ export async function POST(request: NextRequest) {
         }
         if (employer.deleteDetails?.deleted) {
             return NextResponse.json({ success: false, error: "This account has been deleted" }, { status: 403 });
+        }
+
+        // Password AND LinkedIn on one account: the password only works while LinkedIn was used within the last month.
+        if (employer.linkedinId && linkedinReauthDue({ linkedinId: employer.linkedinId, password: employer.password, linkedinLastAuthAt: employer.linkedinLastAuthAt, linkedinLinkedAt: employer.linkedinLinkedAt })) {
+            return NextResponse.json({ success: false, code: "linkedin_required", error: "This account needs to sign in with LinkedIn to use the password again." }, { status: 403 });
         }
 
         employer.lastLoginAt = new Date();

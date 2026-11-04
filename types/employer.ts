@@ -69,6 +69,10 @@ export interface Employer {
     isEmailVerified: boolean;
     hasPassword: boolean;
     linkedinLinked: boolean;
+    linkedinId?: string | null;
+    linkedinVerification?: { identity: boolean; workplace: boolean; checkedAt: string } | null;
+    linkedinLinkedAt?: string | null;
+    linkedinLastAuthAt?: string | null;
     profilePicture?: string | null;
     phone?: string | null;
     designation?: string | null;

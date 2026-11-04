@@ -26,11 +26,13 @@ export default function EmployerLoginPage() {
     if (err) toast.error(err);
   }, []);
   const [showPw, setShowPw] = useState(false);
+  const [needsLinkedIn, setNeedsLinkedIn] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<Form>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: Form) => {
+    setNeedsLinkedIn(false);
     try {
       const res  = await fetch("/api/employer/auth/login", {
         method: "POST",
@@ -39,6 +41,7 @@ export default function EmployerLoginPage() {
         credentials: "include",
       });
       const json = await res.json();
+      if (json.code === "linkedin_required") { setNeedsLinkedIn(true); return; }
       if (!res.ok) throw new Error(json.error || "Login failed");
       toast.success("Welcome back!");
       router.push("/employer/institutes");
@@ -59,6 +62,12 @@ export default function EmployerLoginPage() {
         </span>
       }
     >
+      {needsLinkedIn && (
+        <div role="alert" className="mb-4 rounded-[var(--radius-sm)] border border-[var(--danger)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] p-3 text-sm text-[var(--danger)]">
+          <p className="font-semibold">This user needs to login using LinkedIn to use the password again.</p>
+          <p className="mt-1 text-xs">Accounts with both a password and LinkedIn must sign in with LinkedIn about once a month. Sign in with LinkedIn below, then your password works again.</p>
+        </div>
+      )}
       <div className="plasma-card p-6">
           <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
             <Input
