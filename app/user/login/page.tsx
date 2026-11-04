@@ -49,6 +49,7 @@ export default function UserLoginPage() {
 function UserLoginForm() {
     const router = useRouter();
     const [showPw, setShowPw] = useState(false);
+    const [needsLinkedIn, setNeedsLinkedIn] = useState(false);
 
     const {
         register,
@@ -57,6 +58,7 @@ function UserLoginForm() {
     } = useForm<Form>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: Form) => {
+    setNeedsLinkedIn(false);
     try {
       const res  = await fetch("/api/auth/login", {
         method: "POST",
@@ -65,6 +67,7 @@ function UserLoginForm() {
         credentials: "include",
       });
       const json = await res.json();
+      if (json.code === "linkedin_required") { setNeedsLinkedIn(true); return; }
       if (!res.ok) throw new Error(json.error || "Login failed");
       if (json.notice) {
         toast.info(json.notice, { duration: 6000 });
@@ -86,6 +89,12 @@ function UserLoginForm() {
       switchLink="/user/register"
       switchLabel="Register free"
     >
+      {needsLinkedIn && (
+        <div role="alert" className="mb-4 rounded-[var(--radius-sm)] border border-[var(--danger)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] p-3 text-sm text-[var(--danger)]">
+          <p className="font-semibold">This user needs to login using LinkedIn to use the password again.</p>
+          <p className="mt-1 text-xs">Accounts with both a password and LinkedIn must sign in with LinkedIn about once a month. Sign in with LinkedIn below, then your password works again.</p>
+        </div>
+      )}
       <form method="POST" onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
         <Input
           label="Email or Username"

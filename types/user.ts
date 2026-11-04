@@ -31,6 +31,9 @@ export interface User {
     linkedinDetails?: LinkedInProfile | null;
     linkedinLinkedAt?: string | null;
     linkedinReviewedAt?: string | null;
+    linkedinLastAuthAt?: string | null;
+    /** Computed by the dashboard API; the hash itself never leaves the server. */
+    hasPassword?: boolean;
     role?: "user" | "admin";
     profilePicture?: string | null;
     phone?: string | null;

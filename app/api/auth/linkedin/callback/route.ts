@@ -7,6 +7,7 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { sendServerEvent } from "@/lib/analytics/measurementProtocol";
 import { authCookie, getSession, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { createHash, randomBytes } from "node:crypto";
 import { EMP_COOKIE_NAME, empAuthCookie, signEmpToken, verifyEmpToken } from "@/lib/employerAuth";
 import Employer from "@/models/Employer";
 import User from "@/models/User";
@@ -36,7 +37,8 @@ export async function GET(request: NextRequest) {
   const intent = request.cookies.get("linkedin_oauth_intent")?.value;
   const isLink = intent === "employer-link";
   const isEmployer = intent === "employer" || isLink;
-  const isStudentLink = intent === "student-link";
+  const isStudentLink = intent === "student-link" || intent === "student-setpw";
+  const isSetPassword = intent === "student-setpw";
   const loginPath = isStudentLink ? "/user" : isLink ? "/employer/settings" : isEmployer ? "/employer/login" : "/user/login";
 
   if (errorParam) {
@@ -147,8 +149,21 @@ export async function GET(request: NextRequest) {
       if (me.linkedinId && me.linkedinId !== profile.sub) {
         return NextResponse.redirect(`${back}?error=${encodeURIComponent("A different LinkedIn account is already connected to this account")}`);
       }
+      if (isSetPassword) {
+        // LinkedIn-only account asking to set a password: the LinkedIn owner must be the one asking
+        if (me.linkedinId !== profile.sub) {
+          return NextResponse.redirect(`${origin}/user/${me.username}/settings?error=${encodeURIComponent("Sign in with the LinkedIn account connected to this account")}`);
+        }
+        const secret = randomBytes(32).toString("hex");
+        await User.updateOne({ _id: me._id }, { $set: { linkedinLastAuthAt: new Date(), passwordSetupTokenHash: createHash("sha256").update(secret).digest("hex"), passwordSetupExpiresAt: new Date(Date.now() + 10 * 60_000) } });
+        const ready = NextResponse.redirect(`${origin}/user/${me.username}/settings?pw=ready`);
+        ready.cookies.set("pw_setup", secret, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", maxAge: 600, path: "/api/user/password" });
+        ready.cookies.delete("linkedin_oauth_state");
+        ready.cookies.delete("linkedin_oauth_intent");
+        return ready;
+      }
       const firstLink = !me.linkedinId;
-      await User.updateOne({ _id: me._id }, { $set: { linkedinId: profile.sub, linkedinDetails: profile, ...(firstLink ? { linkedinLinkedAt: new Date(), linkedinReviewedAt: null } : {}) } });
+      await User.updateOne({ _id: me._id }, { $set: { linkedinId: profile.sub, linkedinDetails: profile, linkedinLastAuthAt: new Date(), ...(firstLink ? { linkedinLinkedAt: new Date(), linkedinReviewedAt: null } : {}) } });
       const linked = NextResponse.redirect(back);
       linked.cookies.delete("linkedin_oauth_state");
       linked.cookies.delete("linkedin_oauth_intent");
@@ -238,6 +253,7 @@ export async function GET(request: NextRequest) {
       // Update existing user with linkedinId, linkedinDetails, or profile picture
       user.linkedinId = profile.sub;
       user.linkedinDetails = profile;
+      user.linkedinLastAuthAt = new Date();
       if (profilePicture && !user.profilePicture) {
         user.profilePicture = profilePicture;
       }
@@ -308,6 +324,7 @@ export async function GET(request: NextRequest) {
         email,
         linkedinId: profile.sub,
         linkedinDetails: profile,
+        linkedinLastAuthAt: new Date(),
         profilePicture: profilePicture || null,
         role: "student",
         phone: null,

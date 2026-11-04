@@ -4,6 +4,7 @@ import { authCookie, signToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { checkPassword, MAX_PASSWORD_LENGTH } from "@/lib/passwords";
 import { limitAuth, RULES } from "@/lib/rateLimit";
+import { linkedinReauthDue } from "@/lib/linkedinState";
 import User from "@/models/User";
 import { log } from "@/lib/logger";
 
@@ -44,6 +45,12 @@ export async function POST(request: NextRequest) {
         if (user.isBanned === true) {
             log.warn("auth/login", "sign-in rejected: account suspended", { username: user.username });
             return NextResponse.json({ success: false, error: "Your account has been suspended" }, { status: 403 });
+        }
+
+        // Password AND LinkedIn on one account: the password only works while LinkedIn was used within the last month.
+        // Said only after the right password, so it reveals nothing to someone guessing.
+        if (user.linkedinId && linkedinReauthDue({ linkedinId: user.linkedinId, password: user.password, linkedinLastAuthAt: user.linkedinLastAuthAt, linkedinLinkedAt: user.linkedinLinkedAt })) {
+            return NextResponse.json({ success: false, code: "linkedin_required", error: "This account needs to sign in with LinkedIn to use the password again." }, { status: 403 });
         }
 
         let loginNotice: string | null = null;

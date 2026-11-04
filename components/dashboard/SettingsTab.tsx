@@ -1,9 +1,9 @@
 "use client";
 
-import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
+import { AccountStatesCard, PasswordCard } from "@/components/dashboard/AccountSecurity";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff, User, Lock, Bell, Trash2, Camera, AlertTriangle } from "lucide-react";
+import { User, Bell, Trash2, Camera, AlertTriangle } from "lucide-react";
 import { Input }  from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
@@ -36,9 +36,6 @@ function Section({
 }
 
 export function SettingsTab({ user }: { user: StudentUser }) {
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew,     setShowNew]     = useState(false);
-
   // --- Account Info Form State ---
   const [name, setName] = useState(user.name || "");
   const [email, setEmail] = useState(user.email || "");
@@ -190,13 +187,14 @@ export function SettingsTab({ user }: { user: StudentUser }) {
   return (
     <div className="space-y-5 w-full">
 
+      <AccountStatesCard user={user} />
+
       {/* ── App Account Profile info ────────────────────────────────────────── */}
       <Section
         icon={<User className="h-4 w-4" />}
         title="iFind Account Settings"
         desc="Manage your student account in iFind (app settings)"
       >
-        <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} className="mb-5" />
         <div className="flex items-center gap-4 mb-5">
           <Avatar src={profilePicture} name={name || user.name} size="lg" />
           <div className="flex flex-col gap-1.5">
@@ -273,36 +271,7 @@ export function SettingsTab({ user }: { user: StudentUser }) {
       </Section>
 
       {/* ── Password ──────────────────────────────────────────────────── */}
-      <Section
-        icon={<Lock className="h-4 w-4" />}
-        title="Change Password"
-        desc="Choose a strong password you don't use elsewhere"
-      >
-        <div className="space-y-4">
-          <Input
-            label="Current Password"
-            type={showCurrent ? "text" : "password"}
-            placeholder="Your current password"
-            rightIcon={
-              <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="text-[var(--text-3)] hover:text-[var(--text)]">
-                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            }
-          />
-          <Input
-            label="New Password"
-            type={showNew ? "text" : "password"}
-            placeholder="Min 8 chars, 1 uppercase, 1 number"
-            rightIcon={
-              <button type="button" onClick={() => setShowNew(!showNew)} className="text-[var(--text-3)] hover:text-[var(--text)]">
-                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            }
-          />
-          <Input label="Confirm New Password" type="password" placeholder="Repeat new password" />
-          <Button size="sm">Update Password</Button>
-        </div>
-      </Section>
+      <PasswordCard user={user} />
 
       {/* ── Notifications ─────────────────────────────────────────────── */}
       <Section

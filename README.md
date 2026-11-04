@@ -11,6 +11,24 @@ Public site: `https://ifind.internships.workers.dev` (a Cloudflare Worker, `../p
 - **Moderators:** review queue for flagged internships, per-item scam analysis and rescan (`/analyze`), employers, companies, users, events, scrape jobs, usage and analytics, moderator verification and bans.
 - Themes and the design language in `docs/` and the repo-root design files; email through Brevo; image uploads through ImageKit; LinkedIn sign-in.
 
+## Student sign-in, LinkedIn and password
+
+A student account is in one of three states, derived from stored fields (`lib/linkedinState.ts`, never stored):
+
+| State | Meaning |
+|---|---|
+| Normal | Email and password only. Not verified by iFind or LinkedIn. |
+| LinkedIn connected | `linkedinId` set; LinkedIn did not report `email_verified`. |
+| Verified on LinkedIn | `linkedinId` set and LinkedIn reports `email_verified: true` (this is LinkedIn's verification of the email address, the only signal the OpenID sign-in exposes). Kept in `linkedinDetails.email_verified`. |
+
+- **Connecting LinkedIn to an existing account:** the Connect/Re-verify links use `GET /api/auth/linkedin?as=student-link`. A signed-in student gets LinkedIn attached to that account (never a new account). A LinkedIn account already used by another iFind account is refused. The first time, a one-time pop-up shows the LinkedIn details (photo, name, email, verified or not) so the student can adjust the name and choose the photo; it never shows again (`linkedinReviewedAt`).
+- **Sign-in methods:** password only, LinkedIn only (no password), or both. Settings shows the state and which methods the account has.
+- **LinkedIn-only accounts have no password.** In Settings, "Set password" sends them through LinkedIn again (`?as=student-setpw`) to prove the same person is asking. The callback issues a one-time 10-minute token (httpOnly cookie `pw_setup` plus its sha256 on the user); `POST /api/user/password` consumes it. The same endpoint changes an existing password (current password required). Either way other sessions are signed out.
+- **Accounts with both a password and LinkedIn** must sign in with LinkedIn at least every 30 days (`linkedinLastAuthAt`, refreshed by every LinkedIn sign-in, link or set-password confirmation). Past that, `POST /api/auth/login` answers `403 { code: "linkedin_required" }` (only after the correct password, so it reveals nothing to guessers) and the login page shows a red notice: "This user needs to login using LinkedIn to use the password again." One LinkedIn sign-in restores the password. Accounts with only a password or only LinkedIn are never asked.
+- Employer accounts are unchanged.
+
+Fields on `User`: `linkedinId`, `linkedinDetails`, `linkedinLinkedAt`, `linkedinReviewedAt`, `linkedinLastAuthAt`, `passwordSetupTokenHash`/`passwordSetupExpiresAt` (not selected by default). The dashboard API returns `hasPassword` instead of the hash. Tests: `tests/linkedin-state.test.ts` (in `npm run test:security`).
+
 ## Commands
 
 ```bash

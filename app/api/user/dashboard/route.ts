@@ -21,9 +21,12 @@ export async function GET() {
 
     const user = await db.collection("users").findOne(
       { _id: new mongoose.Types.ObjectId(session.userId) },
-      { projection: { password: 0, failedLoginAttempts: 0, tokenVersion: 0, "resume.bert_vector": 0, "resume.tfidf_vector": 0 } },
+      { projection: { failedLoginAttempts: 0, tokenVersion: 0, passwordSetupTokenHash: 0, passwordSetupExpiresAt: 0, "resume.bert_vector": 0, "resume.tfidf_vector": 0 } },
     );
     if (!user) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
+    // The hash itself never leaves the server; the page only learns whether a password exists
+    user.hasPassword = typeof user.password === "string" && user.password.length > 0;
+    delete user.password;
 
     const toIds = (values: unknown[]) => values
       .map((value) => String(value))
