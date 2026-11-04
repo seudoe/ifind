@@ -239,6 +239,9 @@ async function parseWithGemini(pdfBuffer: Buffer): Promise<ParsedResumeData> {
                 generationConfig: {
                     temperature: 0.1,
                     responseMimeType: "application/json",
+                    thinkingConfig: {
+                        thinkingBudget: 0,
+                    },
                 },
             }),
         },
@@ -262,7 +265,11 @@ async function parseWithGemini(pdfBuffer: Buffer): Promise<ParsedResumeData> {
         latencyMs: Date.now() - startedAt,
         ok: true,
     });
-    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parts = json.candidates?.[0]?.content?.parts ?? [];
+    const contentPart =
+        parts.find((p: any) => !p.thought && typeof p.text === "string") ??
+        parts[parts.length - 1];
+    const text = contentPart?.text;
     if (!text) throw new Error("Gemini returned no content");
 
     const cleaned = text

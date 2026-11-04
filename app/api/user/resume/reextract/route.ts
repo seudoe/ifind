@@ -64,10 +64,15 @@ async function handlePost() {
         if (canUseAI) {
             try {
                 parsedData = await parseResumeWithBestAI(pdfBuffer);
-            } catch (error) {
-                throw error;
+                extractorUsed = "ai";
+            } catch (aiError) {
+                console.warn(
+                    "[resume/reextract] AI extraction failed, falling back to HuggingFace:",
+                    aiError,
+                );
+                parsedData = await parseResumeWithHF(pdfBuffer);
+                extractorUsed = "hf";
             }
-            extractorUsed = "ai";
         } else {
             parsedData = await parseResumeWithHF(pdfBuffer);
             extractorUsed = "hf";

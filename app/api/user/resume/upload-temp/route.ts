@@ -103,10 +103,15 @@ async function handlePost(req: NextRequest) {
         if (canUseAI) {
             try {
                 pendingParsedData = await parseResumeWithBestAI(buffer);
-            } catch (error) {
-                throw error;
+                extractorUsed = "ai";
+            } catch (aiError) {
+                console.warn(
+                    "[resume/upload-temp] AI extraction failed, falling back to HuggingFace:",
+                    aiError,
+                );
+                pendingParsedData = await parseResumeWithHF(buffer);
+                extractorUsed = "hf";
             }
-            extractorUsed = "ai";
         } else {
             pendingParsedData = await parseResumeWithHF(buffer);
             extractorUsed = "hf";
