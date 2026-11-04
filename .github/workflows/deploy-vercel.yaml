@@ -38,6 +38,11 @@ jobs:
       - name: Sync env vars
         run: bash scripts/sync-vercel-env.sh
 
+      # Vercel Hobby blocks deploys whose commit author is not the account's linked GitHub user.
+      # Without .git the CLI sends no author, so one repo can deploy to accounts owned by different people.
+      - name: Drop git metadata
+        run: rm -rf .git
+
       - name: Deploy to production
         run: vercel deploy --prod --yes --build-env GIT_SHA=${{ github.sha }} --build-env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }} --env INSTANCE=${{ env.PROJECT_IDENTITY }} --env GIT_SHA=${{ github.sha }} --env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }}
 
@@ -88,6 +93,11 @@ jobs:
 
       - name: Sync env vars
         run: bash scripts/sync-vercel-env.sh
+
+      # Vercel Hobby blocks deploys whose commit author is not the account's linked GitHub user.
+      # Without .git the CLI sends no author, so one repo can deploy to accounts owned by different people.
+      - name: Drop git metadata
+        run: rm -rf .git
 
       - name: Deploy to production
         run: vercel deploy --prod --yes --build-env GIT_SHA=${{ github.sha }} --build-env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }} --env INSTANCE=${{ env.PROJECT_IDENTITY }} --env GIT_SHA=${{ github.sha }} --env BUILD_TIME=${{ github.event.head_commit.timestamp || github.run_started_at }}
