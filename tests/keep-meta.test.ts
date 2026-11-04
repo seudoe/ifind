@@ -7,7 +7,7 @@ const meta = (o: Record<string, unknown>) => ({ name: "", phone_no: "", email: "
 test("a new resume keeps contact details and links it did not find, and fills what it did", () => {
     const old = { skills: [{ field: "Old" }], metaDetails: meta({ name: "Asif", phone_no: "+91 1", github_profile: "gh/a", linkedin: "li/a", address: { city: "Mumbai", state: "MH", country: "India" }, extra_links: [{ name: "CF", link: "cf.com/a" }] }) };
     const fresh = { skills: [{ field: "New" }], metaDetails: meta({ name: "Asif S", phone_no: "", github_profile: null, address: { city: "", state: null, country: "India" }, extra_links: [{ name: "Site", link: "a.dev" }] }) };
-    const out = keepMeta(old as never, fresh as never) as unknown as { skills: { field: string }[]; metaDetails: ReturnType<typeof meta> & { address: { city: string; state: string } } };
+    const out = keepMeta(old as never, fresh as never) as unknown as { skills: { field: string }[]; metaDetails: Record<string, unknown> & { address: { city: string; state: string }; extra_links: { link: string }[] } };
     assert.deepEqual(out.skills, [{ field: "New" }]); // sections other than contact details are replaced wholesale
     assert.equal(out.metaDetails.name, "Asif S"); // available: updated
     assert.equal(out.metaDetails.phone_no, "+91 1"); // missing: kept
