@@ -20,6 +20,7 @@ import { Logo } from "@/components/ui/Logo";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { safeNextPath } from "@/lib/authRedirect";
+import { apiUrl } from "@/lib/apiOrigin";
 
 export default function PhoneLandingPage() {
   const router = useRouter();
@@ -37,22 +38,77 @@ export default function PhoneLandingPage() {
   const [loading, setLoading] = useState(false);
   const [needsLinkedIn, setNeedsLinkedIn] = useState(false);
 
-  // Gesture handling
-  const touchStartY = useRef<number | null>(null);
+  // Bottom-sheet drag handling (only on the sheet and drag handle, NOT the page background)
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartTime = useRef(0);
+  const hasMoved = useRef(false);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
+  const handleDragStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    dragStartTime.current = Date.now();
+    hasMoved.current = false;
+    setIsDragging(true);
+    setDragOffset(0);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY.current === null) return;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-    if (deltaY < -40 && !expanded) {
-      setExpanded(true);
-    } else if (deltaY > 50 && expanded) {
-      setExpanded(false);
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentY = e.touches[0].clientY;
+    const delta = currentY - dragStartY.current;
+    if (Math.abs(delta) > 4) {
+      hasMoved.current = true;
     }
-    touchStartY.current = null;
+
+    if (!expanded) {
+      // Collapsed: dragging up (delta < 0) is natural; down has high resistance
+      if (delta < 0) {
+        setDragOffset(delta);
+      } else {
+        setDragOffset(delta * 0.15);
+      }
+    } else {
+      // Expanded: dragging down (delta > 0) is natural; up has high resistance
+      if (delta > 0) {
+        setDragOffset(delta);
+      } else {
+        setDragOffset(delta * 0.15);
+      }
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const delta = dragOffset;
+    const elapsed = Date.now() - dragStartTime.current;
+    const velocity = Math.abs(delta) / Math.max(elapsed, 1);
+
+    if (!expanded) {
+      // Dragged up by > 45px or fast flick upward
+      if (delta < -45 || (delta < -20 && velocity > 0.35)) {
+        setExpanded(true);
+      }
+    } else {
+      // Dragged down by > 50px or fast flick downward
+      if (delta > 50 || (delta > 20 && velocity > 0.35)) {
+        setExpanded(false);
+      }
+    }
+    setDragOffset(0);
+  };
+
+  const getSheetTransform = () => {
+    if (isDragging) {
+      if (!expanded) {
+        return `translateY(${Math.min(0, dragOffset)}px)`;
+      } else {
+        return `translateY(${Math.max(0, dragOffset)}px)`;
+      }
+    }
+    return undefined;
   };
 
   const openAuth = (selectedRole: "student" | "employer", selectedTab: "login" | "register") => {
@@ -67,7 +123,7 @@ export default function PhoneLandingPage() {
     setLoading(true);
     setNeedsLinkedIn(false);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(apiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier: emailOrUser, password, role: "user" }),
@@ -101,7 +157,7 @@ export default function PhoneLandingPage() {
     setLoading(true);
     setNeedsLinkedIn(false);
     try {
-      const res = await fetch("/api/employer/auth/login", {
+      const res = await fetch(apiUrl("/api/employer/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: emailOrUser, password }),
@@ -129,7 +185,7 @@ export default function PhoneLandingPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(apiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, username, email, password }),
@@ -150,7 +206,7 @@ export default function PhoneLandingPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/employer/auth/register", {
+      const res = await fetch(apiUrl("/api/employer/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -168,11 +224,7 @@ export default function PhoneLandingPage() {
   };
 
   return (
-    <div
-      className="w-full min-h-dvh flex flex-col justify-between bg-[var(--bg)] text-[var(--text)] select-none font-sans relative overflow-x-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="w-full min-h-dvh flex flex-col bg-[var(--bg)] text-[var(--text)] select-none font-sans relative overflow-x-hidden">
       {/* ── Top Header (100% width, with app ThemeSwitcher) ─────────────── */}
       <header className="w-full h-14 shrink-0 px-4 sm:px-8 border-b-2 border-[var(--rule)] bg-[var(--surface)] flex items-center justify-between z-20">
         <Link href="/phone" className="flex items-center shrink-0" aria-label="iFind Home">
@@ -191,10 +243,10 @@ export default function PhoneLandingPage() {
         </div>
       </header>
 
-      {/* ── Hero Section (100% width edge-to-edge image & big iFind logo) ─ */}
-      <div className="w-full flex-1 flex flex-col justify-start">
-        {/* Edge-to-edge image (100% width) with graduate guy holding laptop */}
-        <div className="w-full h-[38vh] min-h-[340px] max-h-[460px] relative overflow-hidden bg-[var(--surface-3)]">
+      {/* ── Scrollable Body Content (Hero + Branding + CTA buttons) ─────── */}
+      <main className="w-full flex-1 overflow-y-auto overflow-x-hidden flex flex-col justify-start">
+        {/* Edge-to-edge image with graduate student holding laptop & Google offer */}
+        <div className="w-full h-[26vh] min-h-[200px] max-h-[270px] relative overflow-hidden bg-[var(--surface-3)] shrink-0">
           <Image
             src="/hero-student.png"
             alt="Graduate student with laptop and offer notification"
@@ -203,104 +255,135 @@ export default function PhoneLandingPage() {
             priority
           />
           {/* Subtle bottom fade matching background perfectly */}
-          <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)]/80 to-transparent pointer-events-none" />
         </div>
 
         {/* Hero Branding Content */}
-        <div className="w-full max-w-2xl mx-auto px-5 sm:px-8 -mt-10 sm:-mt-14 relative z-10 space-y-5 sm:space-y-6 pb-48">
+        <div className="w-full max-w-2xl mx-auto px-5 sm:px-8 -mt-8 sm:-mt-10 relative z-10 space-y-4 sm:space-y-5 pb-44 sm:pb-48">
           {/* Big iFind Logo */}
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-clean.svg" alt="iFind" className="h-20 sm:h-24 md:h-28 w-auto logo-art-light drop-shadow-md" />
+            <img src="/logo-clean.svg" alt="iFind" className="h-16 sm:h-20 md:h-24 w-auto logo-art-light drop-shadow-md" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-clean-dark.svg" alt="iFind" className="h-20 sm:h-24 md:h-28 w-auto logo-art-dark drop-shadow-md" />
+            <img src="/logo-clean-dark.svg" alt="iFind" className="h-16 sm:h-20 md:h-24 w-auto logo-art-dark drop-shadow-md" />
           </div>
 
-          <div className="space-y-2.5">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[var(--heading)] tracking-tight leading-[1.12]">
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[var(--heading)] tracking-tight leading-[1.14]">
               Your skills. Real opportunities. A brighter future.
             </h1>
-            <p className="text-base sm:text-lg text-[var(--text-2)] leading-relaxed max-w-xl font-normal">
+            <p className="text-xs sm:text-sm md:text-base text-[var(--text-2)] leading-relaxed max-w-xl font-normal">
               Find verified internships, connect with industry hiring teams, and launch your career in tech.
             </p>
           </div>
 
           {/* Feature chips */}
-          <div className="flex flex-wrap items-center gap-2.5 pt-1">
-            <span className="pill text-xs sm:text-sm font-mono py-1.5 px-3.5">⚡ 1,200+ Active Roles</span>
-            <span className="pill text-xs sm:text-sm font-mono py-1.5 px-3.5">✓ Verified Companies</span>
-            <span className="pill text-xs sm:text-sm font-mono py-1.5 px-3.5">💼 Paid Stipends</span>
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <span className="pill text-[11px] sm:text-xs font-mono py-1 px-3">⚡ 1,200+ Active Roles</span>
+            <span className="pill text-[11px] sm:text-xs font-mono py-1 px-3">✓ Verified Companies</span>
+            <span className="pill text-[11px] sm:text-xs font-mono py-1 px-3">💼 Paid Stipends</span>
           </div>
 
-          <div className="pt-2 flex flex-wrap items-center gap-3.5">
+          {/* Action buttons */}
+          <div className="pt-1.5 flex flex-wrap items-center gap-3">
             <Link
               href="/internships"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white text-sm sm:text-base font-bold hover:bg-[var(--primary-dk)] transition-colors shadow-md group"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white text-xs sm:text-sm font-bold hover:bg-[var(--primary-dk)] transition-colors shadow-md group"
             >
               <span>Browse internships</span>
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <button
+              type="button"
               onClick={() => openAuth("employer", "login")}
-              className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full border-2 border-[var(--primary)] bg-[var(--primary-bg)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white text-xs sm:text-sm font-bold font-mono uppercase tracking-wider transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border-2 border-[var(--primary)] bg-[var(--primary-bg)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white text-xs sm:text-sm font-bold font-mono uppercase tracking-wider transition-all cursor-pointer"
             >
               Employer ?
             </button>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* ── Swipable Bottom Sheet Card (100% width edge-to-edge) ─────────── */}
+      {/* ── Dim Backdrop when Bottom Sheet is expanded ──────────────────── */}
+      {expanded && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 transition-opacity"
+          onClick={() => setExpanded(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Draggable Bottom Sheet Card (100% width edge-to-edge) ─────────── */}
       <div
-        className={`fixed inset-x-0 bottom-0 w-full z-40 bg-[var(--surface)] border-t-2 border-[var(--rule)] rounded-t-[var(--radius-2xl)] sm:rounded-t-[var(--radius-3xl)] shadow-[var(--shadow-lg)] transition-all duration-300 ease-out flex flex-col ${
-          expanded ? "h-[86dvh] sm:h-[80dvh]" : "h-44 sm:h-48"
+        style={getSheetTransform() ? { transform: getSheetTransform() } : undefined}
+        className={`fixed inset-x-0 bottom-0 w-full z-40 bg-[var(--surface)] border-t-2 border-[var(--rule)] rounded-t-[var(--radius-2xl)] sm:rounded-t-[var(--radius-3xl)] shadow-[var(--shadow-lg)] ${
+          isDragging ? "" : "transition-all duration-300 ease-out"
+        } flex flex-col ${
+          expanded ? "h-[88dvh] sm:h-[82dvh] max-h-[740px]" : "h-[148px] sm:h-[156px]"
         }`}
       >
-        {/* Handle Bar & Touch Drag Target */}
+        {/* Handle Bar & Drag Target */}
         <div
-          onClick={() => setExpanded(!expanded)}
-          className="pt-3 pb-2 cursor-pointer flex flex-col items-center shrink-0 w-full"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          onTouchCancel={handleDragEnd}
+          onClick={() => {
+            if (!hasMoved.current) {
+              setExpanded((prev) => !prev);
+            }
+          }}
+          className="pt-2.5 pb-1.5 cursor-grab active:cursor-grabbing flex flex-col items-center shrink-0 w-full select-none touch-none"
+          aria-label={expanded ? "Drag down to close sign in" : "Drag up to sign in"}
         >
-          <div className="w-14 h-1.5 bg-[var(--border-2)] rounded-full hover:bg-[var(--primary)] transition-colors" />
+          <div className="w-12 h-1.5 bg-[var(--border-2)] rounded-full hover:bg-[var(--primary)] transition-colors" />
           {!expanded && (
-            <p className="text-[11px] font-mono text-[var(--text-3)] mt-2 font-medium">
-              Swipe up to sign in
+            <p className="text-[10px] sm:text-[11px] font-mono text-[var(--text-3)] mt-1.5 font-medium flex items-center gap-1">
+              <span>Drag up or tap to sign in</span>
             </p>
           )}
         </div>
 
-        {/* ── Collapsed Content (100% width buttons) ─────────────────────── */}
+        {/* ── Collapsed Content (Register / Login quick buttons) ───────────── */}
         {!expanded ? (
-          <div className="w-full max-w-xl mx-auto flex-1 px-5 sm:px-8 pb-5 pt-1 flex flex-col justify-center gap-3">
+          <div className="w-full max-w-xl mx-auto flex-1 px-5 sm:px-8 pb-3.5 pt-0.5 flex flex-col justify-center gap-2.5">
             <button
+              type="button"
               onClick={() => openAuth("student", "register")}
-              className="w-full py-3.5 rounded-[var(--radius-sm)] border-2 border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-bg)] hover:bg-[var(--primary)] hover:text-white font-bold font-mono uppercase tracking-wider text-sm transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="w-full py-2.5 rounded-[var(--radius-sm)] border-2 border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-bg)] hover:bg-[var(--primary)] hover:text-white font-bold font-mono uppercase tracking-wider text-xs transition-all shadow-xs active:scale-98 cursor-pointer"
             >
               Register
             </button>
             <button
+              type="button"
               onClick={() => openAuth("student", "login")}
-              className="w-full py-3.5 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white hover:bg-[var(--primary-dk)] font-bold font-mono uppercase tracking-wider text-sm transition-all shadow-sm active:scale-98 cursor-pointer"
+              className="w-full py-2.5 rounded-[var(--radius-sm)] bg-[var(--primary)] text-white hover:bg-[var(--primary-dk)] font-bold font-mono uppercase tracking-wider text-xs transition-all shadow-sm active:scale-98 cursor-pointer"
             >
               Login
             </button>
           </div>
         ) : (
           /* ── Expanded Content (Full Sign In / Register Form) ────────────── */
-          <div className="w-full max-w-xl mx-auto flex-1 overflow-y-auto px-5 sm:px-8 pb-8 pt-1 flex flex-col">
-            {/* Header row in sheet */}
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--border)]">
+          <div className="w-full max-w-xl mx-auto flex-1 overflow-y-auto px-5 sm:px-8 pb-8 pt-0.5 flex flex-col">
+            {/* Header row in sheet (draggable down to collapse) */}
+            <div
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              onTouchCancel={handleDragEnd}
+              className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--border)] shrink-0 touch-none cursor-grab"
+            >
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)]">
                   {role === "student" ? <GraduationCap className="h-4 w-4" /> : <Briefcase className="h-4 w-4" />}
                 </span>
-                <h2 className="text-sm sm:text-base font-bold font-mono uppercase tracking-wide text-[var(--heading)]">
+                <h2 className="text-xs sm:text-sm font-bold font-mono uppercase tracking-wide text-[var(--heading)]">
                   {role === "student" ? "STUDENT" : "EMPLOYER"} {tab === "login" ? "SIGN IN" : "REGISTER"}
                 </h2>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setRole(role === "student" ? "employer" : "student")}
@@ -309,6 +392,7 @@ export default function PhoneLandingPage() {
                   Switch to {role === "student" ? "Employer" : "Student"}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setExpanded(false)}
                   className="p-1.5 text-[var(--text-3)] hover:text-[var(--heading)] rounded-[var(--radius-sm)]"
                   aria-label="Collapse"
@@ -319,7 +403,7 @@ export default function PhoneLandingPage() {
             </div>
 
             {/* Segment Tab Toggle */}
-            <div className="grid grid-cols-2 p-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] mb-4 text-xs font-bold font-mono uppercase tracking-wider">
+            <div className="grid grid-cols-2 p-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] mb-3 text-xs font-bold font-mono uppercase tracking-wider shrink-0">
               <button
                 type="button"
                 onClick={() => setTab("login")}
@@ -346,7 +430,7 @@ export default function PhoneLandingPage() {
 
             {/* LinkedIn required banner */}
             {needsLinkedIn && (
-              <div role="alert" className="mb-4 rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 p-3 text-xs text-[var(--danger)]">
+              <div role="alert" className="mb-3 rounded-[var(--radius-sm)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 p-2.5 text-xs text-[var(--danger)]">
                 <p className="font-semibold">Sign in with LinkedIn required.</p>
                 <p className="mt-0.5 text-[var(--text-2)]">Accounts with both password and LinkedIn must authenticate via LinkedIn once a month. Use LinkedIn below.</p>
               </div>
@@ -354,7 +438,7 @@ export default function PhoneLandingPage() {
 
             {/* Forms */}
             {tab === "login" ? (
-              <form onSubmit={role === "student" ? handleStudentLogin : handleEmployerLogin} className="space-y-3.5">
+              <form onSubmit={role === "student" ? handleStudentLogin : handleEmployerLogin} className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
                     {role === "student" ? "Email or Username" : "Work Email"}
@@ -401,12 +485,12 @@ export default function PhoneLandingPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-[var(--radius-sm)] bg-[var(--primary)] hover:bg-[var(--primary-dk)] text-white font-bold font-mono uppercase tracking-wider text-xs transition-colors shadow-sm active:scale-98 disabled:opacity-50 mt-1 cursor-pointer"
+                  className="w-full py-2.5 rounded-[var(--radius-sm)] bg-[var(--primary)] hover:bg-[var(--primary-dk)] text-white font-bold font-mono uppercase tracking-wider text-xs transition-colors shadow-sm active:scale-98 disabled:opacity-50 mt-1 cursor-pointer"
                 >
                   {loading ? "Signing in…" : "Sign In"}
                 </button>
 
-                <div className="flex items-center gap-3 my-3 text-xs text-[var(--text-3)]">
+                <div className="flex items-center gap-3 my-2.5 text-xs text-[var(--text-3)]">
                   <span className="h-px flex-1 bg-[var(--border)]" />
                   <span>or continue with</span>
                   <span className="h-px flex-1 bg-[var(--border)]" />
@@ -415,7 +499,7 @@ export default function PhoneLandingPage() {
                 <LinkedInButton as={role === "employer" ? "employer" : undefined} />
               </form>
             ) : (
-              <form onSubmit={role === "student" ? handleStudentRegister : handleEmployerRegister} className="space-y-3">
+              <form onSubmit={role === "student" ? handleStudentRegister : handleEmployerRegister} className="space-y-2.5">
                 <div>
                   <label className="block text-xs font-medium text-[var(--text-2)] mb-1">Full Name</label>
                   <div className="relative">

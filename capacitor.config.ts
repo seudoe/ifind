@@ -9,6 +9,13 @@ const config: CapacitorConfig = {
   webDir: '.mobile-build/out',
   server: {
     androidScheme: 'https', // the app page itself is served over https://localhost; no plain-HTTP allowed
+    allowNavigation: [
+      'ifind-ifind.vercel.app',
+      '*.ifind-ifind.vercel.app',
+      'linkedin.com',
+      '*.linkedin.com',
+      '*.licdn.com',
+    ],
   },
   android: {
     backgroundColor: '#0f172a',
