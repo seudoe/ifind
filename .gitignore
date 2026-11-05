@@ -57,3 +57,9 @@ id_rsa*
 
 # private security notes (contain exposure details; keep out of public repos until credentials are rotated)
 *.local.md
+
+# capacitor / mobile build
+**/*.apk
+.mobile-build/
+android/
+ios/

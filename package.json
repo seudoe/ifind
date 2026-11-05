@@ -16,7 +16,9 @@
     "test:e2e": "tsx --test tests/security.e2e.test.ts",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "test:analytics": "tsx --test tests/analytics.test.ts",
-    "env-manager": "node env-manager.js"
+    "env-manager": "node env-manager.js",
+    "app:check": "node scripts/app-separation-checker.mjs",
+    "app:build": "node scripts/app-build.mjs"
   },
   "dependencies": {
     "@google-analytics/data": "^7.3.0",
@@ -41,6 +43,9 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",

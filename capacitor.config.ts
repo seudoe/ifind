@@ -1,0 +1,15 @@
+import type { CapacitorConfig } from '@capacitor/cli'
+
+// The iFind mobile app bundles ONLY the student and employer portals.
+// The moderator portal is a web-only tool and is never included in the APK.
+// webDir points to the static-export output produced by scripts/app-build.mjs.
+const config: CapacitorConfig = {
+  appId: 'com.ifind.app',
+  appName: 'iFind',
+  webDir: '.mobile-build/out',
+  server: {
+    androidScheme: 'https', // served over https://localhost inside the WebView; no plain-HTTP allowed
+  },
+}
+
+export default config
