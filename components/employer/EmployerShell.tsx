@@ -66,6 +66,7 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
     useEffect(() => {
         if (typeof window !== "undefined" && pathname) {
             localStorage.setItem("ifind_employer_last_tab", pathname);
+            localStorage.setItem("ifind_last_active_portal", "employer");
         }
     }, [pathname]);
 
@@ -102,7 +103,12 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
 
     const logout = async () => {
         await fetch("/api/employer/auth/logout", { method: "POST", credentials: "include" });
-        router.push("/employer/login");
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("ifind_employer_last_tab");
+            localStorage.removeItem("ifind_last_active_portal");
+        }
+        const isMobile = typeof window !== "undefined" && (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Capacitor/i.test(navigator.userAgent));
+        router.push(isMobile ? "/phone" : "/employer/login");
     };
 
     // Inside a company or campus the global sidebar shrinks to icons on desktop.

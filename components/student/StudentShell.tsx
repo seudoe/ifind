@@ -74,6 +74,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
   useEffect(() => {
     if (typeof window !== "undefined" && pathname) {
       localStorage.setItem("ifind_student_last_tab", pathname);
+      localStorage.setItem("ifind_last_active_portal", "student");
     }
   }, [pathname]);
 
@@ -107,7 +108,12 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.push("/user");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("ifind_student_last_tab");
+      localStorage.removeItem("ifind_last_active_portal");
+    }
+    const isMobile = typeof window !== "undefined" && (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Capacitor/i.test(navigator.userAgent));
+    router.push(isMobile ? "/phone" : "/user");
   };
 
   const linkCls = (active: boolean) =>

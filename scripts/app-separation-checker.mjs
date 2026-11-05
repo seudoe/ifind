@@ -72,6 +72,15 @@ const MODERATOR_DIRS = [
   'app/api/admin',
 ]
 
+/**
+ * Specific files inside otherwise-shared directories that are moderator-only.
+ * These must not be imported by mobile (student/employer) code.
+ * Key: repo-relative path of the file. Value: reason.
+ */
+const MODERATOR_ONLY_FILES = new Set([
+  'components/moderator/AnalyzePanel.tsx', // imports lib/moderator/analyze — server-only, moderator-only
+])
+
 // ---------------------------------------------------------------------------
 
 /** Walk a directory tree and collect all .ts/.tsx/.js/.jsx/.mjs files */
@@ -116,7 +125,7 @@ const inAny = (path, dirs) =>
 
 const problems = []
 
-// Rule 1: MOBILE shipped dirs must NOT import MODERATOR code
+// Rule 1: MOBILE shipped dirs must NOT import MODERATOR code or moderator-only files
 for (const dir of MOBILE_DIRS) {
   for (const f of walk(dir)) {
     for (const spec of importsOf(readFileSync(f, 'utf8'))) {
@@ -125,6 +134,12 @@ for (const dir of MOBILE_DIRS) {
       if (inAny(target, MODERATOR_DIRS)) {
         problems.push(
           `[MOBILE→MODERATOR] ${rel(f)} imports "${spec}" — mobile code must not use moderator code`,
+        )
+      }
+      // Also check moderator-only individual files (e.g. components/moderator/AnalyzePanel.tsx)
+      if (MODERATOR_ONLY_FILES.has(target)) {
+        problems.push(
+          `[MOBILE→MODERATOR-FILE] ${rel(f)} imports "${spec}" — that file is moderator-only`,
         )
       }
     }
