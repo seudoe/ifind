@@ -1,8 +1,16 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { Shield, Clock } from "lucide-react";
 import { getModSessionAny } from "@/lib/moderatorAuth";
+import { isMobileUserAgent } from "@/lib/isSmallScreen";
 
 export default async function ModeratorPendingPage() {
+    const headerList = await headers();
+    const ua = headerList.get("user-agent") || "";
+    if (isMobileUserAgent(ua)) {
+        redirect("/phone");
+    }
+
     const session = await getModSessionAny();
 
     if (!session) {
@@ -39,14 +47,6 @@ export default async function ModeratorPendingPage() {
                                 account before you can access the panel.
                             </p>
                         </div>
-                    </div>
-
-                    <div className="border-t border-[var(--border)] pt-4">
-                        <p className="text-xs text-[var(--text-3)] leading-relaxed">
-                            Once verified, you can sign in again to access the
-                            full moderator panel. If you believe this is taking
-                            too long, please contact the platform administrator.
-                        </p>
                     </div>
                 </div>
             </div>

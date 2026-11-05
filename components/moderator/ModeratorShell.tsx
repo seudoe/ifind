@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { isSmallScreen } from "@/lib/isSmallScreen";
 import type { ModeratorSession } from "@/types/moderator";
 
 type Tab = "internships" | "analyze" | "notifications" | "events" | "scrapes" | "usage" | "analytics" | "users" | "employers" | "companies" | "campuses" | "moderators";
@@ -96,12 +97,20 @@ export function ModeratorShell({
             <span className="ml-auto min-w-5 h-5 px-1.5 rounded-[var(--radius-xl)] bg-[var(--danger)] text-white text-[11px] leading-5 text-center">{unread > 99 ? "99+" : unread}</span>
         ) : null;
 
+    // Block smaller screens / mobile viewports from accessing the moderator portal
+    useEffect(() => {
+        if (isSmallScreen()) {
+            router.replace("/phone");
+        }
+    }, [router]);
+
     const handleLogout = async () => {
         await fetch("/api/moderator/auth/logout", {
             method: "POST",
             credentials: "include",
         });
-        router.push("/moderator/login");
+        const isMobile = isSmallScreen();
+        router.push(isMobile ? "/phone" : "/moderator/login");
     };
 
     const TAB_TITLES: Record<string, string> = {

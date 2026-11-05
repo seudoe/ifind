@@ -21,6 +21,7 @@ import { Logo } from "@/components/ui/Logo";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { useTheme, type ThemePreference } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
+import { isSmallScreen } from "@/lib/isSmallScreen";
 
 const NAV: { label: string; href: string; icon: LucideIcon }[] = [
     { label: "Institutes", href: "/employer/institutes", icon: Building2 },
@@ -107,7 +108,7 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
             localStorage.removeItem("ifind_employer_last_tab");
             localStorage.removeItem("ifind_last_active_portal");
         }
-        const isMobile = typeof window !== "undefined" && (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Capacitor/i.test(navigator.userAgent));
+        const isMobile = isSmallScreen();
         router.push(isMobile ? "/phone" : "/employer/login");
     };
 

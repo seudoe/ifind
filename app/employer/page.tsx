@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Briefcase, Search, Users, BarChart3, ArrowRight, CheckCircle, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/layout/Footer";
+import { SmallScreenRedirect } from "@/components/common/SmallScreenRedirect";
 
 const FEATURES = [
   { icon: Search,    title: "Smart Candidate Matching",   desc: "Our AI matches your internship requirements with student profiles — skills, education, and experience." },
@@ -19,11 +20,12 @@ const STEPS = [
 export default function EmployerLandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)]">
+      <SmallScreenRedirect to="/phone" />
 
       {/* Navbar */}
       <header className="sticky top-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] plasma-glass">
         <div className="container-page h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/employer" className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-[var(--radius-sm)] bg-[var(--primary)] flex items-center justify-center">
               <Briefcase className="h-4 w-4 text-white" />
             </div>
@@ -34,7 +36,7 @@ export default function EmployerLandingPage() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <Link href="/">
+            <Link href="/phone">
               <Button variant="ghost" size="sm">Student portal</Button>
             </Link>
             <Link href="/employer/login">

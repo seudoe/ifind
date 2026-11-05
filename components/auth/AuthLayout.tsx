@@ -1,8 +1,12 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { isSmallScreen } from "@/lib/isSmallScreen";
 
 export type AuthVariant = "student" | "employer" | "moderator";
 
@@ -75,6 +79,16 @@ interface Props {
  */
 export function AuthLayout({ variant, heading, sub, back = { href: "/", label: "iFind" }, footer, children }: Props) {
   const panel = PANELS[variant];
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(isSmallScreen());
+  }, []);
+
+  const homeHref = isMobile ? "/phone" : "/";
+  const backHref = isMobile ? "/phone" : (back?.href || "/");
+  const backLabel = isMobile && back.href === "/" ? "Home" : back.label;
+
   // The student panel has a photo on its right: keep the text clear of it
   const textW = variant === "student" ? "max-w-[19rem] xl:max-w-sm" : "max-w-md";
   return (
@@ -87,7 +101,7 @@ export function AuthLayout({ variant, heading, sub, back = { href: "/", label: "
           <div className="absolute top-1/2 right-1/4 h-40 w-40 rounded-full bg-black/10" />
         </div>
 
-        <Link href="/" className="relative self-start" aria-label="iFind home"><Logo size="md" suffix={panel.logoSuffix} onDark /></Link>
+        <Link href={homeHref} className="relative self-start" aria-label="iFind home"><Logo size="md" suffix={panel.logoSuffix} onDark /></Link>
 
         <div className={`relative z-10 ${textW}`}>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-white/70 mb-4">{panel.eyebrow}</p>
@@ -112,14 +126,14 @@ export function AuthLayout({ variant, heading, sub, back = { href: "/", label: "
       {/* ── Right: the form ────────────────────────────────────────────────── */}
       <div className="flex min-h-screen flex-col">
         <div className="flex items-center justify-between gap-3 px-5 py-4">
-          <Link href={back.href} className="text-sm text-[var(--text-3)] transition-colors hover:text-[var(--text)]">← {back.label}</Link>
+          <Link href={backHref} className="text-sm text-[var(--text-3)] transition-colors hover:text-[var(--text)]">← {backLabel}</Link>
           <ThemeSwitcher compact className="w-28" />
         </div>
 
         <div className="flex flex-1 items-center justify-center px-5 pb-10">
           <div className="w-full max-w-sm">
             <div className="mb-7 text-center lg:text-left">
-              <div className="mb-4 inline-flex lg:hidden"><Logo size="lg" suffix={panel.logoSuffix} /></div>
+              <Link href={homeHref} className="mb-4 inline-flex lg:hidden"><Logo size="lg" suffix={panel.logoSuffix} /></Link>
               <h1 className="text-[22px] font-extrabold text-[var(--heading)]">{heading}</h1>
               <p className="mt-1 text-sm text-[var(--text-3)]">{sub}</p>
             </div>
@@ -128,7 +142,7 @@ export function AuthLayout({ variant, heading, sub, back = { href: "/", label: "
 
             {footer && <div className="mt-5 text-sm text-[var(--text-3)]">{footer}</div>}
 
-            {/* Small screens have no brand panel, so the other portals stay reachable (quietly) down here */}
+            {/* Small screens have no brand panel, so the other portal stays reachable down here (moderator is desktop-only) */}
             <div className="mt-8 lg:hidden"><MobileCrossLinks variant={variant} /></div>
           </div>
         </div>
@@ -141,7 +155,7 @@ function MobileCrossLinks({ variant }: { variant: AuthVariant }) {
   const link = "text-[var(--text-2)] underline decoration-dotted underline-offset-4 hover:text-[var(--primary)]";
   return variant === "student" ? (
     <p className="text-center text-xs text-[var(--text-3)]">
-      Hiring? <Link href="/employer/login" className={link}>Employer portal</Link> · Review team? <Link href="/moderator/login" className={link}>Moderator sign-in</Link>
+      Hiring? <Link href="/employer/login" className={link}>Employer portal</Link>
     </p>
   ) : (
     <p className="text-center text-xs text-[var(--text-3)]">Looking for internships? <Link href="/user/login" className={link}>Student sign-in</Link></p>

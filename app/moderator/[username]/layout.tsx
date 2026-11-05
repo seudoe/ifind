@@ -1,13 +1,23 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getModSession } from "@/lib/moderatorAuth";
 import { connectDB } from "@/lib/db";
 import Moderator from "@/models/Moderator";
+import { isMobileUserAgent } from "@/lib/isSmallScreen";
 
 export default async function ModeratorPanelLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    // 0. The moderator portal is strictly for desktop browsers.
+    // Small screens, mobile devices, and mobile APKs are immediately redirected.
+    const headerList = await headers();
+    const ua = headerList.get("user-agent") || "";
+    if (isMobileUserAgent(ua)) {
+        redirect("/phone");
+    }
+
     // Validate moderator session — middleware already handles most cases,
     // but we double-check here so the layout is self-sufficient.
     const session = await getModSession();

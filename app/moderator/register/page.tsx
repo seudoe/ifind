@@ -1,7 +1,8 @@
 "use client";
 
 import { AuthLayout } from "@/components/auth/AuthLayout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { isSmallScreen } from "@/lib/isSmallScreen";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -26,6 +27,10 @@ type Form = z.infer<typeof schema>;
 export default function ModeratorRegisterPage() {
     const router = useRouter();
     const [showPw, setShowPw] = useState(false);
+
+    useEffect(() => {
+        if (isSmallScreen()) router.replace("/phone");
+    }, [router]);
 
     const {
         register,
@@ -65,7 +70,7 @@ export default function ModeratorRegisterPage() {
       variant="moderator"
       heading="Become a Moderator"
       sub="Register for the iFind moderator panel"
-      back={{ href: "/", label: "iFind" }}
+      back={{ href: "/phone", label: "iFind" }}
       footer={
         <span>
           Already have an account? <Link href="/moderator/login" className="text-[var(--primary)] font-medium hover:underline">Sign in</Link>

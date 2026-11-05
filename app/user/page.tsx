@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { PublicInternshipCard } from "@/components/internships/PublicInternshipCard";
 import { CATEGORIES, getLandingData } from "@/lib/publicInternships";
+import { SmallScreenRedirect } from "@/components/common/SmallScreenRedirect";
 
 const EMPTY = {
   stats: { internships: 0, students: 0, companies: 0, applications: 0 },
@@ -20,6 +21,7 @@ export default async function StudentLandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SmallScreenRedirect to="/phone" />
       <Navbar />
       <main className="flex-1">
         <HeroSection stats={data.stats} categories={data.categories} />

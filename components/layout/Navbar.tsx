@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, LogIn, UserPlus, Search, BookOpen } from "lucide-react";
 import { cn }    from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { isSmallScreen } from "@/lib/isSmallScreen";
 
 const NAV_LINKS = [
   { href: "/internships", label: "Internships", icon: Search },
@@ -20,6 +21,11 @@ interface NavbarProps {
 
 export function Navbar({ active }: NavbarProps) {
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(isSmallScreen());
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 bg-[var(--surface)] border-b-2 border-[var(--rule)] plasma-glass">
@@ -27,7 +33,7 @@ export function Navbar({ active }: NavbarProps) {
         <div className="flex items-center h-14 gap-6">
 
           {/* Logo */}
-          <Link href="/user" className="flex items-center shrink-0" aria-label="iFind home">
+          <Link href={isMobile ? "/phone" : "/user"} className="flex items-center shrink-0" aria-label="iFind home">
             <Logo size="md" />
           </Link>
 
@@ -95,8 +101,8 @@ export function Navbar({ active }: NavbarProps) {
           ))}
           <ThemeSwitcher className="mt-2" />
           <div className="pt-2 flex gap-2 border-t border-[var(--border)] mt-2">
-            <Link href="/user/login"    className="flex-1" onClick={() => setOpen(false)}><Button variant="outline" size="sm" className="w-full">Login</Button></Link>
-            <Link href="/user/register" className="flex-1" onClick={() => setOpen(false)}><Button variant="primary" size="sm" className="w-full">Register</Button></Link>
+            <Link href="/phone" className="flex-1" onClick={() => setOpen(false)}><Button variant="outline" size="sm" className="w-full">Login</Button></Link>
+            <Link href="/phone" className="flex-1" onClick={() => setOpen(false)}><Button variant="primary" size="sm" className="w-full">Register</Button></Link>
           </div>
         </div>
       )}

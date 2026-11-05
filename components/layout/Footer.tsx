@@ -1,13 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { GitBranch, ExternalLink } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
-
-const STUDENT_LINKS = [
-  { label: "Browse Internships", href: "/internships" },
-  { label: "Log in",             href: "/user/login" },
-  { label: "Create account",     href: "/user/register" },
-  { label: "Employer portal",    href: "/employer" },
-];
+import { isSmallScreen } from "@/lib/isSmallScreen";
 
 const COMPANY_LINKS = [
   { label: "About iFind", href: "#" },
@@ -23,6 +20,19 @@ const LEGAL_LINKS = [
 ];
 
 export function Footer() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(isSmallScreen());
+  }, []);
+
+  const studentLinks = [
+    { label: "Browse Internships", href: "/internships" },
+    { label: "Log in",             href: isMobile ? "/phone" : "/user/login" },
+    { label: "Create account",     href: isMobile ? "/phone" : "/user/register" },
+    { label: "Employer portal",    href: isMobile ? "/phone" : "/employer" },
+  ];
+
   return (
     <footer className="bg-[var(--navy)] border-t-2 border-[var(--rule)] text-white/80">
       <div className="container-page py-12">
@@ -30,7 +40,7 @@ export function Footer() {
 
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="inline-flex items-center mb-4" aria-label="iFind home">
+            <Link href={isMobile ? "/phone" : "/user"} className="inline-flex items-center mb-4" aria-label="iFind home">
               <Logo size="md" onDark />
             </Link>
             <p className="text-sm leading-relaxed text-white/60 max-w-xs">
@@ -57,7 +67,7 @@ export function Footer() {
           </div>
 
           {/* Link columns */}
-          <FooterColumn title="For Students" links={STUDENT_LINKS} />
+          <FooterColumn title="For Students" links={studentLinks} />
           <FooterColumn title="Company"      links={COMPANY_LINKS} />
           <FooterColumn title="Legal"        links={LEGAL_LINKS} />
         </div>
@@ -84,14 +94,11 @@ export function Footer() {
 function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold text-white font-mono uppercase tracking-[0.07em] mb-3">{title}</h3>
-      <ul className="space-y-2">
+      <h3 className="font-mono text-xs font-bold uppercase tracking-[0.08em] text-white/90 mb-4">{title}</h3>
+      <ul className="space-y-2.5">
         {links.map(({ label, href }) => (
           <li key={label}>
-            <Link
-              href={href}
-              className="text-sm text-white/60 hover:text-white transition-colors duration-[var(--transition)]"
-            >
+            <Link href={href} className="text-sm text-white/65 hover:text-white transition-colors">
               {label}
             </Link>
           </li>

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Logo as LogoBadge } from "@/components/ui/Logo";
+import { isSmallScreen } from "@/lib/isSmallScreen";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
@@ -47,9 +48,10 @@ function LinkedInStatusIndicator({ user }: { user: StudentUser }) {
   );
 }
 
-function Logo() {
+function Logo({ username }: { username?: string }) {
+  const href = username ? `/user/${username}/overview` : "/user";
   return (
-    <Link href="/user" className="flex items-center shrink-0" aria-label="iFind home">
+    <Link href={href} className="flex items-center shrink-0" aria-label="iFind overview">
       <LogoBadge size="md" />
     </Link>
   );
@@ -112,7 +114,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       localStorage.removeItem("ifind_student_last_tab");
       localStorage.removeItem("ifind_last_active_portal");
     }
-    const isMobile = typeof window !== "undefined" && (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Capacitor/i.test(navigator.userAgent));
+    const isMobile = isSmallScreen();
     router.push(isMobile ? "/phone" : "/user");
   };
 
@@ -182,7 +184,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       {/* ── Desktop Sidebar (large screens) ───────────────────────────────── */}
       <aside className="hidden lg:flex w-60 shrink-0 h-full flex-col border-r-2 border-[var(--rule)] bg-[var(--surface)]">
         <div className="px-4 h-14 flex items-center shrink-0 border-b-2 border-[var(--rule)]">
-          <Logo />
+          <Logo username={user.username} />
         </div>
         {sidebarContent}
       </aside>
@@ -192,7 +194,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
         <div className="lg:hidden fixed inset-0 z-50 bg-[var(--overlay)] transition-opacity" onClick={() => setDrawerOpen(false)}>
           <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] flex flex-col bg-[var(--surface)] border-r-2 border-[var(--rule)] shadow-2xl z-50" onClick={(e) => e.stopPropagation()}>
             <div className="px-4 h-14 flex items-center justify-between shrink-0 border-b-2 border-[var(--rule)]">
-              <Logo />
+              <Logo username={user.username} />
               <button onClick={() => setDrawerOpen(false)} aria-label="Close navigation" className="p-1.5 text-[var(--text-3)] hover:text-[var(--heading)] rounded-[var(--radius-sm)]">
                 <X className="h-5 w-5" />
               </button>
@@ -215,7 +217,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
             >
               <Menu className="h-5 w-5" />
             </button>
-            <Logo />
+            <Logo username={user.username} />
           </div>
           <div className="flex items-center gap-3">
             <Link href={`${base}/notifications`} aria-label="Notifications" className="relative p-1.5 text-[var(--text-2)]">
