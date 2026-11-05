@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { TagInput } from "@/components/ui/TagInput";
 import { formatDate } from "@/lib/utils";
+import { safeHref } from "@/lib/safeUrl";
 import type { Internship, User } from "@/types";
 import type { ParsedResumeData } from "@/types/resume";
 
@@ -157,7 +158,7 @@ export function ApplicationDialog({ open, internship, user, applying, error, onR
                       .filter(Boolean).join("  ·  ") || "Parsed resume on file"}
                   </p>
                   {resume?.driveViewLink && (
-                    <a href="/api/user/resume/file" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:underline">
+                    <a href={safeHref(resume.driveViewLink)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:underline">
                       View resume <ExternalLink className="h-3 w-3" />
                     </a>
                   )}

@@ -43,11 +43,14 @@ import {
     Lightbulb,
     Tag,
     Search,
+    Maximize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate, formatPeriod } from "@/lib/utils";
 import { announceRecommendationRun } from "@/lib/recommendationProgress";
+import { isSmallScreen } from "@/lib/isSmallScreen";
+import { apiUrl, isNativeApp } from "@/lib/apiOrigin";
 import { toast } from "sonner";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
 import type { User, ParsedResumeData } from "@/types";
@@ -119,18 +122,46 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
     const [activeAnalysisTab, setActiveAnalysisTab] = useState<"overview" | "details">("overview");
 
     const hasResume = Boolean(localResume?.driveViewLink);
-    // The PDF is served by our own route (same origin: the preview iframe and "Open PDF" both work); HEAD tells us whether the stored file still exists
-    const resumeFileUrl = "/api/user/resume/file";
+    const resumeFileUrl = apiUrl("/api/user/resume/file");
+    const directPdfUrl = localResume?.driveViewLink || resumeFileUrl;
+    const thumbnailUrl = localResume?.driveViewLink && localResume.driveViewLink.includes("ik.imagekit.io")
+        ? `${localResume.driveViewLink}/ik-thumbnail.jpg?tr=w-1000`
+        : null;
+    const [thumbError, setThumbError] = useState(false);
+    const [showFullscreenPreview, setShowFullscreenPreview] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const check = () => setIsMobile(isSmallScreen() || isNativeApp());
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
+
+    useEffect(() => {
+        setThumbError(false);
+    }, [localResume?.driveViewLink]);
+
+    useEffect(() => {
+        if (!showFullscreenPreview) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setShowFullscreenPreview(false);
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [showFullscreenPreview]);
+
     const [fileMissing, setFileMissing] = useState(false);
     useEffect(() => {
         if (!localResume?.driveViewLink) return;
         let alive = true;
         setFileMissing(false);
-        fetch(resumeFileUrl, { method: "HEAD", credentials: "include" })
+        const checkUrl = localResume.driveViewLink || resumeFileUrl;
+        fetch(checkUrl, { method: "HEAD", credentials: "include" })
             .then((r) => { if (alive) setFileMissing(r.status === 404); })
             .catch(() => {});
         return () => { alive = false; };
-    }, [localResume?.driveViewLink, localResume?.uploadedAt]);
+    }, [localResume?.driveViewLink, localResume?.uploadedAt, resumeFileUrl]);
     const isUploading = uploadPhase !== "idle";
     const hasExistingData = Boolean(localResume?.parsedData);
     const isComparing = Boolean(pendingData && oldData);
@@ -737,14 +768,81 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                     </div>
 
                     <div
-                        className="rounded-lg border border-gray-200 overflow-hidden bg-gray-50"
+                        className="rounded-lg border border-[var(--border)] overflow-hidden bg-[var(--surface-2)]"
                         style={{ height: 480 }}
                     >
                         {fileMissing ? (
                             <div className="h-full flex flex-col items-center justify-center gap-2 text-center px-6">
                                 <FileText className="h-8 w-8 text-gray-400" />
-                                <p className="text-sm font-medium text-gray-700">The stored PDF could not be found</p>
-                                <p className="text-xs text-gray-500">Your extracted data is safe. Re-upload the PDF to restore the preview.</p>
+                                <p className="text-sm font-medium text-[var(--text)]">The stored PDF could not be found</p>
+                                <p className="text-xs text-[var(--text-3)]">Your extracted data is safe. Re-upload the PDF to restore the preview.</p>
+                            </div>
+                        ) : isMobile ? (
+                            <div className="relative w-full h-full flex flex-col items-center justify-between p-3 bg-gradient-to-b from-[var(--surface-2)] to-[var(--surface)]">
+                                <div className="w-full flex items-center justify-between px-1 text-xs">
+                                    <span className="inline-flex items-center gap-1.5 font-medium text-[var(--text-2)] bg-[var(--surface)] px-2.5 py-1 rounded-md border border-[var(--border)] shadow-xs">
+                                        <FileText className="h-3.5 w-3.5 text-[var(--primary)]" />
+                                        <span>Page 1 Preview</span>
+                                    </span>
+                                    {thumbnailUrl && !thumbError && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowFullscreenPreview(true)}
+                                            className="inline-flex items-center gap-1 font-semibold text-xs text-[var(--primary)] hover:underline active:scale-95 transition-transform"
+                                        >
+                                            <Maximize2 className="h-3.5 w-3.5" />
+                                            <span>Fullscreen</span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                {thumbnailUrl && !thumbError ? (
+                                    <div
+                                        onClick={() => setShowFullscreenPreview(true)}
+                                        className="my-auto max-h-[380px] w-full max-w-[340px] flex items-center justify-center cursor-pointer group"
+                                        title="Tap to expand"
+                                    >
+                                        <div className="relative rounded-md overflow-hidden shadow-md border border-[var(--border)] bg-white transition-transform group-hover:scale-[1.01] active:scale-[0.99]">
+                                            <img
+                                                src={thumbnailUrl}
+                                                alt="Resume Preview"
+                                                className="max-h-[360px] w-auto object-contain block mx-auto"
+                                                onError={() => setThumbError(true)}
+                                                loading="eager"
+                                            />
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-[11px] font-medium px-2.5 py-1 rounded-full backdrop-blur-xs flex items-center gap-1">
+                                                    <Maximize2 className="h-3 w-3" /> Tap to expand
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="my-auto flex flex-col items-center justify-center gap-3 text-center px-4">
+                                        <div className="h-12 w-12 rounded-full bg-[var(--primary-bg)] text-[var(--primary)] flex items-center justify-center">
+                                            <FileText className="h-6 w-6" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-semibold text-[var(--text)]">PDF Document Ready</p>
+                                            <p className="text-xs text-[var(--text-3)] max-w-xs">
+                                                Mobile browsers cannot render embedded PDF readers inline. Tap below to view your full multi-page resume.
+                                            </p>
+                                        </div>
+                                        <a
+                                            href={directPdfUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[var(--primary)] text-white text-xs font-semibold shadow-xs hover:opacity-90"
+                                        >
+                                            <ExternalLink className="h-3.5 w-3.5" />
+                                            Open in Device PDF Viewer
+                                        </a>
+                                    </div>
+                                )}
+
+                                <p className="text-[11px] text-[var(--text-3)] text-center">
+                                    Tap preview to expand • Tap &ldquo;Open PDF&rdquo; below for full viewer
+                                </p>
                             </div>
                         ) : (
                             <iframe
@@ -757,7 +855,7 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
 
                     <div className="flex flex-wrap gap-2">
                         <a
-                            href={resumeFileUrl}
+                            href={directPdfUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-disabled={fileMissing}
@@ -1291,6 +1389,51 @@ export function ResumeTab({ user, onResumeUpdate }: ResumeTabProps) {
                                 </Button>
                             </Link>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Fullscreen Mobile Resume Preview Modal */}
+            {showFullscreenPreview && thumbnailUrl && (
+                <div
+                    className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-md p-3 sm:p-6"
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div className="flex items-center justify-between pb-3 text-white border-b border-white/10 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-[var(--primary)]" />
+                            <span className="text-sm font-semibold">Resume Preview</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <a
+                                href={directPdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                            >
+                                <ExternalLink className="h-3.5 w-3.5" /> Open Full PDF
+                            </a>
+                            <button
+                                type="button"
+                                onClick={() => setShowFullscreenPreview(false)}
+                                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                                aria-label="Close"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
+                    <div
+                        className="flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4"
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) setShowFullscreenPreview(false);
+                        }}
+                    >
+                        <img
+                            src={thumbnailUrl}
+                            alt="Resume Full Preview"
+                            className="max-h-full max-w-full object-contain rounded-md shadow-2xl bg-white"
+                        />
                     </div>
                 </div>
             )}

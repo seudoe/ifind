@@ -225,7 +225,7 @@ export function OverviewTab({ user = MOCK_USER, recommended = [], applications =
 
                     {user.resume?.driveViewLink ? (
                       <a
-                        href="/api/user/resume/file"
+                        href={safeHref(user.resume.driveViewLink)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline mt-1"
