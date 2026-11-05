@@ -15,13 +15,17 @@ export function isNativeApp(): boolean {
 /**
  * Returns the configured backend API origin.
  * In a native app, it points to the remote backend (https://ifind-ifind.vercel.app or env var).
+ * If the env var contains "localhost", it is ignored on mobile because mobile devices
+ * do not run the Next.js server locally on the device.
  * In a standard web browser, it returns an empty string ("") so that relative paths work transparently.
  */
 export function getApiOrigin(): string {
   if (!isNativeApp()) return "";
-  const configured =
-    process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_API_URL || "https://ifind-ifind.vercel.app";
-  return configured.replace(/\/+$/, "");
+  const configured = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (configured && !configured.includes("localhost")) {
+    return configured.replace(/\/+$/, "");
+  }
+  return "https://ifind-ifind.vercel.app";
 }
 
 /**

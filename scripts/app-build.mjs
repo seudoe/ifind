@@ -213,6 +213,11 @@ export default nextConfig;
 for (const f of ['.env', '.env.local', '.env.production', '.env.production.local']) {
   if (existsSync(join(root, f))) copy(f)
 }
+// Mobile bundle must always point to the production backend, never localhost
+writeFileSync(
+  join(work, '.env.production.local'),
+  'NEXT_PUBLIC_APP_URL=https://ifind-ifind.vercel.app\nNEXT_PUBLIC_API_URL=https://ifind-ifind.vercel.app\n',
+)
 
 // Public assets
 const PUBLIC_FILES = [
@@ -244,7 +249,11 @@ if (!existsSync(nmLink)) {
 
 console.log('\n===> Step 3: Building mobile static bundle (Next.js export)...')
 const nextBin = join(root, 'node_modules', 'next', 'dist', 'bin', 'next')
-run('node', [nextBin, 'build', '--webpack'], work, { MOBILE_BUILD: '1' })
+run('node', [nextBin, 'build', '--webpack'], work, {
+  MOBILE_BUILD: '1',
+  NEXT_PUBLIC_APP_URL: 'https://ifind-ifind.vercel.app',
+  NEXT_PUBLIC_API_URL: 'https://ifind-ifind.vercel.app',
+})
 
 // ---------------------------------------------------------------------------
 // Step 4: Verify no moderator portal routes or code in output
