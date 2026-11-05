@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { NextLink } from "@/components/auth/NextLink";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { resolveNext } from "@/lib/authRedirect";
 
 const schema = z.object({
@@ -153,41 +154,5 @@ function UserLoginForm() {
                 <LinkedInButton />
             </div>
         </AuthShell>
-    );
-}
-
-// ── Shared sub-components ──────────────────────────────────────────────────
-
-export function AuthShell({
-    heading,
-    sub,
-    switchText,
-    switchLink,
-    switchLabel,
-    children,
-}: {
-    heading: string;
-    sub: string;
-    switchText: string;
-    switchLink: string;
-    switchLabel: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <AuthLayout
-            variant="student"
-            heading={heading}
-            sub={sub}
-            footer={
-                <span>
-                    {switchText}{" "}
-                    <NextLink href={switchLink} className="text-[var(--primary)] font-medium hover:underline">
-                        {switchLabel}
-                    </NextLink>
-                </span>
-            }
-        >
-            <div className="plasma-card p-6 space-y-4">{children}</div>
-        </AuthLayout>
     );
 }

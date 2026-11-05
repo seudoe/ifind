@@ -10,7 +10,7 @@ import { Eye, EyeOff, ArrowRight, Check, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
-import { AuthShell } from "@/app/user/login/page";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { resolveNext } from "@/lib/authRedirect";
 
