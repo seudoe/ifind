@@ -21,6 +21,7 @@ import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { safeNextPath } from "@/lib/authRedirect";
 import { apiUrl } from "@/lib/apiOrigin";
+import { useAndroidBackHandler } from "@/hooks/useAndroidBackHandler";
 
 export default function PhoneLandingPage() {
   const router = useRouter();
@@ -37,6 +38,15 @@ export default function PhoneLandingPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [needsLinkedIn, setNeedsLinkedIn] = useState(false);
+
+  // Android back button closes sheet if open
+  useAndroidBackHandler(() => {
+    if (expanded) {
+      setExpanded(false);
+      return true;
+    }
+    return false;
+  });
 
   // Bottom-sheet drag handling (only on the sheet and drag handle, NOT the page background)
   const [dragOffset, setDragOffset] = useState(0);
@@ -227,9 +237,9 @@ export default function PhoneLandingPage() {
     <div className="w-full min-h-dvh flex flex-col bg-[var(--bg)] text-[var(--text)] select-none font-sans relative overflow-x-hidden">
       {/* ── Top Header (100% width, with app ThemeSwitcher) ─────────────── */}
       <header className="w-full h-14 shrink-0 px-4 sm:px-8 border-b-2 border-[var(--rule)] bg-[var(--surface)] flex items-center justify-between z-20">
-        <Link href="/phone" className="flex items-center shrink-0" aria-label="iFind Home">
+        <div className="flex items-center shrink-0 pointer-events-none select-none" aria-label="iFind">
           <Logo size="md" />
-        </Link>
+        </div>
 
         <div className="flex items-center gap-2.5">
           <button

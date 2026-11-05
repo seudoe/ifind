@@ -19,6 +19,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Logo as LogoBadge } from "@/components/ui/Logo";
 import { isSmallScreen } from "@/lib/isSmallScreen";
+import { useAndroidBackHandler } from "@/hooks/useAndroidBackHandler";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
@@ -79,6 +80,19 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
       localStorage.setItem("ifind_last_active_portal", "student");
     }
   }, [pathname]);
+
+  // Hardware/gesture back button support for Android
+  useAndroidBackHandler(() => {
+    if (sheet) {
+      setSheet(null);
+      return true;
+    }
+    if (drawerOpen) {
+      setDrawerOpen(false);
+      return true;
+    }
+    return false;
+  });
 
   // Refresh the badge on navigation, when the notifications page changes it, and every 60 s
   useEffect(() => {
@@ -194,7 +208,9 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
         <div className="lg:hidden fixed inset-0 z-50 bg-[var(--overlay)] transition-opacity" onClick={() => setDrawerOpen(false)}>
           <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] flex flex-col bg-[var(--surface)] border-r-2 border-[var(--rule)] shadow-2xl z-50" onClick={(e) => e.stopPropagation()}>
             <div className="px-4 h-14 flex items-center justify-between shrink-0 border-b-2 border-[var(--rule)]">
-              <Logo username={user.username} />
+              <div className="pointer-events-none select-none flex items-center shrink-0">
+                <LogoBadge size="md" />
+              </div>
               <button onClick={() => setDrawerOpen(false)} aria-label="Close navigation" className="p-1.5 text-[var(--text-3)] hover:text-[var(--heading)] rounded-[var(--radius-sm)]">
                 <X className="h-5 w-5" />
               </button>
@@ -217,7 +233,9 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
             >
               <Menu className="h-5 w-5" />
             </button>
-            <Logo username={user.username} />
+            <div className="pointer-events-none select-none flex items-center shrink-0">
+              <LogoBadge size="md" />
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <Link href={`${base}/notifications`} aria-label="Notifications" className="relative p-1.5 text-[var(--text-2)]">

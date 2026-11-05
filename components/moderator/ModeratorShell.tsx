@@ -98,11 +98,17 @@ export function ModeratorShell({
         ) : null;
 
     // Block smaller screens / mobile viewports from accessing the moderator portal
+    const [blocked, setBlocked] = useState(() => typeof window !== "undefined" && isSmallScreen());
     useEffect(() => {
         if (isSmallScreen()) {
+            setBlocked(true);
             router.replace("/phone");
         }
     }, [router]);
+
+    if (blocked) {
+        return null;
+    }
 
     const handleLogout = async () => {
         await fetch("/api/moderator/auth/logout", {
@@ -129,9 +135,9 @@ export function ModeratorShell({
     };
 
     const Brand = (
-        <Link href={`/moderator/${username}/internships`} className="flex items-center shrink-0" aria-label="iMod home">
+        <div className="flex items-center shrink-0 pointer-events-none select-none" aria-label="iMod">
             <Logo size="md" suffix="Mod" />
-        </Link>
+        </div>
     );
 
     return (

@@ -317,6 +317,11 @@ if (!existsSync(localProps)) {
   writeFileSync(localProps, `sdk.dir=${sdkDir.replace(/\\/g, '\\\\')}\n`)
 }
 
+// Generate launcher icons from public/logo-badge.svg
+if (existsSync(join(root, 'scripts', 'generate-app-icons.mjs'))) {
+  run('node', [join(root, 'scripts', 'generate-app-icons.mjs')], root)
+}
+
 const capBin = join(root, 'node_modules', '@capacitor', 'cli', 'bin', 'capacitor')
 run('node', [capBin, 'sync', 'android'], root)
 

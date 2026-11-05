@@ -22,6 +22,7 @@ import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { useTheme, type ThemePreference } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { isSmallScreen } from "@/lib/isSmallScreen";
+import { useAndroidBackHandler } from "@/hooks/useAndroidBackHandler";
 
 const NAV: { label: string; href: string; icon: LucideIcon }[] = [
     { label: "Institutes", href: "/employer/institutes", icon: Building2 },
@@ -101,6 +102,15 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
     useEffect(() => {
         setDrawerOpen(false);
     }, [pathname]);
+
+    // Hardware/gesture back button support for Android
+    useAndroidBackHandler(() => {
+        if (drawerOpen) {
+            setDrawerOpen(false);
+            return true;
+        }
+        return false;
+    });
 
     const logout = async () => {
         await fetch("/api/employer/auth/logout", { method: "POST", credentials: "include" });
@@ -205,9 +215,9 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
                 <div className="md:hidden fixed inset-0 z-50 bg-[var(--overlay)] transition-opacity" onClick={() => setDrawerOpen(false)}>
                     <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] flex flex-col bg-[var(--surface)] border-r-2 border-[var(--rule)] shadow-2xl z-50" onClick={(e) => e.stopPropagation()}>
                         <div className="px-4 h-14 flex items-center justify-between shrink-0 border-b-2 border-[var(--rule)]">
-                            <Link href="/employer/institutes" aria-label="iFind for Employers">
+                            <div className="pointer-events-none select-none flex items-center shrink-0">
                                 <Logo size="md" />
-                            </Link>
+                            </div>
                             <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="p-1.5 text-[var(--text-3)] hover:text-[var(--heading)] rounded-[var(--radius-sm)]">
                                 <X className="h-5 w-5" />
                             </button>
@@ -251,9 +261,9 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
                         >
                             <Menu className="h-5 w-5" />
                         </button>
-                        <Link href="/employer/institutes" aria-label="iFind for Employers">
+                        <div className="pointer-events-none select-none flex items-center shrink-0">
                             <Logo size="md" />
-                        </Link>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <ThemeSwitcher compact className="w-28" />

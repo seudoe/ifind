@@ -21,6 +21,7 @@
     "app:build": "node scripts/app-build.mjs"
   },
   "dependencies": {
+    "@capacitor/app": "^6.0.0",
     "@google-analytics/data": "^7.3.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.7.1",
