@@ -5,6 +5,7 @@ import { getModSession } from "@/lib/moderatorAuth";
 import { notifyCompany } from "@/lib/employer/notify";
 import PlatformInternship from "@/models/PlatformInternship";
 import { StagedInternship } from "@/models/Internship";
+import { buildModerationFilterQuery, ModerationFilters } from "@/lib/moderatorQuery";
 
 export const runtime = "nodejs";
 
@@ -19,22 +20,34 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json().catch(() => ({}));
-        const ids: unknown[] = Array.isArray(body?.ids) ? body.ids : [];
         const source = body?.source === "employer" ? "employer" : "scraped";
+        const isAllFiltered = Boolean(body?.allFiltered);
+        const filters = body?.filters as ModerationFilters | undefined;
         const rejectionReason = typeof body?.rejectionReason === "string" && body.rejectionReason.trim()
             ? body.rejectionReason.trim()
             : "Rejected by moderator";
 
-        const validIds = ids.filter((id: unknown): id is string => typeof id === "string" && isObjectId(id));
+        await connectDB();
+        const now = new Date();
+
+        let validIds: string[] = [];
+        if (isAllFiltered && filters) {
+            const query = buildModerationFilterQuery({ ...filters, source });
+            const matchingDocs = source === "employer"
+                ? await PlatformInternship.find(query).select("_id").lean()
+                : await StagedInternship.find(query).select("_id").lean();
+            validIds = matchingDocs.map((d: any) => String(d._id));
+        } else {
+            const ids: unknown[] = Array.isArray(body?.ids) ? body.ids : [];
+            validIds = ids.filter((id: unknown): id is string => typeof id === "string" && isObjectId(id));
+        }
+
         if (validIds.length === 0) {
             return NextResponse.json(
-                { success: false, error: "No valid internship IDs provided" },
+                { success: false, error: "No matching internship IDs found to reject" },
                 { status: 400 },
             );
         }
-
-        await connectDB();
-        const now = new Date();
 
         if (source === "employer") {
             const rejectedIds: string[] = [];
@@ -62,7 +75,9 @@ export async function POST(request: NextRequest) {
                 success: true,
                 processed: rejectedIds.length,
                 total: validIds.length,
-                message: `Successfully rejected ${rejectedIds.length} internships`,
+                message: isAllFiltered
+                    ? `Successfully rejected all ${rejectedIds.length} filtered internships`
+                    : `Successfully rejected ${rejectedIds.length} internships`,
             });
         }
 
@@ -83,7 +98,9 @@ export async function POST(request: NextRequest) {
             success: true,
             processed: res.modifiedCount,
             total: validIds.length,
-            message: `Successfully rejected ${res.modifiedCount} internships`,
+            message: isAllFiltered
+                ? `Successfully rejected all ${res.modifiedCount} filtered internships`
+                : `Successfully rejected ${res.modifiedCount} internships`,
         });
     } catch (error) {
         console.error("[moderator/internships/batch-reject POST]", error);

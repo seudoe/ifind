@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
 import { escapeRegex } from "@/lib/validate";
+import { buildModerationFilterQuery } from "@/lib/moderatorQuery";
 import Internship, { StagedInternship } from "@/models/Internship";
 import Company from "@/models/Company";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -52,33 +53,16 @@ export async function GET(request: NextRequest) {
         const sortBy = searchParams.get("sortBy")?.trim() ?? "scamScore"; // "deadline" | "scamScore" | "scrapedTime" | "name" | "company"
         const sortOrder = searchParams.get("sortOrder")?.toLowerCase() === "asc" ? 1 : -1;
 
-        // Build query on moderation.status
-        const query: Record<string, unknown> = {
-            "moderation.status": status,
-        };
-
-        if (nameFilter) {
-            query.name = new RegExp(escapeRegex(nameFilter), "i");
-        }
-
-        if (companyFilter) {
-            query.company = new RegExp(escapeRegex(companyFilter), "i");
-        }
-
-        if (!nameFilter && !companyFilter && search) {
-            const regex = new RegExp(escapeRegex(search), "i");
-            query.$or = [{ name: regex }, { company: regex }];
-        }
-
-        if (scoreOp && scoreVal !== null && !isNaN(scoreVal)) {
-            if (scoreOp === "lt") {
-                query["moderation.score"] = { $lt: scoreVal };
-            } else if (scoreOp === "gt") {
-                query["moderation.score"] = { $gt: scoreVal };
-            } else if (scoreOp === "eq") {
-                query["moderation.score"] = { $gte: scoreVal - 0.5, $lte: scoreVal + 0.5 };
-            }
-        }
+        // Build query on moderation.status using shared filter builder
+        const query = buildModerationFilterQuery({
+            status,
+            source: searchParams.get("source") === "employer" ? "employer" : "scraped",
+            search,
+            name: nameFilter,
+            company: companyFilter,
+            scoreOp: scoreOp as "" | "lt" | "gt" | "eq",
+            scoreVal,
+        });
 
         await connectDB();
 

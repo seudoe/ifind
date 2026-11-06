@@ -78,12 +78,23 @@ export async function batchPublishApprovedInternships(
   ids?: string[],
   recommend = true,
   moderatorId?: string,
+  background = false,
 ): Promise<BatchPublishResult> {
-  const r = await post<{ status: string; stats: PipelineStats }>("/vectorize-hnsw", {
+  const r = await post<{ status: string; stats?: PipelineStats }>("/vectorize-hnsw", {
     ...(ids ? { ids } : {}),
     recommend,
+    background,
     ...(moderatorId ? { moderator_id: moderatorId } : {}),
   });
+  if (r?.status === "queued") {
+    return {
+      success: true,
+      indexedIds: ids ?? [],
+      processed: ids?.length ?? 0,
+      errors: 0,
+      skipped: 0,
+    };
+  }
   return {
     success: r?.status === "ok",
     indexedIds: r?.stats?.indexed_ids ?? [],

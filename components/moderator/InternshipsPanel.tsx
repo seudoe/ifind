@@ -192,8 +192,7 @@ export function InternshipsPanel() {
     };
 
     const handleApproveAllFiltered = async () => {
-        if (items.length === 0 || isBatchApproving) return;
-        const idsToApprove = items.map((i) => i._id);
+        if (total === 0 || isBatchApproving) return;
         setIsBatchApproving(true);
 
         try {
@@ -202,8 +201,17 @@ export function InternshipsPanel() {
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    ids: idsToApprove,
+                    allFiltered: true,
                     source,
+                    filters: {
+                        status: statusFilter,
+                        source,
+                        search: debouncedSearch,
+                        name: debouncedName,
+                        company: debouncedCompany,
+                        scoreOp,
+                        scoreVal: debouncedScoreVal,
+                    },
                 }),
             });
 
@@ -213,7 +221,7 @@ export function InternshipsPanel() {
             }
 
             const body = await res.json().catch(() => ({}));
-            const message = body?.message || `Successfully approved ${idsToApprove.length} internships`;
+            const message = body?.message || "Successfully approved all filtered internships";
             toast.success(message);
             fetchQueue();
             setSelectedIds(new Set());
@@ -227,24 +235,40 @@ export function InternshipsPanel() {
     };
 
     const handleBatchRejectConfirm = async (reason: string) => {
-        const idsToReject = batchRejectMode === "selected"
-            ? Array.from(selectedIds)
-            : items.map((i) => i._id);
+        if (isBatchRejecting) return;
+        if (batchRejectMode === "selected" && selectedIds.size === 0) return;
+        if (batchRejectMode === "filtered" && total === 0) return;
 
-        if (idsToReject.length === 0 || isBatchRejecting) return;
         setIsBatchRejecting(true);
         setIsBatchRejectModalOpen(false);
 
         try {
+            const payload = batchRejectMode === "selected"
+                ? {
+                    ids: Array.from(selectedIds),
+                    source,
+                    rejectionReason: reason,
+                }
+                : {
+                    allFiltered: true,
+                    source,
+                    rejectionReason: reason,
+                    filters: {
+                        status: statusFilter,
+                        source,
+                        search: debouncedSearch,
+                        name: debouncedName,
+                        company: debouncedCompany,
+                        scoreOp,
+                        scoreVal: debouncedScoreVal,
+                    },
+                };
+
             const res = await fetch("/api/moderator/internships/batch-reject", {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ids: idsToReject,
-                    source,
-                    rejectionReason: reason,
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
@@ -252,7 +276,9 @@ export function InternshipsPanel() {
                 throw new Error(err?.error ?? "Batch reject failed");
             }
 
-            toast.success(`Successfully rejected ${idsToReject.length} internships`);
+            const body = await res.json().catch(() => ({}));
+            const message = body?.message || "Successfully rejected internships";
+            toast.success(message);
             fetchQueue();
             setSelectedIds(new Set());
         } catch (err) {

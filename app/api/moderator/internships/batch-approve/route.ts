@@ -5,6 +5,8 @@ import { getModSession } from "@/lib/moderatorAuth";
 import { batchPublishApprovedInternships, vectorizePlatformInternships } from "@/lib/internship-vectorizer";
 import { notifyCompany } from "@/lib/employer/notify";
 import PlatformInternship from "@/models/PlatformInternship";
+import { StagedInternship } from "@/models/Internship";
+import { buildModerationFilterQuery, ModerationFilters } from "@/lib/moderatorQuery";
 
 export const runtime = "nodejs";
 
@@ -19,19 +21,32 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json().catch(() => ({}));
-        const ids: unknown[] = Array.isArray(body?.ids) ? body.ids : [];
         const source = body?.source === "employer" ? "employer" : "scraped";
+        const isAllFiltered = Boolean(body?.allFiltered);
+        const filters = body?.filters as ModerationFilters | undefined;
 
-        const validIds = ids.filter((id: unknown): id is string => typeof id === "string" && isObjectId(id));
+        await connectDB();
+
+        let validIds: string[] = [];
+        if (isAllFiltered && filters) {
+            const query = buildModerationFilterQuery({ ...filters, source });
+            const matchingDocs = source === "employer"
+                ? await PlatformInternship.find(query).select("_id").lean()
+                : await StagedInternship.find(query).select("_id").lean();
+            validIds = matchingDocs.map((d: any) => String(d._id));
+        } else {
+            const ids: unknown[] = Array.isArray(body?.ids) ? body.ids : [];
+            validIds = ids.filter((id: unknown): id is string => typeof id === "string" && isObjectId(id));
+        }
+
         if (validIds.length === 0) {
             return NextResponse.json(
-                { success: false, error: "No valid internship IDs provided" },
+                { success: false, error: "No matching internship IDs found to approve" },
                 { status: 400 },
             );
         }
 
         if (source === "employer") {
-            await connectDB();
             const approvedIds: string[] = [];
             for (const id of validIds) {
                 const doc = await PlatformInternship.findOne({ _id: id, status: { $ne: "draft" } });
@@ -52,22 +67,25 @@ export async function POST(request: NextRequest) {
                 }).catch(() => {});
             }
             if (approvedIds.length > 0) {
-                await vectorizePlatformInternships(approvedIds, true);
+                // Vectorize employer listings in chunks if necessary
+                await vectorizePlatformInternships(approvedIds.slice(0, 50), true);
             }
             return NextResponse.json({
                 success: true,
                 processed: approvedIds.length,
                 indexedIds: approvedIds,
                 total: validIds.length,
-                message: "the batch has been approved and saved to collection(database)",
+                message: isAllFiltered
+                    ? `Successfully approved all ${approvedIds.length} filtered employer internships`
+                    : "the batch has been approved and saved to collection(database)",
             });
         }
 
         // Scraped internships:
-        // Sent to vectoriser which processes them one at a time:
-        // vectorises, moves from staging to live collection, updates graph, then triggers recommendation pipeline.
-        // Staged internships that are not yet processed remain in staging untouched with pending_review.
-        const res = await batchPublishApprovedInternships(validIds, true, session.moderatorId);
+        // When approving all filtered or large batches (> 25 items), we run vectorisation in background
+        // to prevent HTTP timeout, and return immediate confirmation to moderator.
+        const useBackground = validIds.length > 25 || isAllFiltered;
+        const res = await batchPublishApprovedInternships(validIds, true, session.moderatorId, useBackground);
 
         if (!res.success && res.processed === 0) {
             return NextResponse.json(
@@ -81,14 +99,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const message = useBackground
+            ? `Approved ${validIds.length} internships — vectorisation is running in the background`
+            : res.processed === validIds.length
+                ? "the batch has been approved and saved to collection(database)"
+                : `${res.processed} of ${validIds.length} internships approved and indexed (${validIds.length - res.processed} failed)`;
+
         return NextResponse.json({
             success: true,
             processed: res.processed,
             indexedIds: res.indexedIds,
             total: validIds.length,
-            message: res.processed === validIds.length
-                ? "the batch has been approved and saved to collection(database)"
-                : `${res.processed} of ${validIds.length} internships approved and indexed (${validIds.length - res.processed} failed)`,
+            message,
         });
     } catch (error) {
         console.error("[moderator/internships/batch-approve POST]", error);
