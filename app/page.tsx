@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isSmallScreen } from "@/lib/isSmallScreen";
+import { apiUrl } from "@/lib/apiOrigin";
 
 /**
  * Root index page.
@@ -28,7 +29,7 @@ export default function RootPage() {
       // 1. If employer was active portal, check employer auth first
       if (lastPortal === "employer") {
         try {
-          const res = await fetch("/api/employer/auth/me", { credentials: "include" });
+          const res = await fetch(apiUrl("/api/employer/auth/me"), { credentials: "include" });
           if (res.ok) {
             const body = await res.json();
             if (body.data?.id || body.data?.email) {
@@ -44,7 +45,7 @@ export default function RootPage() {
 
       // 2. Check student auth
       try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const res = await fetch(apiUrl("/api/auth/me"), { credentials: "include" });
         if (res.ok) {
           const body = await res.json();
           if (body.data?.username) {
@@ -62,7 +63,7 @@ export default function RootPage() {
       // 3. If employer wasn't checked yet, check it now
       if (lastPortal !== "employer") {
         try {
-          const res = await fetch("/api/employer/auth/me", { credentials: "include" });
+          const res = await fetch(apiUrl("/api/employer/auth/me"), { credentials: "include" });
           if (res.ok) {
             const body = await res.json();
             if (body.data?.id || body.data?.email) {

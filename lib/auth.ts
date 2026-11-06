@@ -50,7 +50,7 @@ export function authCookie(token: string) {
     options: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
+      sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
       maxAge: 60 * 60 * 24 * 30, // 30 days (1 month)
       path: "/",
     },

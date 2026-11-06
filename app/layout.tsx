@@ -33,6 +33,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "@/components/theme/ThemeProvid
 import { AppToaster } from "@/components/theme/AppToaster";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import { VectorizationProgressBar } from "@/components/dashboard/VectorizationProgressBar";
+import "@/lib/apiOrigin";
 
 export default function RootLayout({
   children,

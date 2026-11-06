@@ -36,3 +36,39 @@ export function apiUrl(path: string): string {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${cleanPath}`;
 }
+
+/**
+ * Automatically intercepts relative /api/... fetch requests in a native app (Capacitor)
+ * to point to the remote production backend and include credentials for cookie persistence.
+ */
+if (typeof window !== "undefined") {
+  try {
+    const win = window as unknown as Record<string, unknown>;
+    if (isNativeApp() && !win.__ifind_fetch_intercepted__) {
+      win.__ifind_fetch_intercepted__ = true;
+      const originalFetch = window.fetch;
+      window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
+        let url: string | undefined;
+        if (typeof input === "string") {
+          url = input;
+        } else if (input instanceof URL) {
+          url = input.toString();
+        } else if (input && typeof (input as Request).url === "string") {
+          url = (input as Request).url;
+        }
+
+        if (typeof url === "string" && (url.startsWith("/api/") || url === "/api")) {
+          const remoteUrl = apiUrl(url);
+          const updatedInit: RequestInit = {
+            ...init,
+            credentials: init?.credentials ?? "include",
+          };
+          return originalFetch.call(this, remoteUrl, updatedInit);
+        }
+        return originalFetch.call(this, input, init);
+      };
+    }
+  } catch (err) {
+    console.error("[apiOrigin] Failed to initialize native fetch interceptor", err);
+  }
+}
