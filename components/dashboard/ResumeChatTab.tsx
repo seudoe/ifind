@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CreditsBadge, refreshCredits } from "./CreditsBadge";
+import { MarkdownMessage } from "./MarkdownMessage";
 import { MessageSquare, Send, Plus, Trash2, Archive, Edit2, Check, X, Sparkles } from "lucide-react";
 
 interface ChatSession {
@@ -390,7 +391,7 @@ export function ResumeChatTab() {
                           : 'bg-gray-100 text-gray-900'
                       }`}
                     >
-                      <div className="whitespace-pre-wrap">{message.content}</div>
+                      <MarkdownMessage content={message.content} isUser={message.role === 'user'} />
                       
                       {message.sources && message.sources.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-gray-300">
