@@ -260,15 +260,18 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
               status={isBrowse ? undefined : "Online"}
               action={
                 isBrowse ? (
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent("open-browse-filters"))}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-[var(--radius-sm)] text-xs font-semibold bg-[var(--primary-bg)] text-[var(--primary)] border border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all shadow-xs"
-                    aria-label="Open Filters"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    <span>Filters</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => window.dispatchEvent(new CustomEvent("toggle-browse-filters"))}
+                      className="flex lg:hidden items-center gap-1.5 px-3 py-1 rounded-[var(--radius-sm)] text-xs font-semibold bg-[var(--primary-bg)] text-[var(--primary)] border border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all shadow-xs"
+                      aria-label="Toggle Filters"
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" />
+                      <span>Filters</span>
+                    </button>
+                    <span className="status hidden lg:inline-flex">● Online</span>
+                  </>
                 ) : undefined
               }
             />

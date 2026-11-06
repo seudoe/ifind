@@ -11,9 +11,13 @@ export function BrowseView({ slug }: { slug?: string }) {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setMobileFilterOpen(true);
+    const handler = () => setMobileFilterOpen((prev) => !prev);
     window.addEventListener("open-browse-filters", handler);
-    return () => window.removeEventListener("open-browse-filters", handler);
+    window.addEventListener("toggle-browse-filters", handler);
+    return () => {
+      window.removeEventListener("open-browse-filters", handler);
+      window.removeEventListener("toggle-browse-filters", handler);
+    };
   }, []);
 
   if (!data) {
