@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getModSession } from "@/lib/moderatorAuth";
+import { escapeRegex } from "@/lib/validate";
 import Internship, { StagedInternship } from "@/models/Internship";
 import Company from "@/models/Company";
 import PlatformInternship from "@/models/PlatformInternship";
@@ -39,23 +40,70 @@ export async function GET(request: NextRequest) {
                   ? 100
                   : rawLimit;
 
-        // Optional search string (escaped: it is user input going into a RegExp)
+        // Optional search and targeted filters
         const search = searchParams.get("search")?.trim() ?? "";
+        const nameFilter = searchParams.get("name")?.trim() ?? "";
+        const companyFilter = searchParams.get("company")?.trim() ?? "";
+        const scoreOp = searchParams.get("scoreOp")?.trim() ?? ""; // "lt" | "gt" | "eq"
+        const scoreValRaw = searchParams.get("scoreVal")?.trim();
+        const scoreVal = scoreValRaw !== undefined && scoreValRaw !== null && scoreValRaw !== "" ? Number(scoreValRaw) : null;
+
+        // Sort configuration
+        const sortBy = searchParams.get("sortBy")?.trim() ?? "scamScore"; // "deadline" | "scamScore" | "scrapedTime" | "name" | "company"
+        const sortOrder = searchParams.get("sortOrder")?.toLowerCase() === "asc" ? 1 : -1;
 
         // Build query on moderation.status
         const query: Record<string, unknown> = {
             "moderation.status": status,
         };
 
-        // Add case-insensitive regex on name and company when search provided
-        if (search) {
-            const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        if (nameFilter) {
+            query.name = new RegExp(escapeRegex(nameFilter), "i");
+        }
+
+        if (companyFilter) {
+            query.company = new RegExp(escapeRegex(companyFilter), "i");
+        }
+
+        if (!nameFilter && !companyFilter && search) {
+            const regex = new RegExp(escapeRegex(search), "i");
             query.$or = [{ name: regex }, { company: regex }];
+        }
+
+        if (scoreOp && scoreVal !== null && !isNaN(scoreVal)) {
+            if (scoreOp === "lt") {
+                query["moderation.score"] = { $lt: scoreVal };
+            } else if (scoreOp === "gt") {
+                query["moderation.score"] = { $gt: scoreVal };
+            } else if (scoreOp === "eq") {
+                query["moderation.score"] = { $gte: scoreVal - 0.5, $lte: scoreVal + 0.5 };
+            }
         }
 
         await connectDB();
 
         const skip = (page - 1) * limit;
+
+        // Determine sort object
+        let sortObj: Record<string, 1 | -1>;
+        switch (sortBy) {
+            case "deadline":
+                sortObj = { deadlineDate: sortOrder, createdAt: -1 };
+                break;
+            case "scrapedTime":
+                sortObj = { createdAt: sortOrder };
+                break;
+            case "name":
+                sortObj = { name: sortOrder };
+                break;
+            case "company":
+                sortObj = { company: sortOrder };
+                break;
+            case "scamScore":
+            default:
+                sortObj = { "moderation.score": sortOrder, createdAt: -1 };
+                break;
+        }
 
         // Employer-posted listings live in their own collection; drafts are never moderated
         if (searchParams.get("source") === "employer") {
@@ -63,8 +111,8 @@ export async function GET(request: NextRequest) {
             const [total, rows] = await Promise.all([
                 PlatformInternship.countDocuments(query),
                 PlatformInternship.find(query)
-                    .select("name company companyId applyLink datePublished source moderation summary skills createdAt")
-                    .sort({ datePublished: 1 }) // oldest first: fair review order
+                    .select("name company companyId applyLink datePublished deadlineDate source moderation summary skills createdAt")
+                    .sort(sortObj)
                     .skip(skip)
                     .limit(limit)
                     .lean(),
@@ -76,6 +124,7 @@ export async function GET(request: NextRequest) {
                 company: r.company,
                 applyLink: r.applyLink ?? null,
                 datePublished: r.datePublished,
+                deadlineDate: r.deadlineDate ?? null,
                 source: "employer",
                 moderation: r.moderation,
                 createdAt: r.createdAt,
@@ -95,9 +144,9 @@ export async function GET(request: NextRequest) {
             Model.countDocuments(query),
             Model.find(query)
                 .select(
-                    "name company applyLink datePublished source moderation linkVerification createdAt",
+                    "name company applyLink datePublished deadlineDate source moderation linkVerification createdAt",
                 )
-                .sort({ "moderation.score": -1, createdAt: -1 })
+                .sort(sortObj)
                 .skip(skip)
                 .limit(limit)
                 .lean(),
