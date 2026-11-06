@@ -22,6 +22,13 @@ export async function GET(request: NextRequest) {
         const db = mongoose.connection.db;
         if (!db) throw new Error("Database connection not available");
 
+        // Mark any orphaned runs (stuck running for > 20 min) as failed
+        const cutoff = new Date(Date.now() - 20 * 60_000);
+        await db.collection("scrape.runs").updateMany(
+            { status: "running", startedAt: { $lt: cutoff } },
+            { $set: { status: "failed", finishedAt: new Date(), error: "Scrape process timed out or was interrupted" } }
+        );
+
         const runs = await db
             .collection("scrape.runs")
             .find({ startedAt: { $gte: since } })
