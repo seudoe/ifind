@@ -5,17 +5,20 @@ import { linkedinTrusted } from "@/lib/linkedinState";
 import { safeHref } from "@/lib/safeUrl";
 import {
   Award, BookOpen, Copy, BriefcaseBusiness, Building2, CalendarDays, Edit3, FileText,
-  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus, Upload, Camera
+  GraduationCap, Link2, Mail, MapPin, Phone, Sparkles, UserRound, Users, X, Trash2, Plus, Upload, Camera,
+  CheckCircle2, AlertCircle, Info, Calculator, ArrowRight
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { LinkedInVerificationBanner } from "@/components/dashboard/LinkedInVerificationBanner";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 import type { ParsedResumeData, User, Skill } from "@/types";
 import { cn, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import { announceRecommendationRun } from "@/lib/recommendationProgress";
+import { getProfileScoreExplanation, type ProfileScoreExplanation } from "@/lib/profile/completion";
 
 const QUICK_LINKS = [
   ["preferences", "Preference"], ["education", "Education"], ["skills", "Key skills"],
@@ -47,16 +50,17 @@ export default function ProfilePage() {
   const education = resume.education[0];
   const internships = resume.workHistory.filter((entry) => entry.type === "internship");
   const employment = resume.workHistory.filter((entry) => entry.type !== "internship");
-  const missing = [
-    !user.profilePicture && "Upload photo",
-    !internships.length && "Add internship",
-    !resume.certifications.length && "Add certificates",
-  ].filter(Boolean) as string[];
+  const scoreExplanation = getProfileScoreExplanation(user);
+  const missing = scoreExplanation.missingCategories.map((item) => `${item.label} (+${item.weight} pts)`);
+
   // "Review missing details" opens the editor for the first gap
   const reviewMissing = () => {
-    if (!user.profilePicture) return triggerEdit("personal");
-    if (!internships.length) return triggerEdit("internships");
-    triggerEdit("accomplishments");
+    const firstMissing = scoreExplanation.missingCategories[0];
+    if (firstMissing?.section) {
+      triggerEdit(firstMissing.section as EditSection);
+    } else {
+      triggerEdit("personal");
+    }
   };
 
   const triggerEdit = (section: EditSection) => {
@@ -70,6 +74,7 @@ export default function ProfilePage() {
         <LinkedInVerificationBanner linkedinDetails={user.linkedinDetails} identityVerified={linkedinTrusted(user)} />
         <ProfileHeader 
           user={user} 
+          score={scoreExplanation.score}
           education={education ? `${education.field.type} · ${education.field.course}` : "Student profile"} 
           missing={missing} 
           onEditClick={() => triggerEdit("personal")}
@@ -237,12 +242,13 @@ export default function ProfilePage() {
         isOpen={isEditOpen} 
         onClose={() => setIsEditOpen(false)} 
         onSaveSuccess={mutate}
+        onSelectSection={setEditSection}
       />
     </>
   );
 }
 
-function ProfileHeader({ user, education, missing, onEditClick, onReview }: { user: User; education: string; missing: string[]; onEditClick: () => void; onReview: () => void }) {
+function ProfileHeader({ user, score, education, missing, onEditClick, onReview }: { user: User; score?: number; education: string; missing: string[]; onEditClick: () => void; onReview: () => void }) {
   const meta = user.resume?.parsedData?.metaDetails;
   // The recruiter-facing profile shows only what the resume (or the student's edits to it) holds, never the account fields
   const name = meta?.name || "Add your name";
@@ -268,7 +274,7 @@ function ProfileHeader({ user, education, missing, onEditClick, onReview }: { us
     <section className="plasma-card grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)] lg:grid-cols-[110px_minmax(0,1fr)_235px]">
       <div className="relative mx-auto grid h-24 w-24 place-items-center rounded-full border-[3px] border-[var(--success)] bg-[var(--surface-2)]">
         <Avatar src={user.profilePicture} name={name} size="lg" />
-        <span className="absolute -bottom-2 rounded-full bg-[var(--surface)] px-2 text-xs font-bold text-[var(--success)]">{user.profileCompletionScore}%</span>
+        <span className="absolute -bottom-2 rounded-full bg-[var(--surface)] px-2 text-xs font-bold text-[var(--success)]">{score ?? user.profileCompletionScore ?? 0}%</span>
       </div>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
@@ -310,7 +316,7 @@ function ProfileHeader({ user, education, missing, onEditClick, onReview }: { us
         <div className="mt-3 space-y-2">
           {missing.length ? missing.map((item) => <div key={item} className="flex items-center justify-between gap-2 text-xs text-[var(--text-2)]"><span>{item}</span><span className="shrink-0 whitespace-nowrap text-[var(--success)]">+ improve</span></div>) : <p className="text-xs text-[var(--success)]">Your profile is looking complete.</p>}
         </div>
-        <button type="button" onClick={onReview} disabled={!missing.length} className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{missing.length ? "Review missing details" : "Profile complete"}</button>
+        <button type="button" onClick={onReview} className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity">{missing.length ? "Review missing details" : "View score breakdown"}</button>
       </div>
     </section>
   );
@@ -329,12 +335,14 @@ interface ProfileEditDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveSuccess: () => void;
+  onSelectSection?: (section: EditSection) => void;
 }
 
-function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: ProfileEditDrawerProps) {
+function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess, onSelectSection }: ProfileEditDrawerProps) {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const scoreExplanation = getProfileScoreExplanation(user);
 
   // --- Dynamic Form States ---
   // Section: personal
@@ -745,8 +753,22 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
         {/* Header */}
         <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-sm font-bold text-[var(--heading)]">{getSectionTitle()}</h3>
-            <p className="text-[10px] text-[var(--text-3)]">Modify current details on your profile</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--heading)]">{getSectionTitle()}</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById("profile-score-breakdown");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--primary-bg)] text-[var(--primary)] border border-[var(--border)] hover:opacity-80 transition-opacity cursor-pointer inline-flex items-center gap-1"
+                title="Scroll down to view score calculation & weights breakdown"
+              >
+                <span>Score: {scoreExplanation.score}%</span>
+                <span>↓</span>
+              </button>
+            </div>
+            <p className="text-[10px] text-[var(--text-3)]">Modify current details or scroll down to view score explanation</p>
           </div>
           <button
             type="button"
@@ -1555,6 +1577,13 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
             </div>
           )}
 
+          {/* Profile Completion Score Explanation, Formula & Weights Breakdown */}
+          <ProfileScoreBreakdownSection
+            explanation={scoreExplanation}
+            currentSection={section}
+            onSelectSection={onSelectSection}
+          />
+
         </div>
 
         {/* Footer actions at the bottomest row */}
@@ -1568,6 +1597,228 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
         </div>
       </div>
     </>
+  );
+}
+
+function ProfileScoreBreakdownSection({
+  explanation,
+  currentSection,
+  onSelectSection,
+}: {
+  explanation: ProfileScoreExplanation;
+  currentSection: EditSection;
+  onSelectSection?: (section: EditSection) => void;
+}) {
+  const [isWeightsExpanded, setIsWeightsExpanded] = useState(true);
+
+  const handleJumpToSection = (targetSection: EditSection) => {
+    if (onSelectSection) {
+      onSelectSection(targetSection);
+      const popupBody = document.querySelector(".profile-edit-popup .flex-1");
+      if (popupBody) {
+        popupBody.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
+  return (
+    <div id="profile-score-breakdown" className="mt-8 pt-5 border-t-2 border-[var(--border)] space-y-4">
+      {/* Header Banner */}
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-[var(--radius-sm)] bg-[var(--primary-bg)] text-[var(--primary)] shrink-0">
+              <Calculator className="h-4 w-4" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-[var(--heading)]">Profile Completion Score Breakdown</h4>
+              <p className="text-[11px] text-[var(--text-3)]">
+                Formula calculation & weighted recruiter ranking criteria
+              </p>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--primary)] text-white shadow-sm">
+              {explanation.score}% Completed
+            </span>
+            <p className="text-[10px] text-[var(--text-3)] mt-0.5">
+              {explanation.earnedWeight} / {explanation.totalWeight} pts
+            </p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="space-y-1">
+          <ProgressBar value={explanation.score} />
+          <div className="flex items-center justify-between text-[10px] text-[var(--text-3)]">
+            <span>{explanation.completedCount} of {explanation.totalWeightedCount} weighted categories fulfilled</span>
+            <span>
+              {explanation.totalWeight - explanation.earnedWeight > 0
+                ? `${explanation.totalWeight - explanation.earnedWeight} pts remaining to reach 100%`
+                : "100% Maximum profile score achieved"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* The Exact Mathematical Formula */}
+      <div className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-2">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--heading)]">
+          <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
+          <span>How the Score is Calculated</span>
+        </div>
+        <div className="p-2.5 rounded bg-[var(--surface-2)] border border-[var(--border)] font-mono text-[11px] text-[var(--text)] space-y-1 leading-relaxed">
+          <div className="text-[var(--text-3)] text-[10px] uppercase tracking-wider font-sans font-semibold">Standard Formula:</div>
+          <div className="font-semibold text-[var(--primary)]">
+            Score % = Math.round( (Total Earned Weight ÷ Total Evaluated Weight) × 100 )
+          </div>
+          <div className="text-[var(--text-2)] border-t border-[var(--border)] pt-1 mt-1 font-sans">
+            Plugging in your profile data:
+            <span className="font-mono font-semibold text-[var(--heading)] ml-1">
+              ({explanation.earnedWeight} pts ÷ {explanation.totalWeight} pts) × 100 ={" "}
+              <span className="text-[var(--success)]">{explanation.score}%</span>
+            </span>
+          </div>
+        </div>
+        <p className="text-[11px] text-[var(--text-3)] leading-relaxed">
+          Each field on your profile carries a specific weight reflecting what recruiters and the iFind recommendation algorithm prioritize. Internships are weighted at 0 pts so first-time applicants are not penalized.
+        </p>
+      </div>
+
+      {/* Multi-line Explanation & Actionable Guidance */}
+      <div className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-2.5">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--heading)]">
+          <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
+          <span>Why do you have a {explanation.score}% score?</span>
+        </div>
+        
+        <div className="space-y-1.5 text-[11px] text-[var(--text-2)] leading-relaxed">
+          {explanation.explanationLines.map((line, idx) => (
+            <p key={idx}>{line}</p>
+          ))}
+        </div>
+
+        {explanation.missingCategories.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-[var(--border)] space-y-2">
+            <p className="text-[11px] font-semibold text-[var(--heading)]">
+              Recommended actions to reach 100%:
+            </p>
+            <div className="space-y-1.5">
+              {explanation.missingCategories.map((item) => (
+                <div
+                  key={item.field}
+                  className="flex items-center justify-between gap-2 p-2 rounded bg-[var(--primary-bg)]/40 border border-[var(--border)] text-[11px]"
+                >
+                  <div className="space-y-0.5 min-w-0">
+                    <span className="font-semibold text-[var(--heading)]">{item.label}</span>
+                    <span className="text-[10px] text-[var(--primary)] font-bold ml-1.5">+{item.weight} pts</span>
+                    <p className="text-[10px] text-[var(--text-3)] truncate">{item.recommendation}</p>
+                  </div>
+                  {onSelectSection && currentSection !== item.section && (
+                    <button
+                      type="button"
+                      onClick={() => handleJumpToSection(item.section as EditSection)}
+                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[var(--primary)] text-white text-[10px] font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      Fill now <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Category-by-Category Weights Table / List */}
+      <div className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3.5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h5 className="text-xs font-bold text-[var(--heading)]">All 11 Evaluation Criteria & Weights</h5>
+            <p className="text-[10px] text-[var(--text-3)]">Itemized audit of each section and points awarded</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsWeightsExpanded(!isWeightsExpanded)}
+            className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+          >
+            {isWeightsExpanded ? "Collapse" : "Expand"}
+          </button>
+        </div>
+
+        {isWeightsExpanded && (
+          <div className="space-y-2 pt-1">
+            {explanation.categories.map((cat) => {
+              const isZero = cat.weight === 0;
+              const isEarned = cat.completed && cat.weight > 0;
+              const isMissing = !cat.completed && cat.weight > 0;
+
+              return (
+                <div
+                  key={cat.field}
+                  className={cn(
+                    "p-2.5 rounded-[var(--radius-sm)] border text-[11px] flex items-start justify-between gap-3 transition-colors",
+                    isEarned
+                      ? "border-emerald-500/20 bg-emerald-500/5"
+                      : isMissing
+                      ? "border-amber-500/20 bg-amber-500/5"
+                      : "border-[var(--border)] bg-[var(--surface-2)]"
+                  )}
+                >
+                  <div className="flex items-start gap-2 min-w-0">
+                    <div className="mt-0.5 shrink-0">
+                      {isEarned ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      ) : isMissing ? (
+                        <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                      ) : (
+                        <Info className="h-3.5 w-3.5 text-[var(--text-3)]" />
+                      )}
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-[var(--heading)]">{cat.label}</span>
+                        <span className="text-[10px] px-1.5 py-0.2 bg-[var(--surface)] border border-[var(--border)] rounded text-[var(--text-3)]">
+                          Weight: {cat.weight} pts ({cat.weight}%)
+                        </span>
+                        {isEarned && (
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                            ✓ +{cat.earned} pts earned
+                          </span>
+                        )}
+                        {isMissing && (
+                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                            ✗ 0/{cat.weight} pts (missing)
+                          </span>
+                        )}
+                        {isZero && (
+                          <span className="text-[10px] text-[var(--text-3)]">
+                            Optional (0 pts)
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[var(--text-2)] break-words">
+                        {cat.statusDescription}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isMissing && onSelectSection && currentSection !== cat.section && (
+                    <button
+                      type="button"
+                      onClick={() => handleJumpToSection(cat.section as EditSection)}
+                      className="shrink-0 text-[10px] font-semibold text-[var(--primary)] hover:underline whitespace-nowrap mt-0.5"
+                    >
+                      Edit →
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
