@@ -5,7 +5,7 @@ import ChatMessage from '@/models/ChatMessage';
 import User from '@/models/User';
 import { getSession } from '@/lib/auth';
 import { isObjectId } from '@/lib/validate';
-import { generateChatCompletion } from '@/lib/groq/groqService';
+import { generateChatCompletion, GROQ_MODELS } from '@/lib/groq/groqService';
 import { prepareChatContext, detectResumeSection, extractSection } from '@/lib/chat/embeddingService';
 import { extractResumeText } from '@/lib/resume/resumeTextExtractor';
 import { withBilling } from '@/lib/usage/withBilling';
@@ -135,7 +135,7 @@ async function handlePost(req: NextRequest) {
         section: detectedSection || undefined,
       })),
       metadata: {
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        model: completion.model || process.env.GROQ_MODEL || GROQ_MODELS.DEFAULT,
         processingTime,
         temperature: 0.7,
       },

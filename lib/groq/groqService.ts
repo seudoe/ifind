@@ -1,12 +1,10 @@
 import Groq from 'groq-sdk';
 import { recordLlmCall } from '../usage/context';
 
-// Several Groq keys (limits are per key/organisation): requests are spread round-robin, and a key that is rate-limited or
-// rejected is skipped for a while so the next one answers. Keys come from GROQ_API_KEYS (comma or whitespace separated),
-// GROQ_API_KEY and GROQ_API_KEY_1, GROQ_API_KEY_2, ...
+// Several Groq keys (limits are per key/organisation): requests cycle through keys from the start
+// for each request, and if one key fails it moves to the next while remembering the failure for that request.
+// Keys come from GROQ_API_KEYS (comma or whitespace separated), GROQ_API_KEY and GROQ_API_KEY_1, GROQ_API_KEY_2, ...
 const clients = new Map<string, Groq>();
-const coolUntil = new Map<string, number>();
-let cursor = 0;
 
 const PLACEHOLDER = 'your_groq_api_key_here';
 
@@ -29,43 +27,46 @@ function clientFor(key: string): Groq {
   return c;
 }
 
-/** Rate limit, quota or auth problem on this key (another key may still work). */
-function keyProblem(error: any): { cooldownMs: number } | null {
-  const status = Number(error?.status ?? error?.statusCode);
-  const text = String(error?.message ?? '').toLowerCase();
-  if (status === 429 || /rate.?limit|quota|tokens per|requests per/.test(text)) return { cooldownMs: 60_000 };
-  if (status === 401 || status === 403 || /invalid api key|organization.*(restricted|disabled)/.test(text)) return { cooldownMs: 3_600_000 };
-  return null;
-}
-
-/** Runs `fn` with a usable key, moving on to the next key when one is rate-limited or rejected. */
-async function withKey<T>(fn: (client: Groq) => Promise<T>): Promise<T> {
+/**
+ * Executes an operation with available Groq API keys, cycling through them in order for each request.
+ * If a key fails (invalid key, rate limit, quota, timeout, etc.), it remembers that the key failed
+ * for this particular request and immediately moves to the next key.
+ * Every new request checks from the start of the keys list.
+ */
+export async function withGroqKeyRotation<T>(fn: (client: Groq, key: string) => Promise<T>): Promise<T> {
   const keys = groqKeys();
   if (!keys.length) throw new Error('GROQ_API_KEY is not configured on the server');
-  const now = Date.now();
-  const start = cursor++ % keys.length;
-  const order = keys.map((_, i) => keys[(start + i) % keys.length]);
-  // keys on cooldown go last, so they are still tried when every key is limited
-  order.sort((x, y) => Number((coolUntil.get(x) ?? 0) > now) - Number((coolUntil.get(y) ?? 0) > now));
-  let lastError: unknown;
-  for (const key of order) {
+
+  const failedInThisRequest: Array<{ keyIndex: number; keyMasked: string; error: string }> = [];
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
     try {
-      return await fn(clientFor(key));
+      return await fn(clientFor(key), key);
     } catch (error: any) {
-      const problem = keyProblem(error);
-      if (!problem) throw error;
-      coolUntil.set(key, Date.now() + problem.cooldownMs);
-      lastError = error;
+      const masked = key.length > 8 ? `${key.slice(0, 4)}...${key.slice(-4)}` : '***';
+      const msg = error?.message || String(error);
+      failedInThisRequest.push({ keyIndex: i, keyMasked: masked, error: msg });
+      console.warn(`[GroqService] Key #${i} (${masked}) failed for this request: ${msg}. Trying next key...`);
     }
   }
-  throw lastError;
+
+  const summary = failedInThisRequest.map(f => `Key #${f.keyIndex} (${f.keyMasked}): ${f.error}`).join('; ');
+  throw new Error(`All ${keys.length} Groq API keys failed for this request. Summary: ${summary}`);
 }
 
+/** Backward compatibility alias */
+export const withKey = withGroqKeyRotation;
+
 // Default model
-const DEFAULT_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
 
 // Available models
 export const GROQ_MODELS = {
+  DEFAULT: process.env.GROQ_MODEL || 'qwen/qwen3.8-27b',
+  QWEN_27B: 'qwen/qwen3.8-27b',
+  GPT_120B: 'openai/gpt-oss-120b',
+  GPT_20B: 'openai/gpt-oss-20b',
   LLAMA_70B: 'llama-3.3-70b-versatile',
   LLAMA_8B: 'llama-3.1-8b-instant',
   MIXTRAL: 'mixtral-8x7b-32768',
@@ -84,17 +85,36 @@ export async function generateChatCompletion(
     stream?: boolean;
   } = {}
 ): Promise<Groq.Chat.Completions.ChatCompletion> {
-  const model = options.model || DEFAULT_MODEL;
+  let model = options.model || DEFAULT_MODEL;
   const startedAt = Date.now();
   try {
-    const completion = await withKey((client) => client.chat.completions.create({
-      model,
-      messages,
-      temperature: options.temperature ?? 0.7,
-      max_tokens: options.max_tokens ?? 2048,
-      top_p: options.top_p ?? 1,
-      stream: false, // Force stream to false for type safety
-    }));
+    const completion = await withGroqKeyRotation(async (client) => {
+      try {
+        return await client.chat.completions.create({
+          model,
+          messages,
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.max_tokens ?? 2048,
+          top_p: options.top_p ?? 1,
+          stream: false, // Force stream to false for type safety
+        });
+      } catch (err: any) {
+        // If the model does not exist or was deprecated, fallback to DEFAULT_MODEL (qwen/qwen3.8-27b)
+        if ((err?.status === 404 || err?.message?.includes('model_not_found')) && model !== DEFAULT_MODEL) {
+          console.warn(`[GroqService] Model '${model}' not found, falling back to '${DEFAULT_MODEL}'`);
+          model = DEFAULT_MODEL;
+          return await client.chat.completions.create({
+            model: DEFAULT_MODEL,
+            messages,
+            temperature: options.temperature ?? 0.7,
+            max_tokens: options.max_tokens ?? 2048,
+            top_p: options.top_p ?? 1,
+            stream: false,
+          });
+        }
+        throw err;
+      }
+    });
 
     recordLlmCall({
       provider: 'groq',
@@ -123,14 +143,32 @@ export async function generateStreamingCompletion(
     max_tokens?: number;
   } = {}
 ) {
+  let model = options.model || DEFAULT_MODEL;
   try {
-    const stream = await withKey((client) => client.chat.completions.create({
-      model: options.model || DEFAULT_MODEL,
-      messages,
-      temperature: options.temperature ?? 0.7,
-      max_tokens: options.max_tokens ?? 2048,
-      stream: true,
-    }));
+    const stream = await withGroqKeyRotation(async (client) => {
+      try {
+        return await client.chat.completions.create({
+          model,
+          messages,
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.max_tokens ?? 2048,
+          stream: true,
+        });
+      } catch (err: any) {
+        if ((err?.status === 404 || err?.message?.includes('model_not_found')) && model !== DEFAULT_MODEL) {
+          console.warn(`[GroqService] Model '${model}' not found, falling back to '${DEFAULT_MODEL}'`);
+          model = DEFAULT_MODEL;
+          return await client.chat.completions.create({
+            model: DEFAULT_MODEL,
+            messages,
+            temperature: options.temperature ?? 0.7,
+            max_tokens: options.max_tokens ?? 2048,
+            stream: true,
+          });
+        }
+        throw err;
+      }
+    });
 
     return stream;
   } catch (error: any) {
