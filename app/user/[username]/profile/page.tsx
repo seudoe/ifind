@@ -554,6 +554,12 @@ function ProfileEditDrawer({ user, section, isOpen, onClose, onSaveSuccess }: Pr
         payload = {
           userUpdate: {
             profilePicture: profilePicture.trim() || null,
+            name: name.trim(),
+            phone: phone.trim() || null,
+            gender: (gender as string) || null,
+            city: city.trim() || null,
+            state: state.trim() || null,
+            country: country.trim() || null,
           },
           resumeUpdate: {
             metaDetails: {

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { toStudentInternship, visibleToStudentsFilter } from "@/lib/employer/visibility";
+import { calculateProfileScore } from "@/lib/profile/completion";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,13 @@ export async function GET() {
     if (pend?.profile && pend.expiresAt && new Date(pend.expiresAt).getTime() > Date.now()) {
       const liEmail = pend.profile.email?.toLowerCase();
       user.linkedinPending = { name: pend.profile.name, email: pend.profile.email, picture: pend.profile.picture, emailVerified: pend.profile.email_verified === true, currentEmail: user.email, changesEmail: Boolean(liEmail) && liEmail !== String(user.email).toLowerCase() };
+    }
+
+    // Refresh profile completion score dynamically if outdated
+    const computedScore = calculateProfileScore(user);
+    if (computedScore !== user.profileCompletionScore) {
+      user.profileCompletionScore = computedScore;
+      db.collection("users").updateOne({ _id: user._id }, { $set: { profileCompletionScore: computedScore } }).catch(() => {});
     }
 
     const toIds = (values: unknown[]) => values

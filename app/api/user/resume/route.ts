@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { deleteResumeFromImageKit } from "@/lib/imagekit";
+import { calculateProfileScore } from "@/lib/profile/completion";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,7 @@ export async function DELETE() {
       pendingViewLink: null,
       pendingParsedData: null,
     };
-    user.profileCompletionScore = Math.max(20, (user.profileCompletionScore || 20) - 30);
+    user.profileCompletionScore = calculateProfileScore(user.toObject ? user.toObject() : user);
     await user.save();
 
     return NextResponse.json({

@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { str, strList } from "@/lib/validate";
+import { profile_field_weight, calculateProfileScore } from "@/lib/profile/completion";
 
 export const runtime = "nodejs";
 export const maxDuration = 120; // the vectoriser call (encode + whole-graph recommend) runs after the response
+
+// Re-export configurable weights object on top of the file for tuning
+export { profile_field_weight };
 
 /** Only these resume sections may be edited from the profile page (mirrors ParsedResumeData). */
 const EDITABLE_RESUME_SECTIONS = new Set([
@@ -133,20 +137,8 @@ export async function PUT(request: Request) {
       }
     }
 
-    // Calculate dynamic completion score
-    const checklist = [
-      !!mergedUser.profilePicture,
-      !!mergedUser.phone,
-      !!mergedUser.dateOfBirth,
-      !!mergedUser.gender,
-      !!mergedUser.city,
-      !!mergedUser.state,
-      !!mergedUser.country,
-      Array.isArray(mergedUser.skills) && mergedUser.skills.length >= 3,
-    ];
-    const fieldsCount = checklist.length;
-    const completedCount = checklist.filter(Boolean).length;
-    setFields["profileCompletionScore"] = Math.min(100, 35 + Math.round((completedCount / fieldsCount) * 65));
+    // Calculate dynamic completion score using weighted profile fields
+    setFields["profileCompletionScore"] = calculateProfileScore(mergedUser);
     setFields["updatedAt"] = new Date().toISOString();
 
     // Smart change detection: check if updated data differs from existing data

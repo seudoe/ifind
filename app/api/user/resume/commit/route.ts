@@ -3,6 +3,7 @@ import { notify } from "@/lib/employer/notify";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { keepMeta } from "@/lib/resume/keepMeta";
+import { calculateProfileScore } from "@/lib/profile/completion";
 import User from "@/models/User";
 import { deleteResumeFromImageKit } from "@/lib/imagekit";
 
@@ -44,7 +45,7 @@ export async function POST() {
     user.resume.pendingViewLink = null;
     user.resume.pendingParsedData = null;
 
-    user.profileCompletionScore = Math.min(100, (user.profileCompletionScore || 20) + 30);
+    user.profileCompletionScore = calculateProfileScore(user.toObject ? user.toObject() : user);
     if (pendingParsedData) {
       user.vectorizationStatus = "processing";
     }
