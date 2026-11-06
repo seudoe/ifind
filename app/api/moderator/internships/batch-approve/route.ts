@@ -69,12 +69,26 @@ export async function POST(request: NextRequest) {
         // Staged internships that are not yet processed remain in staging untouched with pending_review.
         const res = await batchPublishApprovedInternships(validIds, true, session.moderatorId);
 
+        if (!res.success && res.processed === 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Vectoriser service unreachable or failed to process batch. Check VECTORISER_URL.",
+                    processed: 0,
+                    total: validIds.length,
+                },
+                { status: 502 },
+            );
+        }
+
         return NextResponse.json({
-            success: res.success || res.processed > 0,
+            success: true,
             processed: res.processed,
             indexedIds: res.indexedIds,
             total: validIds.length,
-            message: "the batch has been approved and saved to collection(database)",
+            message: res.processed === validIds.length
+                ? "the batch has been approved and saved to collection(database)"
+                : `${res.processed} of ${validIds.length} internships approved and indexed (${validIds.length - res.processed} failed)`,
         });
     } catch (error) {
         console.error("[moderator/internships/batch-approve POST]", error);

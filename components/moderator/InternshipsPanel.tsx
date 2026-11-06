@@ -172,12 +172,13 @@ export function InternshipsPanel() {
             const approvedIds: string[] = body?.indexedIds ?? idsToApprove;
             const approvedSet = new Set(approvedIds);
 
-            // Optimistically remove approved items from view
+            // Remove approved items from view
             setItems((prev) => prev.filter((i) => !approvedSet.has(i._id)));
             setTotal((prev) => Math.max(0, prev - approvedSet.size));
             setSelectedIds(new Set());
 
-            toast.success("the batch has been approved and saved to collection(database)");
+            const message = body?.message || "the batch has been approved and saved to collection(database)";
+            toast.success(message);
         } catch (err) {
             toast.error(
                 err instanceof Error
@@ -208,10 +209,12 @@ export function InternshipsPanel() {
 
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
-                throw new Error(err?.error ?? "Approve all filtered failed");
+                throw new Error(err?.error ?? "Approve filtered batch failed");
             }
 
-            toast.success(`Successfully approved ${idsToApprove.length} filtered internships`);
+            const body = await res.json().catch(() => ({}));
+            const message = body?.message || `Successfully approved ${idsToApprove.length} internships`;
+            toast.success(message);
             fetchQueue();
             setSelectedIds(new Set());
         } catch (err) {
