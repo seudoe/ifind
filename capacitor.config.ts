@@ -8,7 +8,9 @@ const config: CapacitorConfig = {
   appName: 'iFind',
   webDir: '.mobile-build/out',
   server: {
-    androidScheme: 'https', // the app page itself is served over https://localhost; no plain-HTTP allowed
+    url: 'https://ifind-ifind.vercel.app',
+    cleartext: false,
+    androidScheme: 'https',
     allowNavigation: [
       'ifind-ifind.vercel.app',
       '*.ifind-ifind.vercel.app',

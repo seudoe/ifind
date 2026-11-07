@@ -40,14 +40,15 @@ export function apiUrl(path: string): string {
 }
 
 /**
- * Automatically intercepts relative /api/... fetch requests in a native app (Capacitor)
- * to point to the remote production backend, include persistent Bearer tokens,
- * and maintain credentials for cookie persistence.
+ * Automatically intercepts /api/... fetch requests to:
+ * 1. Route relative paths to the remote production backend when in a native app (Capacitor).
+ * 2. Automatically inject the persistent Bearer token from device storage whenever available.
+ * 3. Enforce credentials: "include" for cookie synchronization.
  */
 if (typeof window !== "undefined") {
   try {
     const win = window as unknown as Record<string, unknown>;
-    if (isNativeApp() && !win.__ifind_fetch_intercepted__) {
+    if (!win.__ifind_fetch_intercepted__) {
       win.__ifind_fetch_intercepted__ = true;
       const originalFetch = window.fetch;
       window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
@@ -60,11 +61,21 @@ if (typeof window !== "undefined") {
           url = (input as Request).url;
         }
 
-        if (typeof url === "string" && (url.startsWith("/api/") || url === "/api")) {
-          const remoteUrl = apiUrl(url);
+        const isApi =
+          typeof url === "string" &&
+          (url.startsWith("/api/") ||
+            url === "/api" ||
+            url.includes("/api/"));
+
+        if (isApi && typeof url === "string") {
+          let targetUrl = url;
+          if (isNativeApp() && url.startsWith("/")) {
+            targetUrl = apiUrl(url);
+          }
+
           const headers = new Headers(init?.headers);
           const token = getMobileToken();
-          if (token && !headers.has("Authorization")) {
+          if (token && !headers.has("Authorization") && !headers.has("authorization")) {
             headers.set("Authorization", `Bearer ${token}`);
           }
           const updatedInit: RequestInit = {
@@ -72,7 +83,7 @@ if (typeof window !== "undefined") {
             headers,
             credentials: init?.credentials ?? "include",
           };
-          return originalFetch.call(this, remoteUrl, updatedInit);
+          return originalFetch.call(this, targetUrl, updatedInit);
         }
         return originalFetch.call(this, input, init);
       };

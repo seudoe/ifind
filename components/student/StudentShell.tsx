@@ -83,9 +83,9 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
     }
   }, [pathname]);
 
-  // Auto-sync token to device localStorage in native app if not already saved
+  // Auto-sync token to device localStorage if not already saved
   useEffect(() => {
-    if (typeof window !== "undefined" && isNativeApp() && !getMobileToken()) {
+    if (typeof window !== "undefined" && !getMobileToken()) {
       fetch("/api/auth/token", { credentials: "include" })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {

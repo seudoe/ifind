@@ -29,7 +29,8 @@ export async function getEmpSession(req?: Request): Promise<EmployerSession | nu
     if (req) {
         const auth = req.headers.get("authorization") || req.headers.get("x-auth-token");
         if (auth) {
-            token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+            const m = auth.match(/^bearer\s+(.+)$/i);
+            token = m ? m[1].trim() : auth.trim();
         }
     }
 
@@ -38,7 +39,8 @@ export async function getEmpSession(req?: Request): Promise<EmployerSession | nu
             const h = await headers();
             const auth = h.get("authorization") || h.get("x-auth-token");
             if (auth) {
-                token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+                const m = auth.match(/^bearer\s+(.+)$/i);
+                token = m ? m[1].trim() : auth.trim();
             }
         } catch {
             // outside request context

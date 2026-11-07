@@ -22,10 +22,14 @@ import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { safeNextPath } from "@/lib/authRedirect";
 import { apiUrl } from "@/lib/apiOrigin";
 import { useAndroidBackHandler } from "@/hooks/useAndroidBackHandler";
-import { saveMobileSession, getMobileSession } from "@/lib/mobileAuth";
+import { saveMobileSession, checkAuthData } from "@/lib/mobileAuth";
 
 export default function PhoneLandingPage() {
   const router = useRouter();
+  const [resuming, setResuming] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return checkAuthData().hasData;
+  });
   const [expanded, setExpanded] = useState(false);
   const [role, setRole] = useState<"student" | "employer">("student");
   const [tab, setTab] = useState<"login" | "register">("login");
@@ -51,24 +55,13 @@ export default function PhoneLandingPage() {
 
   // On mount: if the user already has a valid persistent session, resume their dashboard automatically
   useEffect(() => {
-    try {
-      const session = getMobileSession();
-      if (session?.token) {
-        if (session.role === "employer") {
-          const storedTab = localStorage.getItem("ifind_employer_last_tab");
-          router.replace(storedTab && storedTab.startsWith("/employer/") ? storedTab : "/employer/institutes");
-          return;
-        }
-        if (session.role === "student" && session.username) {
-          const storedTab = localStorage.getItem("ifind_student_last_tab");
-          const target = storedTab && storedTab.startsWith(`/user/${session.username}`)
-            ? storedTab
-            : `/user/${session.username}/overview`;
-          router.replace(target);
-          return;
-        }
-      }
-    } catch {}
+    const check = checkAuthData();
+    if (check.hasData && check.targetTab) {
+      setResuming(true);
+      router.replace(check.targetTab);
+    } else {
+      setResuming(false);
+    }
   }, [router]);
 
   // Bottom-sheet drag handling (only on the sheet and drag handle, NOT the page background)
@@ -295,6 +288,19 @@ export default function PhoneLandingPage() {
       setLoading(false);
     }
   };
+
+  if (resuming) {
+    return (
+      <div className="min-h-screen bg-[#0b0f17] flex flex-col items-center justify-center text-center p-6 select-none">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <Logo size="lg" onDark />
+          <p className="text-xs font-mono uppercase tracking-widest text-slate-400">
+            Resuming your session…
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-dvh flex flex-col bg-[var(--bg)] text-[var(--text)] select-none font-sans relative overflow-x-hidden">

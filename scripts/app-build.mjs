@@ -120,50 +120,40 @@ writeFileSync(
   join(work, 'app', 'page.tsx'),
   `'use client'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { getMobileSession } from '@/lib/mobileAuth'
+import { useEffect, useState } from 'react'
+import { checkAuthData } from '@/lib/mobileAuth'
+import { Logo } from '@/components/ui/Logo'
 
 export default function MobileEntryPage() {
   const router = useRouter()
+  const [resuming, setResuming] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return checkAuthData().hasData
+  })
 
   useEffect(() => {
-    try {
-      const session = getMobileSession()
-      const studentTab = localStorage.getItem('ifind_student_last_tab')
-      const employerTab = localStorage.getItem('ifind_employer_last_tab')
-      const lastPortal = localStorage.getItem('ifind_last_active_portal')
-
-      // If active session token exists, immediately resume the corresponding portal
-      if (session?.token) {
-        if (session.role === 'employer' || lastPortal === 'employer') {
-          router.replace(employerTab && employerTab.startsWith('/employer/') ? employerTab : '/employer/institutes')
-          return
-        }
-        if (session.username) {
-          router.replace(studentTab && studentTab.startsWith('/user/' + session.username) ? studentTab : '/user/' + session.username + '/overview')
-          return
-        }
-      }
-
-      if (lastPortal === 'employer' && employerTab) {
-        router.replace(employerTab)
-        return
-      }
-      if (studentTab) {
-        router.replace(studentTab)
-        return
-      }
-      if (employerTab) {
-        router.replace(employerTab)
-        return
-      }
-    } catch {
-      /* ignore */
+    const check = checkAuthData()
+    if (check.hasData && check.targetTab) {
+      setResuming(true)
+      router.replace(check.targetTab)
+    } else {
+      setResuming(false)
+      router.replace('/phone')
     }
-
-    // Default to /phone on mobile APK
-    router.replace('/phone')
   }, [router])
+
+  if (resuming) {
+    return (
+      <div className="min-h-screen bg-[#0b0f17] flex flex-col items-center justify-center text-center p-6 select-none">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <Logo size="lg" onDark />
+          <p className="text-xs font-mono uppercase tracking-widest text-slate-400">
+            Resuming your session…
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return null
 }
