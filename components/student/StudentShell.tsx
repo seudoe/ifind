@@ -24,6 +24,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { NAV_GROUPS, NOTIFICATIONS_CHANGED, findLink, type NavLink } from "@/lib/student-nav";
 import { linkedinState, linkedinTrusted, merged } from "@/lib/linkedinState";
+import { clearMobileSession, getMobileToken, saveMobileSession } from "@/lib/mobileAuth";
+import { isNativeApp } from "@/lib/apiOrigin";
 import type { User as StudentUser } from "@/types";
 
 function LinkedInStatusIndicator({ user }: { user: StudentUser }) {
@@ -81,6 +83,25 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
     }
   }, [pathname]);
 
+  // Auto-sync token to device localStorage in native app if not already saved
+  useEffect(() => {
+    if (typeof window !== "undefined" && isNativeApp() && !getMobileToken()) {
+      fetch("/api/auth/token", { credentials: "include" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.token && data?.role === "student") {
+            saveMobileSession({
+              token: data.token,
+              role: "student",
+              username: data.username || user.username,
+              email: user.email,
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
   // Hardware/gesture back button support for Android
   useAndroidBackHandler(() => {
     if (sheet) {
@@ -124,10 +145,7 @@ export function StudentShell({ children, user }: { children: React.ReactNode; us
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("ifind_student_last_tab");
-      localStorage.removeItem("ifind_last_active_portal");
-    }
+    clearMobileSession();
     const isMobile = isSmallScreen();
     router.push(isMobile ? "/phone" : "/user");
   };

@@ -109,12 +109,15 @@ export async function POST(request: NextRequest) {
         await User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() }, $inc: { loginCount: 1 } });
 
         const session = { userId: user.id, email: user.email, username: user.username, role: "student" as const };
-        const cookie = authCookie(signToken(session, user.tokenVersion ?? 0));
+        const token = signToken(session, user.tokenVersion ?? 0);
+        const cookie = authCookie(token);
         const response = NextResponse.json({
             success: true,
             message: loginNotice || "Logged in",
             notice: loginNotice,
-            data: { username: user.username },
+            token,
+            role: "student",
+            data: { username: user.username, token },
         });
         response.cookies.set(cookie.name, cookie.value, cookie.options);
         log.ok("auth/login", "user signed in", { username: user.username, role: "student", notice: loginNotice ? "account restored/reset" : undefined });

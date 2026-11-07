@@ -23,6 +23,8 @@ import { useTheme, type ThemePreference } from "@/components/theme/ThemeProvider
 import { cn } from "@/lib/utils";
 import { isSmallScreen } from "@/lib/isSmallScreen";
 import { useAndroidBackHandler } from "@/hooks/useAndroidBackHandler";
+import { clearMobileSession, getMobileToken, saveMobileSession } from "@/lib/mobileAuth";
+import { isNativeApp } from "@/lib/apiOrigin";
 
 const NAV: { label: string; href: string; icon: LucideIcon }[] = [
     { label: "Institutes", href: "/employer/institutes", icon: Building2 },
@@ -86,6 +88,24 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
         }
     }, [pathname, router]);
 
+    // Auto-sync token to device localStorage in native app if not already saved
+    useEffect(() => {
+        if (typeof window !== "undefined" && isNativeApp() && !getMobileToken()) {
+            fetch("/api/auth/token", { credentials: "include" })
+                .then((res) => (res.ok ? res.json() : null))
+                .then((data) => {
+                    if (data?.token && data?.role === "employer") {
+                        saveMobileSession({
+                            token: data.token,
+                            role: "employer",
+                            employerId: data.employerId,
+                        });
+                    }
+                })
+                .catch(() => {});
+        }
+    }, []);
+
     // Refresh the bell count on navigation and every 60 s
     useEffect(() => {
         const refresh = () =>
@@ -114,10 +134,7 @@ export function EmployerShell({ name, picture, unread: initialUnread, children }
 
     const logout = async () => {
         await fetch("/api/employer/auth/logout", { method: "POST", credentials: "include" });
-        if (typeof window !== "undefined") {
-            localStorage.removeItem("ifind_employer_last_tab");
-            localStorage.removeItem("ifind_last_active_portal");
-        }
+        clearMobileSession();
         const isMobile = isSmallScreen();
         router.push(isMobile ? "/phone" : "/employer/login");
     };

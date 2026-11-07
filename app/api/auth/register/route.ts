@@ -94,8 +94,15 @@ export async function POST(request: NextRequest) {
     });
     await welcomeStudent(user._id, user.username);
     const session = { userId: user.id, email: user.email, username: user.username, role: "student" as const };
-    const cookie = authCookie(signToken(session));
-    const response = NextResponse.json({ success: true, message: "Account created", data: { username: user.username } }, { status: 201 });
+    const token = signToken(session);
+    const cookie = authCookie(token);
+    const response = NextResponse.json({
+      success: true,
+      message: "Account created",
+      token,
+      role: "student",
+      data: { username: user.username, token },
+    }, { status: 201 });
     response.cookies.set(cookie.name, cookie.value, cookie.options);
     log.ok("auth/register", "account created", { username: user.username, city: city ?? undefined });
     after(() => sendServerEvent(request, "sign_up", { user_type: "student" }));

@@ -121,15 +121,29 @@ writeFileSync(
   `'use client'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { getMobileSession } from '@/lib/mobileAuth'
 
 export default function MobileEntryPage() {
   const router = useRouter()
 
   useEffect(() => {
     try {
+      const session = getMobileSession()
       const studentTab = localStorage.getItem('ifind_student_last_tab')
       const employerTab = localStorage.getItem('ifind_employer_last_tab')
       const lastPortal = localStorage.getItem('ifind_last_active_portal')
+
+      // If active session token exists, immediately resume the corresponding portal
+      if (session?.token) {
+        if (session.role === 'employer' || lastPortal === 'employer') {
+          router.replace(employerTab && employerTab.startsWith('/employer/') ? employerTab : '/employer/institutes')
+          return
+        }
+        if (session.username) {
+          router.replace(studentTab && studentTab.startsWith('/user/' + session.username) ? studentTab : '/user/' + session.username + '/overview')
+          return
+        }
+      }
 
       if (lastPortal === 'employer' && employerTab) {
         router.replace(employerTab)

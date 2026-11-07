@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { requireSecret } from "@/lib/secrets";
 
 const COOKIE_NAME = "ifind_token";
@@ -29,9 +29,39 @@ export function verifyToken(token: string): AuthSession | null {
   }
 }
 
-export async function getSession(): Promise<AuthSession | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
+export async function getSession(req?: Request): Promise<AuthSession | null> {
+  let token: string | undefined;
+
+  // 1. Try reading Authorization header (Mobile APK Bearer token)
+  if (req) {
+    const auth = req.headers.get("authorization") || req.headers.get("x-auth-token");
+    if (auth) {
+      token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+    }
+  }
+
+  if (!token) {
+    try {
+      const h = await headers();
+      const auth = h.get("authorization") || h.get("x-auth-token");
+      if (auth) {
+        token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+      }
+    } catch {
+      // outside request context
+    }
+  }
+
+  // 2. Fall back to Cookie (Standard Web Browsers)
+  if (!token) {
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get(COOKIE_NAME)?.value;
+    } catch {
+      // outside request context
+    }
+  }
+
   const session = token ? verifyToken(token) : null;
   if (!session) return null;
   // A token stays cryptographically valid for 30 days, so ban and revocation are checked against the database

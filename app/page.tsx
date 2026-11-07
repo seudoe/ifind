@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isSmallScreen } from "@/lib/isSmallScreen";
 import { apiUrl } from "@/lib/apiOrigin";
+import { getMobileSession } from "@/lib/mobileAuth";
 
 /**
  * Root index page.
@@ -22,9 +23,26 @@ export default function RootPage() {
 
   useEffect(() => {
     async function determineRoute() {
+      const session = getMobileSession();
       const lastPortal = typeof window !== "undefined" ? localStorage.getItem("ifind_last_active_portal") : null;
       const studentTab = typeof window !== "undefined" ? localStorage.getItem("ifind_student_last_tab") : null;
       const employerTab = typeof window !== "undefined" ? localStorage.getItem("ifind_employer_last_tab") : null;
+
+      // Fast path for mobile app: if persistent session token exists, resume instantly
+      if (session?.token) {
+        if (session.role === "employer" || lastPortal === "employer") {
+          const target = employerTab && employerTab.startsWith("/employer/") ? employerTab : "/employer/institutes";
+          router.replace(target);
+          return;
+        }
+        if (session.username) {
+          const target = studentTab && studentTab.startsWith(`/user/${session.username}`)
+            ? studentTab
+            : `/user/${session.username}/overview`;
+          router.replace(target);
+          return;
+        }
+      }
 
       // 1. If employer was active portal, check employer auth first
       if (lastPortal === "employer") {

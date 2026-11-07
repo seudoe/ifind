@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { requireSecret } from "@/lib/secrets";
 import type { EmployerSession } from "@/types/employer";
 
@@ -22,8 +22,39 @@ export function verifyEmpToken(token: string): EmployerSession | null {
     }
 }
 
-export async function getEmpSession(): Promise<EmployerSession | null> {
-    const token = (await cookies()).get(EMP_COOKIE_NAME)?.value;
+export async function getEmpSession(req?: Request): Promise<EmployerSession | null> {
+    let token: string | undefined;
+
+    // 1. Try reading Authorization header (Mobile APK Bearer token)
+    if (req) {
+        const auth = req.headers.get("authorization") || req.headers.get("x-auth-token");
+        if (auth) {
+            token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+        }
+    }
+
+    if (!token) {
+        try {
+            const h = await headers();
+            const auth = h.get("authorization") || h.get("x-auth-token");
+            if (auth) {
+                token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+            }
+        } catch {
+            // outside request context
+        }
+    }
+
+    // 2. Fall back to Cookie (Standard Web Browsers)
+    if (!token) {
+        try {
+            const cookieStore = await cookies();
+            token = cookieStore.get(EMP_COOKIE_NAME)?.value;
+        } catch {
+            // outside request context
+        }
+    }
+
     return token ? verifyEmpToken(token) : null;
 }
 

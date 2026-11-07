@@ -16,6 +16,7 @@ import { NextLink } from "@/components/auth/NextLink";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { resolveNext } from "@/lib/authRedirect";
+import { saveMobileSession } from "@/lib/mobileAuth";
 
 const schema = z.object({
     identifier: z.string().min(1, "Email or username is required"),
@@ -70,6 +71,14 @@ function UserLoginForm() {
       const json = await res.json();
       if (json.code === "linkedin_required") { setNeedsLinkedIn(true); return; }
       if (!res.ok) throw new Error(json.error || "Login failed");
+      if (json.token) {
+        saveMobileSession({
+          token: json.token,
+          role: "student",
+          username: json.data?.username,
+          email: data.identifier,
+        });
+      }
       if (json.notice) {
         toast.info(json.notice, { duration: 6000 });
       } else {

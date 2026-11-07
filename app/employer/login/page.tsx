@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Input }  from "@/components/ui/Input";
 import { toast }  from "sonner";
 import { LinkedInButton } from "@/components/auth/LinkedInButton";
+import { saveMobileSession } from "@/lib/mobileAuth";
 
 const schema = z.object({
   email:      z.string().min(1, "Email is required"),
@@ -43,6 +44,14 @@ export default function EmployerLoginPage() {
       const json = await res.json();
       if (json.code === "linkedin_required") { setNeedsLinkedIn(true); return; }
       if (!res.ok) throw new Error(json.error || "Login failed");
+      if (json.token) {
+        saveMobileSession({
+          token: json.token,
+          role: "employer",
+          employerId: json.data?.employerId,
+          email: data.email,
+        });
+      }
       toast.success("Welcome back!");
       const storedTab = typeof window !== "undefined" ? localStorage.getItem("ifind_employer_last_tab") : null;
       router.push(storedTab && storedTab.startsWith("/employer/") ? storedTab : "/employer/institutes");

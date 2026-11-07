@@ -1,3 +1,5 @@
+import { getMobileToken } from "@/lib/mobileAuth";
+
 /**
  * Detects whether the current runtime environment is a native Capacitor app
  * (e.g., Android APK served locally on https://localhost).
@@ -39,7 +41,8 @@ export function apiUrl(path: string): string {
 
 /**
  * Automatically intercepts relative /api/... fetch requests in a native app (Capacitor)
- * to point to the remote production backend and include credentials for cookie persistence.
+ * to point to the remote production backend, include persistent Bearer tokens,
+ * and maintain credentials for cookie persistence.
  */
 if (typeof window !== "undefined") {
   try {
@@ -59,8 +62,14 @@ if (typeof window !== "undefined") {
 
         if (typeof url === "string" && (url.startsWith("/api/") || url === "/api")) {
           const remoteUrl = apiUrl(url);
+          const headers = new Headers(init?.headers);
+          const token = getMobileToken();
+          if (token && !headers.has("Authorization")) {
+            headers.set("Authorization", `Bearer ${token}`);
+          }
           const updatedInit: RequestInit = {
             ...init,
+            headers,
             credentials: init?.credentials ?? "include",
           };
           return originalFetch.call(this, remoteUrl, updatedInit);

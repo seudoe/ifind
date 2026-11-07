@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,7 @@ import { LinkedInButton } from "@/components/auth/LinkedInButton";
 import { safeNextPath } from "@/lib/authRedirect";
 import { apiUrl } from "@/lib/apiOrigin";
 import { useAndroidBackHandler } from "@/hooks/useAndroidBackHandler";
+import { saveMobileSession, getMobileSession } from "@/lib/mobileAuth";
 
 export default function PhoneLandingPage() {
   const router = useRouter();
@@ -47,6 +48,28 @@ export default function PhoneLandingPage() {
     }
     return false;
   });
+
+  // On mount: if the user already has a valid persistent session, resume their dashboard automatically
+  useEffect(() => {
+    try {
+      const session = getMobileSession();
+      if (session?.token) {
+        if (session.role === "employer") {
+          const storedTab = localStorage.getItem("ifind_employer_last_tab");
+          router.replace(storedTab && storedTab.startsWith("/employer/") ? storedTab : "/employer/institutes");
+          return;
+        }
+        if (session.role === "student" && session.username) {
+          const storedTab = localStorage.getItem("ifind_student_last_tab");
+          const target = storedTab && storedTab.startsWith(`/user/${session.username}`)
+            ? storedTab
+            : `/user/${session.username}/overview`;
+          router.replace(target);
+          return;
+        }
+      }
+    } catch {}
+  }, [router]);
 
   // Bottom-sheet drag handling (only on the sheet and drag handle, NOT the page background)
   const [dragOffset, setDragOffset] = useState(0);
@@ -145,6 +168,16 @@ export default function PhoneLandingPage() {
         return;
       }
       if (!res.ok) throw new Error(data.error || "Login failed");
+
+      if (data.token) {
+        saveMobileSession({
+          token: data.token,
+          role: "student",
+          username: data.data?.username,
+          email: emailOrUser,
+        });
+      }
+
       toast.success("Welcome back!");
 
       const next = safeNextPath(new URLSearchParams(window.location.search).get("next"));
@@ -179,6 +212,16 @@ export default function PhoneLandingPage() {
         return;
       }
       if (!res.ok) throw new Error(data.error || "Login failed");
+
+      if (data.token) {
+        saveMobileSession({
+          token: data.token,
+          role: "employer",
+          employerId: data.data?.employerId,
+          email: emailOrUser,
+        });
+      }
+
       toast.success("Welcome back!");
 
       const storedTab = localStorage.getItem("ifind_employer_last_tab");
@@ -203,6 +246,16 @@ export default function PhoneLandingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed");
+
+      if (data.token) {
+        saveMobileSession({
+          token: data.token,
+          role: "student",
+          username: data.data?.username || username,
+          email,
+        });
+      }
+
       toast.success("Account created!");
       router.push(`/user/${username}/overview`);
     } catch (err) {
@@ -224,6 +277,16 @@ export default function PhoneLandingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed");
+
+      if (data.token) {
+        saveMobileSession({
+          token: data.token,
+          role: "employer",
+          employerId: data.data?.employerId,
+          email,
+        });
+      }
+
       toast.success("Employer account created!");
       router.push("/employer/institutes");
     } catch (err) {

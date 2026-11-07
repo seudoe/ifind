@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Internship, User } from "@/types";
 import { RECOMMENDATIONS_UPDATED } from "@/lib/recommendationProgress";
+import { isNativeApp } from "@/lib/apiOrigin";
+import { clearMobileSession } from "@/lib/mobileAuth";
 
 export interface StudentDashboardData {
   user: User;
@@ -31,7 +33,14 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await fetch("/api/user/dashboard", { credentials: "include" });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Unable to load student data");
+      if (!response.ok) {
+        if (response.status === 401 && isNativeApp()) {
+          clearMobileSession();
+          window.location.href = "/phone";
+          return;
+        }
+        throw new Error(body.error || "Unable to load student data");
+      }
       setData(body.data);
       setError(null);
     } catch (reason) {
