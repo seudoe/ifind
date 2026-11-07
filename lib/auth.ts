@@ -54,12 +54,8 @@ export async function getSession(req?: Request): Promise<AuthSession | null> {
 
   // 2. Fall back to Cookie (Standard Web Browsers)
   if (!token) {
-    try {
-      const cookieStore = await cookies();
-      token = cookieStore.get(COOKIE_NAME)?.value;
-    } catch {
-      // outside request context
-    }
+    const cookieStore = await cookies();
+    token = cookieStore.get(COOKIE_NAME)?.value;
   }
 
   const session = token ? verifyToken(token) : null;

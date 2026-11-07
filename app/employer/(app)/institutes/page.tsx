@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { InstitutesList } from "@/components/employer/InstitutesList";
 import { Button } from "@/components/ui/Button";
 import { listInstitutes } from "@/lib/campus/entities";
 import { getValidEmployer } from "@/lib/employer/access";
 
+export const dynamic = "force-dynamic";
+
 export default async function InstitutesPage() {
-    const employer = (await getValidEmployer())!; // layout guarantees it
+    const employer = await getValidEmployer();
+    if (!employer) redirect("/employer/login");
     const rows = await listInstitutes(employer._id);
 
     return (

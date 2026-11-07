@@ -47,12 +47,8 @@ export async function getEmpSession(req?: Request): Promise<EmployerSession | nu
 
     // 2. Fall back to Cookie (Standard Web Browsers)
     if (!token) {
-        try {
-            const cookieStore = await cookies();
-            token = cookieStore.get(EMP_COOKIE_NAME)?.value;
-        } catch {
-            // outside request context
-        }
+        const cookieStore = await cookies();
+        token = cookieStore.get(EMP_COOKIE_NAME)?.value;
     }
 
     return token ? verifyEmpToken(token) : null;
